@@ -86,6 +86,12 @@ namespace ignite {
      */
     class IgniteJvm::Context {
     public:
+		Context(IgniteErrorCallback errCb) : errCb(errCb) {
+			// No-op.
+		}
+
+		IgniteErrorCallback errCb;
+
         JavaVM* jvm;
 
         jclass c_Throwable;
@@ -143,16 +149,19 @@ namespace ignite {
     }
 
     /*
-    * Clear pending exception and throw it. Callee of this method must first ensure
+    * Clear pending exception and call error callback. Callee of this method must first ensure
     * that exception really happened.
     */
-    void clearAndThrow(JNIEnv* env, IgniteJvm::Context* jvmCtx) throw(IgniteException) {
+    void clearErrorAndRunCallback(JNIEnv* env, IgniteJvm::Context* jvmCtx) {
         assert (env->ExceptionCheck());
 
         jthrowable err = env->ExceptionOccurred();
 
-        if (!err)
-            throw IgniteException("Exception handler was called, but there is no pending Java exception.");
+        if (!err) {
+            jvmCtx->errCb("Exception handler was called, but there is no pending Java exception.", "");
+
+			return;
+		}
 
         env->ExceptionDescribe();
 
@@ -169,13 +178,13 @@ namespace ignite {
 
             env->ReleaseStringUTFChars(msg, str);
 
-            throw IgniteException(msgStr);
+			jvmCtx->errCb(msgStr, "");
         }
         else {
             if (env->ExceptionCheck())
-                clearAndThrow(env, jvmCtx);
+                clearErrorAndRunCallback(env, jvmCtx);
             else
-                throw IgniteException("Unknown ignite exception.");
+				jvmCtx->errCb("Unknown ignite exception.", "");
         }
     }
 
@@ -186,7 +195,7 @@ namespace ignite {
             env->DeleteLocalRef(localRef); // Clear local ref irrespective of result.
 
             if (!globalRef)
-                clearAndThrow(env, jvmCtx);
+                clearErrorAndRunCallback(env, jvmCtx);
 
             return globalRef;
         }
@@ -205,11 +214,11 @@ namespace ignite {
 
         ~IgniteInteropTarget();
 
-        jint inOp(jint type, void* ptr, jint len);
+        bool inOp(jint type, void* ptr, jint len);
 
         void* inOutOp(jint type, void* ptr, jint len);
 
-        void inOpAsync(jint type, void* ptr, jint len, IgniteAsyncCallback cb, void* data);
+        bool inOpAsync(jint type, void* ptr, jint len, IgniteAsyncCallback cb, void* data);
 
     private:
         /** */
@@ -228,20 +237,18 @@ namespace ignite {
         env->DeleteGlobalRef(obj);
     }
 
-    jint IgniteInteropTarget::inOp(jint type, void* ptr, jint len) {
+    bool IgniteInteropTarget::inOp(jint type, void* ptr, jint len) {
         JNIEnv* env = attach(jvmCtx);
 
         jint res = env->CallNonvirtualIntMethod(this->obj, this->cls, jvmCtx->m_InteropTarget_inOp, type, ptr, len);
 
         if (env->ExceptionCheck()) {
-            clearAndThrow(env, jvmCtx);
-
-            assert(false);
+            clearErrorAndRunCallback(env, jvmCtx);
 
             return 0;
         }
 
-        return res;
+        return 1;
     }
 
     void* IgniteInteropTarget::inOutOp(jint type, void* ptr, jint len) {
@@ -250,9 +257,7 @@ namespace ignite {
         jlong res = env->CallNonvirtualLongMethod(this->obj, this->cls, jvmCtx->m_InteropTarget_inOutOp, type, ptr, len);
 
         if (env->ExceptionCheck()) {
-            clearAndThrow(env, jvmCtx);
-
-            assert(false);
+            clearErrorAndRunCallback(env, jvmCtx);
 
             return NULL;
         }
@@ -260,13 +265,18 @@ namespace ignite {
         return (void*)res;
     }
 
-    void IgniteInteropTarget::inOpAsync(jint type, void* ptr, jint len, IgniteAsyncCallback cb, void* data) {
+    bool IgniteInteropTarget::inOpAsync(jint type, void* ptr, jint len, IgniteAsyncCallback cb, void* data) {
         JNIEnv* env = attach(jvmCtx);
 
         env->CallNonvirtualVoidMethod(this->obj, this->cls, jvmCtx->m_InteropTarget_inOutOpAsync, type, ptr, len, cb, data);
 
-        if (env->ExceptionCheck())
-            clearAndThrow(env, jvmCtx);
+        if (env->ExceptionCheck()) {
+            clearErrorAndRunCallback(env, jvmCtx);
+
+			return 0;
+		}
+
+		return 1;
     }
 
     class IgniteCache::Impl : public IgniteInteropTarget {
@@ -276,15 +286,17 @@ namespace ignite {
         }
     };
 
-    IgniteJvm::IgniteJvm() {
-        ctx = new Context();
+    IgniteJvm::IgniteJvm(IgniteErrorCallback errCb) {
+        assert (errCb);
+
+		ctx = new Context(errCb);
     }
 
     IgniteJvm::~IgniteJvm() {
         delete ctx;
     }
 
-    Ignite* IgniteJvm::startIgnite(char* cfgPath, char* igniteName) throw(IgniteException){
+    Ignite* IgniteJvm::startIgnite(char* cfgPath, char* igniteName) {
         JNIEnv* env = attach(ctx);
 
         jstring cfgPath0 = env->NewStringUTF(cfgPath);
@@ -305,12 +317,15 @@ namespace ignite {
         if (env->ExceptionCheck()) {
             assert (!igniteObj);
 
-            clearAndThrow(env, ctx);
+            clearErrorAndRunCallback(env, ctx);
 
-            assert (false);
+            return NULL;
         }
-        else if (!igniteObj)
-            throw IgniteException("Failed to start Ignite.");
+        else if (!igniteObj) {
+			ctx->errCb("Failed to start Ignite.", "");
+
+			return NULL;
+		}
 
         cout << "Started ignite" << endl;
 
@@ -323,12 +338,15 @@ namespace ignite {
         if (env->ExceptionCheck()) {
             assert (!interopProc);
 
-            clearAndThrow(env, ctx);
+            clearErrorAndRunCallback(env, ctx);
 
-            assert (false);
+            return NULL;
         }
-        else if (!interopProc)
-            throw IgniteException("Failed to get InteropProcessor.");
+        else if (!interopProc) {
+			ctx->errCb("Failed to get InteropProcessor.", "");
+
+			return NULL;
+		}
 
         Ignite* ignite0 = new Ignite(this);
 
@@ -360,9 +378,7 @@ namespace ignite {
             if (name0)
                 env->DeleteLocalRef(name0);
 
-            clearAndThrow(env, jvm->ctx);
-
-            assert(false);
+            clearErrorAndRunCallback(env, jvm->ctx);
 
             return NULL;
         }
@@ -373,14 +389,15 @@ namespace ignite {
             env->DeleteLocalRef(name0);
 
         if (env->ExceptionCheck()) {
-            clearAndThrow(env, jvm->ctx);
-
-            assert(false);
+            clearErrorAndRunCallback(env, jvm->ctx);
 
             return NULL;
         }
-        else if (!cache)
-            throw IgniteException("Failed to create cache.");
+        else if (!cache) {
+            jvm->ctx->errCb("Failed to create cache.", "");
+
+			return NULL;
+		}
 
         cache = localToGlobal(env, cache, jvm->ctx);
 
@@ -646,8 +663,10 @@ namespace ignite {
         return res;
     }
 
-    IGNITE_API_IMPORT_EXPORT IgniteJvm* testIgniteJvmStart() {
-        char* igniteHome;
+    IGNITE_API_IMPORT_EXPORT IgniteJvm* testIgniteJvmStart(IgniteErrorCallback errCb) {
+        assert(errCb);
+
+		char* igniteHome;
 
         igniteHome = getenv("IGNITE_HOME");
 
@@ -690,7 +709,7 @@ namespace ignite {
         char* errClsName;
         char* errMsg;
 
-        IgniteJvm* jvm = new IgniteJvm();
+        IgniteJvm* jvm = new IgniteJvm(errCb);
 
         int res = ContextInit(args, *jvm->ctx, &errClsName, &errMsg);
 
@@ -700,6 +719,8 @@ namespace ignite {
             delete jvm;
 
             cout << "Failed to create JVM: " << errMsg << endl;
+
+			errCb(errMsg, "");
 
             return NULL;
         }

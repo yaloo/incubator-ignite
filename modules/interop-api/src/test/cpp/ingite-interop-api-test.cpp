@@ -25,10 +25,45 @@
 using namespace ignite;
 using namespace std;
 
-TEST_CASE("StartIgnite", "[ignite]") {
-    IgniteJvm* jvm = testIgniteJvmStart();
+class TestError {
+};
 
-    REQUIRE_THROWS_AS(jvm->startIgnite("invalid config", "ignite1"), IgniteException);
+void testErrorCallback(const string& errMsg, const string& errCls) {
+	cout << "Test error callback [err=" << errMsg << "]" << endl;
+	
+	throw TestError();
+}
+
+TEST_CASE("Stream", "[ignite]") {
+	IgniteOutputStream out(1);
+
+	REQUIRE(sizeof(out) == 16);
+
+	out.writeByte(1);
+	out.writeInt(1024);
+	out.writeLong(2048);
+
+	out.writeByte(-1);
+	out.writeInt(-1024);
+	out.writeLong(-2048);
+
+	IgniteInputStream in(out.dataPointer(), out.position(), out.allocatedSize());
+
+	REQUIRE(in.readByte() == 1);
+	REQUIRE(in.readInt() == 1024);
+	REQUIRE(in.readLong() == 2048);
+
+	REQUIRE(in.readByte() == -1);
+	REQUIRE(in.readInt() == -1024);
+	REQUIRE(in.readLong() == -2048);
+}
+
+TEST_CASE("StartIgnite", "[ignite]") {
+	IgniteJvm* jvm = testIgniteJvmStart(testErrorCallback);
+
+    REQUIRE(jvm);
+
+	REQUIRE_THROWS_AS(jvm->startIgnite("invalid config", "ignite1"), TestError);
 
     Ignite* ignite = jvm->startIgnite("modules\\interop-api\\src\\test\\config\\test-single-node.xml", "ignite1");
     

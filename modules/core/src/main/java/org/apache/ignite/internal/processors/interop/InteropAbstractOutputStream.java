@@ -17,8 +17,6 @@
 
 package org.apache.ignite.internal.processors.interop;
 
-import org.apache.ignite.interop.*;
-
 /**
  * Base portable output stream.
  */

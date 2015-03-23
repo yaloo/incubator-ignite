@@ -20,8 +20,6 @@ package org.apache.ignite.internal.processors.interop;
 import org.apache.ignite.*;
 import org.apache.ignite.internal.*;
 
-import java.io.*;
-
 /**
  *
  */

@@ -26,7 +26,6 @@ import org.apache.ignite.internal.processors.*;
 import org.apache.ignite.internal.processors.cache.*;
 import org.apache.ignite.internal.processors.query.*;
 import org.apache.ignite.internal.util.*;
-import org.apache.ignite.internal.util.typedef.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 import org.apache.ignite.lang.*;
 import org.jetbrains.annotations.*;
@@ -327,7 +326,7 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
         /**
          *
          */
-        public IgniteCacheObjectImpl(Object val, byte[] valBytes) {
+        public IgniteCacheObjectImpl(Object val, ByteBuffer valBytes) {
             super(val, valBytes);
         }
 

@@ -50,7 +50,7 @@ public class GridQueryRequest implements Message {
     private Collection<GridCacheSqlQuery> qrys;
 
     /** */
-    private byte[] qrysBytes;
+    private ByteBuffer qrysBytes;
 
     /**
      * Default constructor.
@@ -66,7 +66,8 @@ public class GridQueryRequest implements Message {
      * @param qrys Queries.
      * @param qrysBytes Marshalled queries.
      */
-    public GridQueryRequest(long reqId, int pageSize, String space, Collection<GridCacheSqlQuery> qrys, byte[] qrysBytes) {
+    public GridQueryRequest(long reqId, int pageSize, String space, Collection<GridCacheSqlQuery> qrys,
+        ByteBuffer qrysBytes) {
         this.reqId = reqId;
         this.pageSize = pageSize;
         this.space = space;
@@ -132,7 +133,7 @@ public class GridQueryRequest implements Message {
                 writer.incrementState();
 
             case 1:
-                if (!writer.writeByteArray("qrysBytes", qrysBytes))
+                if (!writer.writeByteBuffer("qrysBytes", qrysBytes))
                     return false;
 
                 writer.incrementState();
@@ -171,7 +172,7 @@ public class GridQueryRequest implements Message {
                 reader.incrementState();
 
             case 1:
-                qrysBytes = reader.readByteArray("qrysBytes");
+                qrysBytes = reader.readByteBuffer("qrysBytes");
 
                 if (!reader.isLastRead())
                     return false;

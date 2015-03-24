@@ -42,7 +42,7 @@ public class OptimizedMarshallerTest extends GridCommonAbstractTest {
      * @return Marshaller.
      */
     private OptimizedMarshaller marshaller() {
-        OptimizedMarshallerUtils.clearCache();
+        U.clearClassCache();
 
         OptimizedMarshaller marsh = new OptimizedMarshaller();
 
@@ -282,7 +282,7 @@ public class OptimizedMarshallerTest extends GridCommonAbstractTest {
             ignite.compute().execute(taskClsName, 2);
 
             ConcurrentMap<Class<?>, OptimizedClassDescriptor> cache =
-                U.staticField(OptimizedMarshallerUtils.class, "DESC_BY_CLS");
+                U.field(ignite.configuration().getMarshaller(), "clsMap");
 
             assertTrue(cache.containsKey(jobCls));
 

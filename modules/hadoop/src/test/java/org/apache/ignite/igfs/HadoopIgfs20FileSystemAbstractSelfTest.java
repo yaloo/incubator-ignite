@@ -30,14 +30,12 @@ import org.apache.ignite.internal.util.*;
 import org.apache.ignite.internal.util.typedef.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 import org.apache.ignite.lang.*;
-import org.apache.ignite.spi.communication.*;
-import org.apache.ignite.spi.communication.tcp.*;
 import org.apache.ignite.spi.discovery.tcp.*;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.*;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.*;
 import org.apache.ignite.testframework.*;
-import org.jdk8.backport.*;
 import org.jetbrains.annotations.*;
+import org.jsr166.*;
 
 import java.io.*;
 import java.net.*;
@@ -157,11 +155,10 @@ public abstract class HadoopIgfs20FileSystemAbstractSelfTest extends IgfsCommonA
 
             cacheCfg.setName("partitioned");
             cacheCfg.setCacheMode(PARTITIONED);
-            cacheCfg.setDistributionMode(CacheDistributionMode.PARTITIONED_ONLY);
+            cacheCfg.setNearConfiguration(null);
             cacheCfg.setWriteSynchronizationMode(CacheWriteSynchronizationMode.FULL_SYNC);
             cacheCfg.setAffinityMapper(new IgfsGroupDataBlocksKeyMapper(GRP_SIZE));
             cacheCfg.setBackups(0);
-            cacheCfg.setQueryIndexEnabled(false);
             cacheCfg.setAtomicityMode(TRANSACTIONAL);
 
             CacheConfiguration metaCacheCfg = defaultCacheConfiguration();
@@ -169,7 +166,6 @@ public abstract class HadoopIgfs20FileSystemAbstractSelfTest extends IgfsCommonA
             metaCacheCfg.setName("replicated");
             metaCacheCfg.setCacheMode(REPLICATED);
             metaCacheCfg.setWriteSynchronizationMode(CacheWriteSynchronizationMode.FULL_SYNC);
-            metaCacheCfg.setQueryIndexEnabled(false);
             metaCacheCfg.setAtomicityMode(TRANSACTIONAL);
 
             IgniteConfiguration cfg = new IgniteConfiguration();
@@ -225,11 +221,10 @@ public abstract class HadoopIgfs20FileSystemAbstractSelfTest extends IgfsCommonA
 
         cacheCfg.setName("partitioned");
         cacheCfg.setCacheMode(PARTITIONED);
-        cacheCfg.setDistributionMode(CacheDistributionMode.PARTITIONED_ONLY);
+        cacheCfg.setNearConfiguration(null);
         cacheCfg.setWriteSynchronizationMode(CacheWriteSynchronizationMode.FULL_SYNC);
         cacheCfg.setAffinityMapper(new IgfsGroupDataBlocksKeyMapper(GRP_SIZE));
         cacheCfg.setBackups(0);
-        cacheCfg.setQueryIndexEnabled(false);
         cacheCfg.setAtomicityMode(TRANSACTIONAL);
 
         CacheConfiguration metaCacheCfg = defaultCacheConfiguration();
@@ -237,7 +232,6 @@ public abstract class HadoopIgfs20FileSystemAbstractSelfTest extends IgfsCommonA
         metaCacheCfg.setName("replicated");
         metaCacheCfg.setCacheMode(REPLICATED);
         metaCacheCfg.setWriteSynchronizationMode(CacheWriteSynchronizationMode.FULL_SYNC);
-        metaCacheCfg.setQueryIndexEnabled(false);
         metaCacheCfg.setAtomicityMode(TRANSACTIONAL);
 
         return new CacheConfiguration[] {metaCacheCfg, cacheCfg};

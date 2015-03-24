@@ -23,10 +23,12 @@ import org.apache.ignite.internal.util.io.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 import org.apache.ignite.marshaller.*;
 import org.jetbrains.annotations.*;
+import org.jsr166.*;
 import sun.misc.*;
 
 import java.io.*;
 import java.nio.*;
+import java.util.concurrent.*;
 
 /**
  * Optimized implementation of {@link org.apache.ignite.marshaller.Marshaller}. Unlike {@link org.apache.ignite.marshaller.jdk.JdkMarshaller},
@@ -91,6 +93,9 @@ public class OptimizedMarshaller extends AbstractMarshaller {
     /** ID mapper. */
     private OptimizedMarshallerIdMapper mapper;
 
+    /** Class descriptors by class. */
+    private final ConcurrentMap<Class, OptimizedClassDescriptor> clsMap = new ConcurrentHashMap8<>();
+
     /**
      * Creates new marshaller will all defaults.
      *
@@ -98,7 +103,7 @@ public class OptimizedMarshaller extends AbstractMarshaller {
      */
     public OptimizedMarshaller() {
         if (!available())
-            throw new IgniteException("Using GridOptimizedMarshaller on unsupported JVM version (some of " +
+            throw new IgniteException("Using OptimizedMarshaller on unsupported JVM version (some of " +
                 "JVM-private APIs required for the marshaller to work are missing).");
     }
 
@@ -151,7 +156,7 @@ public class OptimizedMarshaller extends AbstractMarshaller {
             // TODO: IGNITE-471 - Need adaptive initial size.
             objOut = new OptimizedObjectOutputStream(new GridUnsafeDataOutput(initBufSize));
 
-            objOut.context(ctx, mapper, requireSer);
+            objOut.context(clsMap, ctx, mapper, requireSer);
 
             objOut.out().outputStream(out);
 
@@ -173,7 +178,7 @@ public class OptimizedMarshaller extends AbstractMarshaller {
             // TODO: IGNITE-471 - Need adaptive initial size.
             objOut = new OptimizedObjectOutputStream(new GridUnsafeDataOutput(initBufSize));
 
-            objOut.context(ctx, mapper, requireSer);
+            objOut.context(clsMap, ctx, mapper, requireSer);
 
             objOut.writeObject(obj);
 
@@ -197,7 +202,7 @@ public class OptimizedMarshaller extends AbstractMarshaller {
         try {
             objIn = new OptimizedObjectInputStream(new GridUnsafeDataInput());
 
-            objIn.context(ctx, mapper, clsLdr != null ? clsLdr : dfltClsLdr);
+            objIn.context(clsMap, ctx, mapper, clsLdr != null ? clsLdr : dfltClsLdr);
 
             objIn.in().inputStream(in);
 
@@ -227,7 +232,7 @@ public class OptimizedMarshaller extends AbstractMarshaller {
         try {
             objIn = new OptimizedObjectInputStream(new GridUnsafeDataInput());
 
-            objIn.context(ctx, mapper, clsLdr != null ? clsLdr : dfltClsLdr);
+            objIn.context(clsMap, ctx, mapper, clsLdr != null ? clsLdr : dfltClsLdr);
 
             // TODO: IGNITE-471 - Position is not moved.
             objIn.in().bytes(buf.array(), buf.position(), buf.remaining());
@@ -283,14 +288,12 @@ public class OptimizedMarshaller extends AbstractMarshaller {
      *
      * @param ldr Class loader being undeployed.
      */
-    public static void onUndeploy(ClassLoader ldr) {
-        OptimizedMarshallerUtils.onUndeploy(ldr);
-    }
+    public void onUndeploy(ClassLoader ldr) {
+        for (Class<?> cls : clsMap.keySet()) {
+            if (ldr.equals(cls.getClassLoader()))
+                clsMap.remove(cls);
+        }
 
-    /**
-     * Clears internal caches and frees memory. Usually called on system stop.
-     */
-    public static void clearCache() {
-        OptimizedMarshallerUtils.clearCache();
+        U.clearClassCache(ldr);
     }
 }

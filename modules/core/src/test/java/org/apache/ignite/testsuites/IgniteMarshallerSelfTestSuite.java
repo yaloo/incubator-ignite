@@ -37,6 +37,8 @@ public class IgniteMarshallerSelfTestSuite extends TestSuite {
         suite.addTest(new TestSuite(OptimizedMarshallerSelfTest.class));
         suite.addTest(new TestSuite(OptimizedMarshallerTest.class));
         suite.addTest(new TestSuite(OptimizedObjectStreamSelfTest.class));
+        suite.addTest(new TestSuite(OptimizedMarshallerNodeFailoverTest.class));
+        suite.addTest(new TestSuite(OptimizedMarshallerSerialPersistentFieldsSelfTest.class));
 
         return suite;
     }

@@ -38,9 +38,11 @@ import org.apache.ignite.internal.util.tostring.*;
 import org.apache.ignite.internal.util.typedef.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 import org.apache.ignite.lang.*;
-import org.jdk8.backport.*;
+import org.apache.ignite.stream.*;
 import org.jetbrains.annotations.*;
+import org.jsr166.*;
 
+import javax.cache.*;
 import java.nio.*;
 import java.util.*;
 import java.util.Map.*;
@@ -56,11 +58,11 @@ import static org.apache.ignite.internal.managers.communication.GridIoPolicy.*;
  */
 @SuppressWarnings("unchecked")
 public class DataStreamerImpl<K, V> implements IgniteDataStreamer<K, V>, Delayed {
-    /** Isolated updater. */
-    private static final Updater ISOLATED_UPDATER = new IsolatedUpdater();
+    /** Isolated receiver. */
+    private static final StreamReceiver ISOLATED_UPDATER = new IsolatedUpdater();
 
-    /** Cache updater. */
-    private Updater<K, V> updater = ISOLATED_UPDATER;
+    /** Cache receiver. */
+    private StreamReceiver<K, V> rcvr = ISOLATED_UPDATER;
 
     /** */
     private ByteBuffer updaterBytes;
@@ -183,7 +185,7 @@ public class DataStreamerImpl<K, V> implements IgniteDataStreamer<K, V>, Delayed
         if (node == null)
             throw new IllegalStateException("Cache doesn't exist: " + cacheName);
 
-        this.cacheObjCtx = ctx.cacheObjects().contextForCache(node, cacheName);
+        this.cacheObjCtx = ctx.cacheObjects().contextForCache(node, cacheName, null);
         this.cacheName = cacheName;
         this.flushQ = flushQ;
 
@@ -287,15 +289,15 @@ public class DataStreamerImpl<K, V> implements IgniteDataStreamer<K, V>, Delayed
     }
 
     /** {@inheritDoc} */
-    @Override public void updater(Updater<K, V> updater) {
-        A.notNull(updater, "updater");
+    @Override public void receiver(StreamReceiver<K, V> rcvr) {
+        A.notNull(rcvr, "rcvr");
 
-        this.updater = updater;
+        this.rcvr = rcvr;
     }
 
     /** {@inheritDoc} */
     @Override public boolean allowOverwrite() {
-        return updater != ISOLATED_UPDATER;
+        return rcvr != ISOLATED_UPDATER;
     }
 
     /** {@inheritDoc} */
@@ -306,9 +308,9 @@ public class DataStreamerImpl<K, V> implements IgniteDataStreamer<K, V>, Delayed
         ClusterNode node = F.first(ctx.grid().cluster().forCacheNodes(cacheName).nodes());
 
         if (node == null)
-            throw new IgniteException("Failed to get node for cache: " + cacheName);
+            throw new CacheException("Failed to get node for cache: " + cacheName);
 
-        updater = allow ? DataStreamerCacheUpdaters.<K, V>individual() : ISOLATED_UPDATER;
+        rcvr = allow ? DataStreamerCacheUpdaters.<K, V>individual() : ISOLATED_UPDATER;
     }
 
     /** {@inheritDoc} */
@@ -538,7 +540,7 @@ public class DataStreamerImpl<K, V> implements IgniteDataStreamer<K, V>, Delayed
                 if (initPda) {
                     jobPda = new DataStreamerPda(key.value(cacheObjCtx, false),
                         entry.getValue() != null ? entry.getValue().value(cacheObjCtx, false) : null,
-                        updater);
+                        rcvr);
 
                     initPda = false;
                 }
@@ -651,8 +653,22 @@ public class DataStreamerImpl<K, V> implements IgniteDataStreamer<K, V>, Delayed
     private List<ClusterNode> nodes(KeyCacheObject key) throws IgniteCheckedException {
         GridAffinityProcessor aff = ctx.affinity();
 
-        return !allowOverwrite() ? aff.mapKeyToPrimaryAndBackups(cacheName, key) :
-            Collections.singletonList(aff.mapKeyToNode(cacheName, key));
+        List<ClusterNode> res = null;
+
+        if (!allowOverwrite())
+            res = aff.mapKeyToPrimaryAndBackups(cacheName, key);
+        else {
+            ClusterNode node = aff.mapKeyToNode(cacheName, key);
+
+            if (node != null)
+                res = Collections.singletonList(node);
+        }
+
+        if (F.isEmpty(res))
+            throw new ClusterTopologyServerNotFoundException("Failed to find server node for cache (all affinity " +
+                "nodes have left the grid or cache was stopped): " + cacheName);
+
+        return res;
     }
 
     /**
@@ -745,14 +761,14 @@ public class DataStreamerImpl<K, V> implements IgniteDataStreamer<K, V>, Delayed
 
     /** {@inheritDoc} */
     @SuppressWarnings("ForLoopReplaceableByForEach")
-    @Override public void flush() throws IgniteException {
+    @Override public void flush() throws CacheException {
         enterBusy();
 
         try {
             doFlush();
         }
         catch (IgniteCheckedException e) {
-            throw U.convertException(e);
+            throw GridCacheUtils.convertToCacheException(e);
         }
         finally {
             leaveBusy();
@@ -777,7 +793,7 @@ public class DataStreamerImpl<K, V> implements IgniteDataStreamer<K, V>, Delayed
             lastFlushTime = U.currentTimeMillis();
         }
         catch (IgniteInterruptedCheckedException e) {
-            throw U.convertException(e);
+            throw GridCacheUtils.convertToCacheException(e);
         }
         finally {
             leaveBusy();
@@ -786,14 +802,14 @@ public class DataStreamerImpl<K, V> implements IgniteDataStreamer<K, V>, Delayed
 
     /**
      * @param cancel {@code True} to close with cancellation.
-     * @throws IgniteException If failed.
+     * @throws CacheException If failed.
      */
-    @Override public void close(boolean cancel) throws IgniteException {
+    @Override public void close(boolean cancel) throws CacheException {
         try {
             closeEx(cancel);
         }
         catch (IgniteCheckedException e) {
-            throw U.convertException(e);
+            throw GridCacheUtils.convertToCacheException(e);
         }
     }
 
@@ -845,7 +861,7 @@ public class DataStreamerImpl<K, V> implements IgniteDataStreamer<K, V>, Delayed
     }
 
     /** {@inheritDoc} */
-    @Override public void close() throws IgniteException {
+    @Override public void close() throws CacheException {
         close(false);
     }
 
@@ -1069,7 +1085,7 @@ public class DataStreamerImpl<K, V> implements IgniteDataStreamer<K, V>, Delayed
 
             if (isLocNode) {
                 fut = ctx.closure().callLocalSafe(
-                    new DataStreamerUpdateJob(ctx, log, cacheName, entries, false, skipStore, updater), false);
+                    new DataStreamerUpdateJob(ctx, log, cacheName, entries, false, skipStore, rcvr), false);
 
                 locFuts.add(fut);
 
@@ -1100,9 +1116,9 @@ public class DataStreamerImpl<K, V> implements IgniteDataStreamer<K, V>, Delayed
                     }
 
                     if (updaterBytes == null) {
-                        assert updater != null;
+                        assert rcvr != null;
 
-                        updaterBytes = ctx.config().getMarshaller().marshal(updater);
+                        updaterBytes = ctx.config().getMarshaller().marshal(rcvr);
                     }
 
                     if (topicBytes == null)
@@ -1349,55 +1365,62 @@ public class DataStreamerImpl<K, V> implements IgniteDataStreamer<K, V>, Delayed
     }
 
     /**
-     * Isolated updater which only loads entry initial value.
+     * Isolated receiver which only loads entry initial value.
      */
-    private static class IsolatedUpdater implements Updater<KeyCacheObject, CacheObject>,
+    private static class IsolatedUpdater implements StreamReceiver<KeyCacheObject, CacheObject>,
         DataStreamerCacheUpdaters.InternalUpdater {
         /** */
         private static final long serialVersionUID = 0L;
 
         /** {@inheritDoc} */
-        @Override public void update(IgniteCache<KeyCacheObject, CacheObject> cache,
+        @Override public void receive(IgniteCache<KeyCacheObject, CacheObject> cache,
             Collection<Map.Entry<KeyCacheObject, CacheObject>> entries) {
             IgniteCacheProxy<KeyCacheObject, CacheObject> proxy = (IgniteCacheProxy<KeyCacheObject, CacheObject>)cache;
 
-            GridCacheAdapter<KeyCacheObject, CacheObject> internalCache = proxy.context().cache();
+            proxy.gate().enter();
 
-            if (internalCache.isNear())
-                internalCache = internalCache.context().near().dht();
+            try {
+                GridCacheAdapter<KeyCacheObject, CacheObject> internalCache = proxy.context().cache();
 
-            GridCacheContext cctx = internalCache.context();
+                if (internalCache.isNear())
+                    internalCache = internalCache.context().near().dht();
 
-            long topVer = cctx.affinity().affinityTopologyVersion();
+                GridCacheContext cctx = internalCache.context();
 
-            GridCacheVersion ver = cctx.versions().next(topVer);
+                AffinityTopologyVersion topVer = cctx.affinity().affinityTopologyVersion();
 
-            for (Map.Entry<KeyCacheObject, CacheObject> e : entries) {
-                try {
-                    e.getKey().finishUnmarshal(cctx.cacheObjectContext(), cctx.deploy().globalLoader());
+                GridCacheVersion ver = cctx.versions().next(topVer);
 
-                    GridCacheEntryEx entry = internalCache.entryEx(e.getKey(), topVer);
+                for (Entry<KeyCacheObject, CacheObject> e : entries) {
+                    try {
+                        e.getKey().finishUnmarshal(cctx.cacheObjectContext(), cctx.deploy().globalLoader());
 
-                    entry.unswap(true, false);
+                        GridCacheEntryEx entry = internalCache.entryEx(e.getKey(), topVer);
 
-                    entry.initialValue(e.getValue(),
-                        ver,
-                        CU.TTL_ETERNAL,
-                        CU.EXPIRE_TIME_ETERNAL,
-                        false,
-                        topVer,
-                        GridDrType.DR_LOAD);
+                        entry.unswap(true, false);
 
-                    cctx.evicts().touch(entry, topVer);
+                        entry.initialValue(e.getValue(),
+                            ver,
+                            CU.TTL_ETERNAL,
+                            CU.EXPIRE_TIME_ETERNAL,
+                            false,
+                            topVer,
+                            GridDrType.DR_LOAD);
+
+                        cctx.evicts().touch(entry, topVer);
+                    }
+                    catch (GridDhtInvalidPartitionException | GridCacheEntryRemovedException ignored) {
+                        // No-op.
+                    }
+                    catch (IgniteCheckedException ex) {
+                        IgniteLogger log = cache.unwrap(Ignite.class).log();
+
+                        U.error(log, "Failed to set initial value for cache entry: " + e, ex);
+                    }
                 }
-                catch (GridDhtInvalidPartitionException | GridCacheEntryRemovedException ignored) {
-                    // No-op.
-                }
-                catch (IgniteCheckedException ex) {
-                    IgniteLogger log = cache.unwrap(Ignite.class).log();
-
-                    U.error(log, "Failed to set initial value for cache entry: " + e, ex);
-                }
+            }
+            finally {
+                proxy.gate().leave();
             }
         }
     }

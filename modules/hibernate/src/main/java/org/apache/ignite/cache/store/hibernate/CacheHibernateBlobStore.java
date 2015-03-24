@@ -299,7 +299,7 @@ public class CacheHibernateBlobStore<K, V> extends CacheStoreAdapter<K, V> {
      */
     private void rollback(SharedSessionContract ses, Transaction tx) {
         // Rollback only if there is no cache transaction,
-        // otherwise txEnd() will do all required work.
+        // otherwise sessionEnd() will do all required work.
         if (tx == null) {
             org.hibernate.Transaction hTx = ses.getTransaction();
 
@@ -316,7 +316,7 @@ public class CacheHibernateBlobStore<K, V> extends CacheStoreAdapter<K, V> {
      */
     private void end(Session ses, Transaction tx) {
         // Commit only if there is no cache transaction,
-        // otherwise txEnd() will do all required work.
+        // otherwise sessionEnd() will do all required work.
         if (tx == null) {
             org.hibernate.Transaction hTx = ses.getTransaction();
 
@@ -328,7 +328,7 @@ public class CacheHibernateBlobStore<K, V> extends CacheStoreAdapter<K, V> {
     }
 
     /** {@inheritDoc} */
-    @Override public void txEnd(boolean commit) {
+    @Override public void sessionEnd(boolean commit) {
         init();
 
         Transaction tx = transaction();

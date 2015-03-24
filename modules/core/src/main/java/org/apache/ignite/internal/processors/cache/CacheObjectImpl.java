@@ -55,6 +55,12 @@ public class CacheObjectImpl extends CacheObjectAdapter {
 
         try {
             if (cpy) {
+                if (valBytes == null) {
+                    assert val != null;
+
+                    valBytes = ctx.processor().marshal(ctx, val);
+                }
+
                 return (T)ctx.processor().unmarshal(ctx, valBytes,
                     val == null ? ctx.kernalContext().config().getClassLoader() : val.getClass().getClassLoader());
             }

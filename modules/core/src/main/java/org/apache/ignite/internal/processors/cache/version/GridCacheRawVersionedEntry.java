@@ -54,7 +54,7 @@ public class GridCacheRawVersionedEntry<K, V> extends DataStreamerEntry implemen
     private GridCacheVersion ver;
 
     /**
-     * {@code Externalizable) support.
+     * {@code Externalizable} support.
      */
     public GridCacheRawVersionedEntry() {
         // No-op.
@@ -369,6 +369,9 @@ public class GridCacheRawVersionedEntry<K, V> extends DataStreamerEntry implemen
 
     /** {@inheritDoc} */
     @Override public String toString() {
-        return S.toString(GridCacheRawVersionedEntry.class, this);
+        return S.toString(GridCacheRawVersionedEntry.class, this,
+            "keyBytesLen", keyBytes != null ? keyBytes.limit() : "n/a",
+            "valBytesLen", valBytes != null ? valBytes.limit() : "n/a",
+            "super", super.toString());
     }
 }

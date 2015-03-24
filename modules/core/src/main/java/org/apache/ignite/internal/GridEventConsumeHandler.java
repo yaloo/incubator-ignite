@@ -21,6 +21,7 @@ import org.apache.ignite.*;
 import org.apache.ignite.cluster.*;
 import org.apache.ignite.events.*;
 import org.apache.ignite.internal.managers.deployment.*;
+import org.apache.ignite.internal.managers.discovery.*;
 import org.apache.ignite.internal.managers.eventstorage.*;
 import org.apache.ignite.internal.processors.cache.*;
 import org.apache.ignite.internal.processors.continuous.*;
@@ -44,7 +45,7 @@ class GridEventConsumeHandler implements GridContinuousHandler {
     private static final long serialVersionUID = 0L;
 
     /** Default callback. */
-    private static final P2<UUID, Event> DFLT_CALLBACK = new P2<UUID, Event>() {
+    private static final IgniteBiPredicate<UUID,Event> DFLT_CALLBACK = new P2<UUID, Event>() {
         @Override public boolean apply(UUID uuid, Event e) {
             return true;
         }
@@ -107,7 +108,12 @@ class GridEventConsumeHandler implements GridContinuousHandler {
     }
 
     /** {@inheritDoc} */
-    @Override public boolean register(final UUID nodeId, final UUID routineId, final GridKernalContext ctx)
+    @Override public String cacheName() {
+        throw new IllegalStateException();
+    }
+
+    /** {@inheritDoc} */
+    @Override public RegisterStatus register(final UUID nodeId, final UUID routineId, final GridKernalContext ctx)
         throws IgniteCheckedException {
         assert nodeId != null;
         assert routineId != null;
@@ -129,7 +135,9 @@ class GridEventConsumeHandler implements GridContinuousHandler {
                             ctx.continuous().stopRoutine(routineId);
                     }
                     else {
-                        ClusterNode node = ctx.discovery().node(nodeId);
+                        GridDiscoveryManager disco = ctx.discovery();
+
+                        ClusterNode node = disco.node(nodeId);
 
                         if (node != null) {
                             try {
@@ -138,7 +146,7 @@ class GridEventConsumeHandler implements GridContinuousHandler {
                                 if (evt instanceof CacheEvent) {
                                     String cacheName = ((CacheEvent)evt).cacheName();
 
-                                    if (ctx.config().isPeerClassLoadingEnabled() && U.hasCache(node, cacheName)) {
+                                    if (ctx.config().isPeerClassLoadingEnabled() && disco.cacheNode(node, cacheName)) {
                                         wrapper.p2pMarshal(ctx.config().getMarshaller());
 
                                         wrapper.cacheName = cacheName;
@@ -166,7 +174,7 @@ class GridEventConsumeHandler implements GridContinuousHandler {
 
         ctx.event().addLocalEventListener(lsnr, types);
 
-        return true;
+        return RegisterStatus.REGISTERED;
     }
 
     /** {@inheritDoc} */

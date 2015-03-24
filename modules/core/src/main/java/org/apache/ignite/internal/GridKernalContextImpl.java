@@ -56,9 +56,9 @@ import org.apache.ignite.internal.processors.security.*;
 import org.apache.ignite.internal.processors.segmentation.*;
 import org.apache.ignite.internal.processors.service.*;
 import org.apache.ignite.internal.processors.session.*;
-import org.apache.ignite.internal.processors.spring.*;
 import org.apache.ignite.internal.processors.task.*;
 import org.apache.ignite.internal.processors.timeout.*;
+import org.apache.ignite.internal.util.spring.*;
 import org.apache.ignite.internal.util.*;
 import org.apache.ignite.internal.util.tostring.*;
 import org.apache.ignite.internal.util.typedef.*;
@@ -236,7 +236,7 @@ public class GridKernalContextImpl implements GridKernalContext, Externalizable 
 
     /** */
     @GridToStringExclude
-    private IgniteSpringProcessor spring;
+    private IgniteSpringHelper spring;
 
     /** */
     @GridToStringExclude
@@ -387,6 +387,13 @@ public class GridKernalContextImpl implements GridKernalContext, Externalizable 
      * @param comp Manager to add.
      */
     public void add(GridComponent comp) {
+        add(comp, true);
+    }
+
+    /**
+     * @param comp Manager to add.
+     */
+    public void add(GridComponent comp, boolean addToList) {
         assert comp != null;
 
         /*
@@ -477,7 +484,8 @@ public class GridKernalContextImpl implements GridKernalContext, Externalizable 
         else
             assert (comp instanceof GridPluginComponent) : "Unknown manager class: " + comp.getClass();
 
-        comps.add(comp);
+        if (addToList)
+            comps.add(comp);
     }
 
     /**

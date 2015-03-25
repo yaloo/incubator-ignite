@@ -2577,7 +2577,7 @@ public class IgniteKernal implements IgniteEx, IgniteMXBean, Externalizable {
     }
 
     /** {@inheritDoc} */
-    @Override public <K> CacheAffinity<K> affinity(String cacheName) {
+    @Override public <K> Affinity<K> affinity(String cacheName) {
         GridCacheAdapter<K, ?> cache = ctx.cache().internalCache(cacheName);
 
         if (cache != null)

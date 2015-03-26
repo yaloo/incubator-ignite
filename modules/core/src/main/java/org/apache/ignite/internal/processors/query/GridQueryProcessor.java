@@ -440,6 +440,15 @@ public class GridQueryProcessor extends GridProcessorAdapter {
     }
 
     /**
+     * @throws IgniteException If indexing is disabled.
+     */
+    private void checkxEnabled() throws IgniteException {
+        if (idx == null)
+            throw new IgniteException("Failed to execute query because indexing is disabled (consider adding module " +
+                INDEXING.module() + " to classpath or moving it from 'optional' to 'libs' folder).");
+    }
+
+    /**
      * @param space Space.
      * @param clause Clause.
      * @param params Parameters collection.
@@ -476,6 +485,8 @@ public class GridQueryProcessor extends GridProcessorAdapter {
      * @return Cursor.
      */
     public QueryCursor<List<?>> queryTwoStep(String space, GridCacheTwoStepQuery qry) {
+        checkxEnabled();
+
         if (!busyLock.enterBusy())
             throw new IllegalStateException("Failed to execute query (grid is stopping).");
 
@@ -493,6 +504,8 @@ public class GridQueryProcessor extends GridProcessorAdapter {
      * @return Cursor.
      */
     public QueryCursor<List<?>> queryTwoStep(GridCacheContext<?,?> cctx, SqlFieldsQuery qry) {
+        checkxEnabled();
+
         if (!busyLock.enterBusy())
             throw new IllegalStateException("Failed to execute query (grid is stopping).");
 
@@ -510,6 +523,8 @@ public class GridQueryProcessor extends GridProcessorAdapter {
      * @return Cursor.
      */
     public <K,V> QueryCursor<Cache.Entry<K,V>> queryTwoStep(GridCacheContext<?,?> cctx, SqlQuery qry) {
+        checkxEnabled();
+
         if (!busyLock.enterBusy())
             throw new IllegalStateException("Failed to execute query (grid is stopping).");
 

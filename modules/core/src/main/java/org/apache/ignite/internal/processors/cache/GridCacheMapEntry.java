@@ -937,7 +937,7 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
     /**
      * @param nodeId Node ID.
      */
-    protected void recordNodeId(UUID nodeId) {
+    protected void recordNodeId(UUID nodeId, AffinityTopologyVersion topVer) {
         // No-op.
     }
 
@@ -1053,7 +1053,7 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
 
             drReplicate(drType, val, newVer);
 
-            recordNodeId(affNodeId);
+            recordNodeId(affNodeId, topVer);
 
             if (metrics && cctx.cache().configuration().isStatisticsEnabled())
                 cctx.cache().metrics0().onWrite();
@@ -1257,7 +1257,7 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
                             log.debug("Entry could not be marked obsolete (it is still used): " + this);
                     }
                     else {
-                        recordNodeId(affNodeId);
+                        recordNodeId(affNodeId, topVer);
 
                         // If entry was not marked obsolete, then removed lock
                         // will be registered whenever removeLock is called.
@@ -1605,6 +1605,7 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
         boolean metrics,
         boolean primary,
         boolean verCheck,
+        AffinityTopologyVersion topVer,
         @Nullable CacheEntryPredicate[] filter,
         GridDrType drType,
         long explicitTtl,
@@ -2065,7 +2066,7 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
 
                 drReplicate(drType, updated, newVer);
 
-                recordNodeId(affNodeId);
+                recordNodeId(affNodeId, topVer);
 
                 if (evt) {
                     CacheObject evtOld = null;
@@ -2149,7 +2150,7 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
 
                 clearReaders();
 
-                recordNodeId(affNodeId);
+                recordNodeId(affNodeId, topVer);
 
                 drReplicate(drType, null, newVer);
 

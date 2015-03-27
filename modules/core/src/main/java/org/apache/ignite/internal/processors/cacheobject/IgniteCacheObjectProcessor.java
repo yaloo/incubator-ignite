@@ -93,23 +93,6 @@ public interface IgniteCacheObjectProcessor extends GridProcessor {
     public boolean hasField(Object obj, String fieldName);
 
     /**
-     * @param ctx Cache object context.
-     * @param val Value.
-     * @return Value bytes.
-     * @throws IgniteCheckedException If failed.
-     */
-    public ByteBuffer marshal(CacheObjectContext ctx, Object val) throws IgniteCheckedException;
-
-    /**
-     * @param ctx Context.
-     * @param bytes Bytes.
-     * @param clsLdr Class loader.
-     * @return Unmarshalled object.
-     * @throws IgniteCheckedException If failed.
-     */
-    public Object unmarshal(CacheObjectContext ctx, ByteBuffer bytes, ClassLoader clsLdr) throws IgniteCheckedException;
-
-    /**
      * @param node Node.
      * @param cacheName Cache name.
      * @return Cache object context.

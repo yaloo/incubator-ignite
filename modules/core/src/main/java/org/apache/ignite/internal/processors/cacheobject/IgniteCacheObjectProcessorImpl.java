@@ -84,18 +84,6 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
     }
 
     /** {@inheritDoc} */
-    @Override public ByteBuffer marshal(CacheObjectContext ctx, Object val) throws IgniteCheckedException {
-        return CU.marshal(ctx.kernalContext().cache().context(), val);
-    }
-
-    /** {@inheritDoc} */
-    @Override public Object unmarshal(CacheObjectContext ctx, ByteBuffer bytes, ClassLoader clsLdr)
-        throws IgniteCheckedException
-    {
-        return ctx.kernalContext().cache().context().marshaller().unmarshal(bytes, clsLdr);
-    }
-
-    /** {@inheritDoc} */
     @Nullable public KeyCacheObject toCacheKeyObject(CacheObjectContext ctx, Object obj, boolean userObj) {
         if (obj instanceof KeyCacheObject)
             return (KeyCacheObject)obj;

@@ -291,7 +291,8 @@ public abstract class GridSwapSpaceSpiAbstractSelfTest extends GridCommonAbstrac
         final CountDownLatch rmvLatch = new CountDownLatch(cnt);
 
         spi.setListener(new SwapSpaceSpiListener() {
-            @Override public void onSwapEvent(int evtType, @Nullable String spaceName, @Nullable byte[] keyBytes) {
+            @Override public void onSwapEvent(int evtType, @Nullable String spaceName, @Nullable byte[] keyBytes,
+                @Nullable byte[] valBytes) {
                 info("Received event: " + evtType);
 
                 if (evtType == EVT_SWAP_SPACE_DATA_STORED)
@@ -351,7 +352,8 @@ public abstract class GridSwapSpaceSpiAbstractSelfTest extends GridCommonAbstrac
         final CountDownLatch rmvLatch = new CountDownLatch(cnt);
 
         spi.setListener(new SwapSpaceSpiListener() {
-            @Override public void onSwapEvent(int evtType, @Nullable String spaceName, @Nullable byte[] keyBytes) {
+            @Override public void onSwapEvent(int evtType, @Nullable String spaceName, @Nullable byte[] keyBytes,
+                @Nullable byte[] valBytes) {
                 info("Received event: " + evtType);
 
                 if (evtType == EVT_SWAP_SPACE_DATA_STORED)
@@ -410,7 +412,8 @@ public abstract class GridSwapSpaceSpiAbstractSelfTest extends GridCommonAbstrac
         final CountDownLatch rmvLatch = new CountDownLatch(cnt);
 
         spi.setListener(new SwapSpaceSpiListener() {
-            @Override public void onSwapEvent(int evtType, @Nullable String spaceName, @Nullable byte[] keyBytes) {
+            @Override public void onSwapEvent(int evtType, @Nullable String spaceName, @Nullable byte[] keyBytes,
+                @Nullable byte[] valBytes) {
                 info("Received event: " + evtType);
 
                 if (evtType == EVT_SWAP_SPACE_DATA_STORED)

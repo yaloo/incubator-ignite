@@ -17,10 +17,12 @@
 
 package org.apache.ignite.internal.processors.cache;
 
+import org.apache.ignite.*;
 import org.apache.ignite.cache.affinity.*;
 import org.apache.ignite.internal.*;
 import org.apache.ignite.internal.processors.cacheobject.*;
 
+import java.nio.*;
 import java.util.*;
 
 /**
@@ -104,6 +106,34 @@ public class CacheObjectContext {
      */
     public IgniteCacheObjectProcessor processor() {
         return proc;
+    }
+
+    /**
+     * @param obj Object.
+     * @return Bytes.
+     * @throws IgniteCheckedException In case of error.
+     */
+    public ByteBuffer marshal(Object obj) throws IgniteCheckedException {
+        return kernalCtx.config().getMarshaller().marshal(obj);
+    }
+
+    /**
+     * @param buf Bytes.
+     * @return Object.
+     * @throws IgniteCheckedException In case of error.
+     */
+    public <T> T unmarshal(ByteBuffer buf) throws IgniteCheckedException {
+        return kernalCtx.config().getMarshaller().unmarshal(buf, kernalCtx.config().getClassLoader());
+    }
+
+    /**
+     * @param buf Bytes.
+     * @param ldr Class loader.
+     * @return Object.
+     * @throws IgniteCheckedException In case of error.
+     */
+    public <T> T unmarshal(ByteBuffer buf, ClassLoader ldr) throws IgniteCheckedException {
+        return kernalCtx.config().getMarshaller().unmarshal(buf, ldr);
     }
 
     /**

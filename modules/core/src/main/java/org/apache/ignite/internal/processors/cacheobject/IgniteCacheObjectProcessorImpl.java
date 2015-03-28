@@ -111,14 +111,12 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
                 try {
                     if (!ctx.processor().immutable(val)) {
                         if (valBytes == null)
-                            valBytes = ctx.processor().marshal(ctx, val);
+                            valBytes = ctx.marshal(val);
 
                         ClassLoader ldr = ctx.p2pEnabled() ?
                             IgniteUtils.detectClass(this.val).getClassLoader() : val.getClass().getClassLoader();
 
-                        Object val = ctx.processor().unmarshal(ctx,
-                            valBytes,
-                            ldr);
+                        Object val = ctx.unmarshal(valBytes, ldr);
 
                         return new KeyCacheObjectImpl(val, U.trim(valBytes));
                     }
@@ -152,8 +150,8 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
             ClassLoader ldr =
                 valClsLdrId != null ? ctx.deploy().getClassLoader(valClsLdrId) : ctx.deploy().localLoader();
 
-            return toCacheObject(ctx.cacheObjectContext(), unmarshal(ctx.cacheObjectContext(),
-                ByteBuffer.wrap(bytes), ldr), false);
+            return toCacheObject(ctx.cacheObjectContext(), ctx.marshaller().unmarshal(ByteBuffer.wrap(bytes), ldr),
+                false);
         }
         else
             return toCacheObject(ctx.cacheObjectContext(), type, ByteBuffer.wrap(bytes));
@@ -328,13 +326,13 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
             if (!ctx.processor().immutable(val)) {
                 try {
                     if (valBytes == null)
-                        valBytes = ctx.processor().marshal(ctx, val);
+                        valBytes = ctx.marshal(val);
 
                     if (ctx.unmarshalValues()) {
                         ClassLoader ldr = ctx.p2pEnabled() ?
                             IgniteUtils.detectClass(this.val).getClassLoader() : val.getClass().getClassLoader();
 
-                        Object val = ctx.processor().unmarshal(ctx, valBytes, ldr);
+                        Object val = ctx.unmarshal(valBytes, ldr);
 
                         return new CacheObjectImpl(val, valBytes);
                     }

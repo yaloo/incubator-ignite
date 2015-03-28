@@ -58,10 +58,10 @@ public class CacheObjectImpl extends CacheObjectAdapter {
                 if (valBytes == null) {
                     assert val != null;
 
-                    valBytes = ctx.processor().marshal(ctx, val);
+                    valBytes = ctx.marshal(val);
                 }
 
-                return (T)ctx.processor().unmarshal(ctx, valBytes,
+                return (T)ctx.unmarshal(valBytes,
                     val == null ? ctx.kernalContext().config().getClassLoader() : val.getClass().getClassLoader());
             }
 
@@ -70,7 +70,7 @@ public class CacheObjectImpl extends CacheObjectAdapter {
 
             assert valBytes != null;
 
-            val = ctx.processor().unmarshal(ctx, valBytes, ctx.kernalContext().config().getClassLoader());
+            val = ctx.unmarshal(valBytes, ctx.kernalContext().config().getClassLoader());
         }
         catch (IgniteCheckedException e) {
             throw new IgniteException("Failed to unmarshal object.", e);
@@ -82,7 +82,7 @@ public class CacheObjectImpl extends CacheObjectAdapter {
     /** {@inheritDoc} */
     @Override public ByteBuffer valueBytes(CacheObjectContext ctx) throws IgniteCheckedException {
         if (valBytes == null)
-            valBytes = ctx.processor().marshal(ctx, val);
+            valBytes = ctx.marshal(val);
 
         return valBytes.duplicate();
     }
@@ -92,7 +92,7 @@ public class CacheObjectImpl extends CacheObjectAdapter {
         assert val != null || valBytes != null;
 
         if (valBytes == null)
-            valBytes = ctx.kernalContext().cacheObjects().marshal(ctx, val);
+            valBytes = ctx.marshal(val);
     }
 
     /** {@inheritDoc} */
@@ -100,7 +100,7 @@ public class CacheObjectImpl extends CacheObjectAdapter {
         assert val != null || valBytes != null;
 
         if (val == null && ctx.unmarshalValues())
-            val = ctx.processor().unmarshal(ctx, valBytes, ldr);
+            val = ctx.unmarshal(valBytes, ldr);
     }
 
     /** {@inheritDoc} */

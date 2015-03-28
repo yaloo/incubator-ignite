@@ -2098,7 +2098,7 @@ public class GridCacheProcessor extends GridProcessorAdapter {
 
                     if (val == null)
                         val = cctx.cacheObjects().toCacheObject(cctx.cacheObjectContext(), swapEntry.type(),
-                            swapEntry.valueBytes());
+                            ByteBuffer.wrap(swapEntry.valueBytes()));
 
                     assert val != null;
 

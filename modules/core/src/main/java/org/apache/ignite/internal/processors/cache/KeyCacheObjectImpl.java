@@ -60,7 +60,7 @@ public class KeyCacheObjectImpl extends CacheObjectAdapter implements KeyCacheOb
     /** {@inheritDoc} */
     @Override public ByteBuffer valueBytes(CacheObjectContext ctx) throws IgniteCheckedException {
         if (valBytes == null)
-            valBytes = ctx.processor().marshal(ctx, val);
+            valBytes = ctx.marshal(val);
 
         return valBytes.duplicate();
     }
@@ -79,9 +79,7 @@ public class KeyCacheObjectImpl extends CacheObjectAdapter implements KeyCacheOb
 
         if (cpy) {
             try {
-                return (T)ctx.processor().unmarshal(ctx,
-                    valBytes,
-                    val.getClass().getClassLoader());
+                return (T)ctx.unmarshal(valBytes, val.getClass().getClassLoader());
             }
             catch (IgniteCheckedException e) {
                 throw new IgniteException("Failed to unmarshal object.", e);
@@ -116,7 +114,7 @@ public class KeyCacheObjectImpl extends CacheObjectAdapter implements KeyCacheOb
     /** {@inheritDoc} */
     @Override public void prepareMarshal(CacheObjectContext ctx) throws IgniteCheckedException {
         if (valBytes == null)
-            valBytes = ctx.kernalContext().cacheObjects().marshal(ctx, val);
+            valBytes = ctx.marshal(val);
     }
 
     /** {@inheritDoc} */
@@ -124,7 +122,7 @@ public class KeyCacheObjectImpl extends CacheObjectAdapter implements KeyCacheOb
         if (val == null) {
             assert valBytes != null;
 
-            val = ctx.kernalContext().cacheObjects().unmarshal(ctx, valBytes, ldr);
+            val = ctx.unmarshal(valBytes, ldr);
         }
     }
 

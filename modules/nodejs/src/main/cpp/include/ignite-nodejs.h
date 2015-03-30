@@ -23,6 +23,29 @@
 #include <node_object_wrap.h>
 #include "ignite-interop-api.h"
 
+class IgniteNodeJs : public node::ObjectWrap {
+public:
+	static void Init(v8::Handle<v8::Object> exports);
+
+	ignite::IgniteCache* cache(char* cacheName);
+private:
+	IgniteNodeJs(ignite::Ignite* ignite);
+
+	~IgniteNodeJs();
+
+	static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+	static void IgniteStart(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+	static void Cache(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+	static v8::Persistent<v8::Function> constructor;
+
+	static ignite::IgniteJvm* jvm;
+
+	ignite::Ignite* ignite;
+};
+
 class IgniteNodeJsCache : public node::ObjectWrap {
 public:
 	static void Init(v8::Handle<v8::Object> exports);
@@ -43,6 +66,8 @@ private:
 	static v8::Persistent<v8::Function> constructor;
 
 	ignite::IgniteCache* cache;
+
+	friend class IgniteNodeJs;
 };
 
 #endif

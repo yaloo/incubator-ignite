@@ -17,102 +17,153 @@
 
 #include "ignite-nodejs.h"
 
+#include <assert.h>
 #include <iostream>
 #include <stdlib.h>
 #include <string>
 
+using namespace std;
 using namespace v8;
-
 using namespace ignite;
 
+Persistent<Function> IgniteNodeJs::constructor;
+
+IgniteJvm* IgniteNodeJs::jvm = NULL;
+
 Persistent<Function> IgniteNodeJsCache::constructor;
+
+void igniteErrorCallback(const string& errMsg, const string& errCls) {
+	Isolate* isolate = Isolate::GetCurrent();
+	
+	assert(isolate);
+
+	HandleScope scope(isolate);
+
+	isolate->ThrowException(Exception::Error(String::NewFromUtf8(isolate, errMsg.c_str())));
+}
+
+IgniteNodeJs::IgniteNodeJs(Ignite* ignite) : ignite(ignite) {
+	// No-op
+}
+
+IgniteNodeJs::~IgniteNodeJs() {
+	delete ignite;
+}
+
+void IgniteNodeJs::IgniteStart(const FunctionCallbackInfo<Value>& args) {
+	// TODO 496: parse arguments.
+
+	if (!jvm) {
+		jvm = testIgniteJvmStart(igniteErrorCallback);
+
+		if (!jvm)
+			return;
+	}
+
+	Ignite* ignite = jvm->startIgnite("modules\\interop-api\\src\\test\\config\\test-single-node.xml", "ignite1");
+
+	if (!ignite)
+		return;
+
+	Isolate* isolate = Isolate::GetCurrent();
+
+	Local<Function> cons = Local<Function>::New(isolate, constructor);
+	Local<Object> instance = cons->NewInstance();
+
+	IgniteNodeJs* obj = new IgniteNodeJs(ignite);
+
+	obj->Wrap(instance);
+
+	args.GetReturnValue().Set(instance);
+}
+
+void IgniteNodeJs::New(const FunctionCallbackInfo<Value>& args) {
+}
+
+void IgniteNodeJs::Init(Handle<Object> exports) {
+	NODE_SET_METHOD(exports, "start", IgniteStart);
+	
+	Isolate* isolate = Isolate::GetCurrent();
+
+	Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
+	tpl->SetClassName(String::NewFromUtf8(isolate, "Ignite"));
+	tpl->InstanceTemplate()->SetInternalFieldCount(1);
+
+	NODE_SET_PROTOTYPE_METHOD(tpl, "cache", Cache);
+
+	constructor.Reset(isolate, tpl->GetFunction());
+}
+
+IgniteCache* IgniteNodeJs::cache(char* cacheName) {
+	return ignite->cache(cacheName);
+}
+
+void IgniteNodeJs::Cache(const FunctionCallbackInfo<Value>& args) {
+	Isolate* isolate = Isolate::GetCurrent();
+	HandleScope scope(isolate);
+
+	IgniteNodeJs* ignite = ObjectWrap::Unwrap<IgniteNodeJs>(args.Holder());
+
+	IgniteCache* cache = 0;
+		
+	if (!args[0]->IsUndefined()) {
+		Local<String> name = args[0]->ToString();
+
+		v8::String::Utf8Value utf8(name);
+			
+		cache = ignite->cache(*utf8);
+	}
+	else
+		cache = ignite->cache(NULL);
+
+	if (!cache)
+		return;
+
+	Local<Function> cons = Local<Function>::New(isolate, IgniteNodeJsCache::constructor);
+	Local<Object> instance = cons->NewInstance();
+
+	IgniteNodeJsCache* obj = new IgniteNodeJsCache(cache);
+
+	obj->Wrap(instance);
+
+	args.GetReturnValue().Set(instance);
+
+}
 
 IgniteNodeJsCache::IgniteNodeJsCache(IgniteCache* cache) : cache(cache) {
 	// No-op
 }
 
 IgniteNodeJsCache::~IgniteNodeJsCache() {
-	if (cache)
-		delete cache;
+	delete cache;
 }
 
-Ignite* igniteNode;
-
 void IgniteNodeJsCache::Init(Handle<Object> exports) {
-	/*
-	igniteNode = StartNode();
-
-	if (!igniteNode)
-		return;
-
 	Isolate* isolate = Isolate::GetCurrent();
 
-	// Prepare constructor template
 	Local<FunctionTemplate> tpl = FunctionTemplate::New(isolate, New);
 	tpl->SetClassName(String::NewFromUtf8(isolate, "IgniteCache"));
 	tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-	// Prototype
 	NODE_SET_PROTOTYPE_METHOD(tpl, "put", Put);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "putAsync", PutAsync);
 	NODE_SET_PROTOTYPE_METHOD(tpl, "objectInfo", ObjectInfo);
 
 	constructor.Reset(isolate, tpl->GetFunction());
-	
-	exports->Set(String::NewFromUtf8(isolate, "IgniteCache"), tpl->GetFunction());
-	*/
+}
+
+void NewInstance(ignite::IgniteCache* cache, const FunctionCallbackInfo<Value>& args) {
+
 }
 
 void IgniteNodeJsCache::New(const FunctionCallbackInfo<Value>& args) {
-	/*
-	Isolate* isolate = Isolate::GetCurrent();
-	HandleScope scope(isolate);
-
-	if (args.IsConstructCall()) {
-		// Invoked as constructor: `new IgniteCache(...)`
-		
-		IgniteInteropCache* cache = 0;
-		
-		if (!args[0]->IsUndefined()) {
-			Local<String> name = args[0]->ToString();
-
-			v8::String::Utf8Value utf8(name);
-			
-			std::cout << "Cache: " << *utf8 << "\n";
-			
-			cache = igniteNode->getCache(*utf8);
-		}
-		else
-			cache = igniteNode->getCache(0);
-
-		if (!cache)
-			return;
-
-		IgniteCache* obj = new IgniteCache(cache);
-
-		obj->Wrap(args.This());
-
-		args.GetReturnValue().Set(args.This());
-	}
-	else {
-		// Invoked as plain function `IgniteCache(...)`, turn into construct call.
-		const int argc = 1;
-
-		Local<Value> argv[argc] = { args[0] };
-		
-		Local<Function> cons = Local<Function>::New(isolate, constructor);
-		
-		args.GetReturnValue().Set(cons->NewInstance(argc, argv));
-	}
-	*/
 }
 
 void IgniteNodeJsCache::Put(const FunctionCallbackInfo<Value>& args) {
-	/*
 	Isolate* isolate = Isolate::GetCurrent();
 	HandleScope scope(isolate);
 
-	IgniteCache* cache = ObjectWrap::Unwrap<IgniteCache>(args.Holder());
+	IgniteNodeJsCache* cache = ObjectWrap::Unwrap<IgniteNodeJsCache>(args.Holder());
 
 	if (args.Length() != 2) {
 		std::cout << "Two arguments expected.\n";
@@ -125,16 +176,12 @@ void IgniteNodeJsCache::Put(const FunctionCallbackInfo<Value>& args) {
 
 	std::cout << "Put key=" << key << ", val=" << val << "\n";
 
-	InterupOutputStream out(8);
+	IgniteOutputStream out(8);
 
-	out.writeInt32(key);
-	out.writeInt32(val);
+	out.writeInt(key);
+	out.writeInt(val);
 
-	cache->cache->put(out.data(), out.size());
-	//obj->value_ += 1;
-
-	//args.GetReturnValue().Set(Number::New(isolate, obj->value_));
-	*/
+	// cache->cache->put(out.dataPointer(), out.allocatedSize());
 }
 
 struct AsyncData

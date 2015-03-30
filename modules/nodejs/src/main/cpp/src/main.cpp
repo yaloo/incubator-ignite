@@ -21,9 +21,9 @@
 using namespace v8;
 
 void InitAll(Handle<Object> exports) {
-	//TestInit();
+	IgniteNodeJs::Init(exports);
 
-	//IgniteCache::Init(exports);
+	IgniteNodeJsCache::Init(exports);
 }
 
 NODE_MODULE(addon, InitAll)

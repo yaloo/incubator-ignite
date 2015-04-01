@@ -1397,7 +1397,7 @@ public class DataStreamerImpl<K, V> implements IgniteDataStreamer<K, V>, Delayed
 
                         GridCacheEntryEx entry = internalCache.entryEx(e.getKey(), topVer);
 
-                        entry.unswap(true, false);
+                        entry.unswap(false);
 
                         entry.initialValue(e.getValue(),
                             ver,

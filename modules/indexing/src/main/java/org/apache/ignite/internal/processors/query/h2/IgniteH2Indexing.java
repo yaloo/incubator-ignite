@@ -1242,7 +1242,7 @@ public class IgniteH2Indexing implements GridQueryIndexing {
         if (schemas.putIfAbsent(schema, new Schema(ccfg.getName(),
             ccfg.getOffHeapMaxMemory() >= 0 || ccfg.getMemoryMode() == CacheMemoryMode.OFFHEAP_TIERED ?
             new GridUnsafeMemory(0) : null, ccfg)) != null)
-            throw new IgniteCheckedException("Cache already registered: " + ccfg.getName());
+            throw new IgniteCheckedException("Cache already registered: " + U.maskName(ccfg.getName()));
 
         createSchema(schema);
         createSqlFunctions(schema, ccfg.getSqlFunctionClasses());
@@ -1258,7 +1258,7 @@ public class IgniteH2Indexing implements GridQueryIndexing {
                 dropSchema(schema);
             }
             catch (IgniteCheckedException e) {
-                U.error(log, "Failed to drop schema on cache stop (will ignore): " + ccfg.getName(), e);
+                U.error(log, "Failed to drop schema on cache stop (will ignore): " + U.maskName(ccfg.getName()), e);
             }
         }
     }

@@ -49,19 +49,15 @@
         <module>modules/extdata/p2p</module>
         <module>modules/extdata/uri</module>
         <module>modules/clients</module>
-        <module>examples</module>
         <module>modules/spring</module>
-        <module>modules/hibernate</module>
         <module>modules/web</module>
         <module>modules/aop</module>
         <module>modules/urideploy</module>
         <module>modules/indexing</module>
-        <module>modules/geospatial</module>
         <module>modules/ssh</module>
         <module>modules/rest-http</module>
         <module>modules/jta</module>
         <module>modules/aws</module>
-        <module>modules/schedule</module>
         <module>modules/log4j</module>
         <module>modules/slf4j</module>
         <module>modules/jcl</module>
@@ -69,7 +65,7 @@
         <module>modules/codegen</module>
     </modules>
 
-   <profiles>
+    <profiles>
         <profile>
             <id>test</id>
             <build>
@@ -212,75 +208,75 @@
                                 <configuration>
                                     <target>
                                         <replaceregexp byline="true">
-                                            <regexp pattern='pushd "%~dp0"/\.\./\.\.(\s*&amp;::.+)?'/>
-                                            <substitution expression='pushd "%~dp0"/..'/>
+                                            <regexp pattern="pushd &quot;%~dp0&quot;/\.\./\.\.(\s*&amp;::.+)?" />
+                                            <substitution expression="pushd &quot;%~dp0&quot;/.." />
                                             <fileset dir="${basedir}/target/release-package/bin">
-                                                <include name="**/*.bat"/>
+                                                <include name="**/*.bat" />
                                             </fileset>
                                         </replaceregexp>
 
                                         <replaceregexp byline="true">
-                                            <regexp pattern='IGNITE_HOME_TMP="\$\(dirname "\$\{IGNITE_HOME_TMP\}"\)"(\s*#.*)?'/>
-                                            <substitution expression=""/>
+                                            <regexp pattern="IGNITE_HOME_TMP=&quot;\$\(dirname &quot;\$\{IGNITE_HOME_TMP\}&quot;\)&quot;(\s*#.*)?" />
+                                            <substitution expression="" />
                                             <fileset dir="${basedir}/target/release-package/bin">
-                                                <include name="**/*.sh"/>
+                                                <include name="**/*.sh" />
                                             </fileset>
                                         </replaceregexp>
 
                                         <replaceregexp byline="true">
-                                            <regexp pattern='set SCRIPTS_HOME=%IGNITE_HOME%\\bin(\s*&amp;::.*)?'/>
-                                            <substitution expression='set SCRIPTS_HOME=%IGNITE_HOME%\\\\bin'/>
+                                            <regexp pattern="set SCRIPTS_HOME=%IGNITE_HOME%\\bin(\s*&amp;::.*)?" />
+                                            <substitution expression="set SCRIPTS_HOME=%IGNITE_HOME%\\\\bin" />
                                             <fileset dir="${basedir}/target/release-package/bin">
-                                                <include name="**/*.bat"/>
+                                                <include name="**/*.bat" />
                                             </fileset>
                                         </replaceregexp>
 
                                         <replaceregexp byline="true">
-                                            <regexp pattern='SCRIPTS_HOME="\$\{IGNITE_HOME_TMP\}/bin"(\s*#.*)?'/>
-                                            <substitution expression='SCRIPTS_HOME="$${IGNITE_HOME_TMP}/bin"'/>
+                                            <regexp pattern="SCRIPTS_HOME=&quot;\$\{IGNITE_HOME_TMP\}/bin&quot;(\s*#.*)?" />
+                                            <substitution expression="SCRIPTS_HOME=&quot;$${IGNITE_HOME_TMP}/bin&quot;" />
                                             <fileset dir="${basedir}/target/release-package/bin">
-                                                <include name="**/*.sh"/>
+                                                <include name="**/*.sh" />
                                             </fileset>
                                         </replaceregexp>
 
                                         <replaceregexp byline="true">
-                                            <regexp pattern='\. "\$\{SCRIPTS_HOME\}"/include/target-classpath.sh(\s*#.*)?'/>
-                                            <substitution expression=""/>
+                                            <regexp pattern="\. &quot;\$\{SCRIPTS_HOME\}&quot;/include/target-classpath.sh(\s*#.*)?" />
+                                            <substitution expression="" />
                                             <fileset dir="${basedir}/target/release-package/bin">
-                                                <include name="**/*.sh"/>
+                                                <include name="**/*.sh" />
                                             </fileset>
                                         </replaceregexp>
 
                                         <replaceregexp byline="true">
-                                            <regexp pattern='call "%SCRIPTS_HOME%\\include\\target-classpath.bat"(\s*&amp;::.*)?'/>
-                                            <substitution expression=""/>
+                                            <regexp pattern="call &quot;%SCRIPTS_HOME%\\include\\target-classpath.bat&quot;(\s*&amp;::.*)?" />
+                                            <substitution expression="" />
                                             <fileset dir="${basedir}/target/release-package/bin">
-                                                <include name="**/*.bat"/>
+                                                <include name="**/*.bat" />
                                             </fileset>
                                         </replaceregexp>
 
                                         <replaceregexp byline="true">
-                                            <regexp pattern='ENABLE_ASSERTIONS=.*'/>
-                                            <substitution expression="ENABLE_ASSERTIONS=&quot;0&quot;"/>
+                                            <regexp pattern="ENABLE_ASSERTIONS=.*" />
+                                            <substitution expression="ENABLE_ASSERTIONS=&quot;0&quot;" />
                                             <fileset dir="${basedir}/target/release-package/bin">
-                                                <include name="**/*.sh"/>
+                                                <include name="**/*.sh" />
                                             </fileset>
                                         </replaceregexp>
 
                                         <replaceregexp byline="true">
-                                            <regexp pattern='ENABLE_ASSERTIONS=.*'/>
-                                            <substitution expression="ENABLE_ASSERTIONS=0"/>
+                                            <regexp pattern="ENABLE_ASSERTIONS=.*" />
+                                            <substitution expression="ENABLE_ASSERTIONS=0" />
                                             <fileset dir="${basedir}/target/release-package/bin">
-                                                <include name="**/*.bat"/>
+                                                <include name="**/*.bat" />
                                             </fileset>
                                         </replaceregexp>
 
                                         <replaceregexp byline="true">
-                                            <regexp pattern='-DIGNITE_UPDATE_NOTIFIER=false'/>
-                                            <substitution expression=""/>
+                                            <regexp pattern="-DIGNITE_UPDATE_NOTIFIER=false" />
+                                            <substitution expression="" />
                                             <fileset dir="${basedir}/target/release-package/bin">
-                                                <include name="**/*.sh"/>
-                                                <include name="**/*.bat"/>
+                                                <include name="**/*.sh" />
+                                                <include name="**/*.bat" />
                                             </fileset>
                                         </replaceregexp>
 
@@ -439,6 +435,22 @@
                 <module>modules/scalar</module>
                 <module>modules/visor-console</module>
                 <module>modules/visor-plugins</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>lgpl</id>
+            <modules>
+                <module>modules/hibernate</module>
+                <module>modules/geospatial</module>
+                <module>modules/schedule</module>
+            </modules>
+        </profile>
+
+        <profile>
+            <id>examples</id>
+            <modules>
+                <module>examples</module>
             </modules>
         </profile>
     </profiles>

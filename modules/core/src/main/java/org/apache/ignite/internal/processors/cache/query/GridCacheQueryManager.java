@@ -92,6 +92,9 @@ public abstract class GridCacheQueryManager<K, V> extends GridCacheManagerAdapte
     /** Event listener. */
     private GridLocalEventListener lsnr;
 
+    /** */
+    private boolean enabled;
+
     /** {@inheritDoc} */
     @Override public void start0() throws IgniteCheckedException {
         qryProc = cctx.kernalContext().query();
@@ -136,6 +139,15 @@ public abstract class GridCacheQueryManager<K, V> extends GridCacheManagerAdapte
         };
 
         cctx.events().addListener(lsnr, EVT_NODE_LEFT, EVT_NODE_FAILED);
+
+        enabled = GridQueryProcessor.isEnabled(cctx.config());
+    }
+
+    /**
+     * @return {@code True} if indexing is enabled for cache.
+     */
+    public boolean enabled() {
+        return enabled;
     }
 
     /** {@inheritDoc} */
@@ -333,8 +345,9 @@ public abstract class GridCacheQueryManager<K, V> extends GridCacheManagerAdapte
         throws IgniteCheckedException {
         assert key != null;
         assert val != null || valBytes != null;
+        assert enabled();
 
-        if (!GridQueryProcessor.isEnabled(cctx.config()) && !(key instanceof GridCacheInternal))
+        if (key instanceof GridCacheInternal)
             return; // No-op.
 
         if (!enterBusy())
@@ -355,6 +368,7 @@ public abstract class GridCacheQueryManager<K, V> extends GridCacheManagerAdapte
 
     /**
      * @param key Key.
+     * @param val Value.
      * @throws IgniteCheckedException Thrown in case of any errors.
      */
     @SuppressWarnings("SimplifiableIfStatement")

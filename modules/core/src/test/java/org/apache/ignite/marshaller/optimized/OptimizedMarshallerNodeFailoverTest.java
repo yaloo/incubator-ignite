@@ -29,6 +29,7 @@ import org.apache.ignite.testframework.*;
 import org.apache.ignite.testframework.junits.common.*;
 
 import java.io.*;
+import java.nio.*;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -152,7 +153,7 @@ public class OptimizedMarshallerNodeFailoverTest extends GridCommonAbstractTest 
 
             obj.val = 111;
 
-            byte[] bytes = marsh.marshal(obj);
+            ByteBuffer bytes = marsh.marshal(obj);
 
             stopAllGrids();
 

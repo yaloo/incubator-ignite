@@ -331,7 +331,7 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
          * @param val Value.
          * @param valBytes Value bytes.
          */
-        public UserCacheObjectImpl(Object val, byte[] valBytes) {
+        public UserCacheObjectImpl(Object val, ByteBuffer valBytes) {
             super(val, valBytes);
         }
 
@@ -344,13 +344,13 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
         @Override public CacheObject prepareForCache(CacheObjectContext ctx) {
             try {
                 if (valBytes == null)
-                    valBytes = ctx.processor().marshal(ctx, val);
+                    valBytes = ctx.marshal(val);
 
                 if (ctx.storeValue()) {
                     ClassLoader ldr = ctx.p2pEnabled() ?
                         IgniteUtils.detectClass(this.val).getClassLoader() : val.getClass().getClassLoader();
 
-                    Object val = ctx.processor().unmarshal(ctx, valBytes, ldr);
+                    Object val = ctx.unmarshal(valBytes, ldr);
 
                     return new CacheObjectImpl(val, valBytes);
                 }

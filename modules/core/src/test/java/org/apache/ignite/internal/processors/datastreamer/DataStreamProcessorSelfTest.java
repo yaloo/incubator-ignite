@@ -90,8 +90,6 @@ public class DataStreamProcessorSelfTest extends GridCommonAbstractTest {
 
         cfg.setIncludeProperties();
 
-        cfg.setMarshaller(new OptimizedMarshaller(false));
-
         if (useCache) {
             CacheConfiguration cc = defaultCacheConfiguration();
 

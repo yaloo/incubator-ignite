@@ -98,8 +98,6 @@ public abstract class GridCacheContinuousQueryAbstractSelfTest extends GridCommo
 
         cfg.setDiscoverySpi(disco);
 
-        cfg.setMarshaller(new OptimizedMarshaller(false));
-
         return cfg;
     }
 

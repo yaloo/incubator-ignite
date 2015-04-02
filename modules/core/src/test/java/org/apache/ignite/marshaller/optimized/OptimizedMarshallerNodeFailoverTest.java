@@ -58,8 +58,6 @@ public class OptimizedMarshallerNodeFailoverTest extends GridCommonAbstractTest 
 
         cfg.setDiscoverySpi(disco);
 
-        cfg.setMarshaller(new OptimizedMarshaller());
-
         cfg.setWorkDirectory(workDir);
 
         if (cache) {

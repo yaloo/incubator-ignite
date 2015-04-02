@@ -24,7 +24,6 @@ import org.apache.ignite.cache.query.*;
 import org.apache.ignite.cache.query.annotations.*;
 import org.apache.ignite.configuration.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
-import org.apache.ignite.marshaller.optimized.*;
 import org.apache.ignite.spi.discovery.tcp.*;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.*;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.*;
@@ -36,8 +35,8 @@ import java.sql.*;
 import java.util.*;
 
 /**
- * Test to compare query results from h2 database instance and mixed ignite caches (replicated and partitioned) 
- * which have the same data models and data content. 
+ * Test to compare query results from h2 database instance and mixed ignite caches (replicated and partitioned)
+ * which have the same data models and data content.
  */
 public class IgniteVsH2QueryTest extends GridCommonAbstractTest {
     /** */
@@ -48,7 +47,7 @@ public class IgniteVsH2QueryTest extends GridCommonAbstractTest {
 
     /** Replicated cache. */
     private static IgniteCache rCache;
-    
+
     /** H2 db connection. */
     private static Connection conn;
 
@@ -62,8 +61,6 @@ public class IgniteVsH2QueryTest extends GridCommonAbstractTest {
         disco.setIpFinder(IP_FINDER);
 
         c.setDiscoverySpi(disco);
-
-        c.setMarshaller(new OptimizedMarshaller(true));
 
         c.setCacheConfiguration(createCache("part", CacheMode.PARTITIONED),
             createCache("repl", CacheMode.REPLICATED)
@@ -111,11 +108,11 @@ public class IgniteVsH2QueryTest extends GridCommonAbstractTest {
         Ignite ignite = startGrids(4);
 
         pCache = ignite.cache("part");
-        
+
         rCache = ignite.cache("repl");
 
         awaitPartitionMapExchange();
-        
+
         conn = openH2Connection(false);
 
         initializeH2Schema();
@@ -124,13 +121,13 @@ public class IgniteVsH2QueryTest extends GridCommonAbstractTest {
 
         checkAllDataEquals();
     }
-    
+
     /** {@inheritDoc} */
     @Override protected void afterTestsStopped() throws Exception {
         super.afterTestsStopped();
-        
+
         conn.close();
-        
+
         stopAllGrids();
     }
 
@@ -140,31 +137,31 @@ public class IgniteVsH2QueryTest extends GridCommonAbstractTest {
     @SuppressWarnings("unchecked")
     private void initCacheAndDbData() throws SQLException {
         int idGen = 0;
-        
+
         // Organizations.
         List<Organization> organizations = new ArrayList<>();
 
         for (int i = 0; i < 3; i++) {
             int id = idGen++;
-            
+
             Organization org = new Organization(id, "Org" + id);
-            
+
             organizations.add(org);
-            
+
             pCache.put(org.id, org);
-            
+
             insertInDb(org);
         }
 
         // Persons.
         List<Person> persons = new ArrayList<>();
-        
+
         for (int i = 0; i < 5; i++) {
             int id = idGen++;
 
-            Person person = new Person(id, organizations.get(i % organizations.size()), 
+            Person person = new Person(id, organizations.get(i % organizations.size()),
                 "name" + id, "lastName" + id, id * 100.0);
-            
+
             // Add a Person without lastname.
             if (id == organizations.size() + 1)
                 person.lastName = null;
@@ -172,7 +169,7 @@ public class IgniteVsH2QueryTest extends GridCommonAbstractTest {
             persons.add(person);
 
             pCache.put(person.key(), person);
-            
+
             insertInDb(person);
         }
 
@@ -181,13 +178,13 @@ public class IgniteVsH2QueryTest extends GridCommonAbstractTest {
 
         for (int i = 0; i < 10; i++) {
             int id = idGen++;
-            
+
             Product product = new Product(id, "Product" + id, id*1000);
-            
+
             products.add(product);
-            
+
             rCache.put(product.id, product);
-            
+
             insertInDb(product);
         }
 
@@ -198,14 +195,14 @@ public class IgniteVsH2QueryTest extends GridCommonAbstractTest {
             Purchase purchase = new Purchase(id, products.get(i % products.size()), persons.get(i % persons.size()));
 
             pCache.put(purchase.key(), purchase);
-            
+
             insertInDb(purchase);
         }
     }
 
     /**
      * Insert {@link Organization} at h2 database.
-     *  
+     *
      * @param org Organization.
      * @throws SQLException If exception.
      */
@@ -296,7 +293,7 @@ public class IgniteVsH2QueryTest extends GridCommonAbstractTest {
             "  _val other not null," +
             "  id int unique," +
             "  name varchar(255))");
-        
+
         st.execute("create table \"part\".PERSON" +
             "  (_key other not null ," +
             "   _val other not null ," +
@@ -332,9 +329,9 @@ public class IgniteVsH2QueryTest extends GridCommonAbstractTest {
      */
     private Connection openH2Connection(boolean autocommit) throws SQLException {
         System.setProperty("h2.serializeJavaObject", "false");
-        
+
         String dbName = "test";
-        
+
         Connection conn = DriverManager.getConnection("jdbc:h2:mem:" + dbName + ";DB_CLOSE_DELAY=-1");
 
         conn.setAutoCommit(autocommit);
@@ -348,7 +345,7 @@ public class IgniteVsH2QueryTest extends GridCommonAbstractTest {
      * @param sql SQL query.
      * @param args SQL arguments.
      * then results will compare as ordered queries.
-     * @return Result set after SQL query execution. 
+     * @return Result set after SQL query execution.
      * @throws SQLException If exception.
      */
     private List<List<?>> compareQueryRes0(String sql, @Nullable Object... args) throws SQLException {
@@ -356,14 +353,14 @@ public class IgniteVsH2QueryTest extends GridCommonAbstractTest {
     }
 
     /**
-     * Execute given sql query on h2 database and on ignite cache and compare results. 
+     * Execute given sql query on h2 database and on ignite cache and compare results.
      * Expected that results are not ordered.
      *
      * @param cache Ignite cache.
      * @param sql SQL query.
      * @param args SQL arguments.
      * then results will compare as ordered queries.
-     * @return Result set after SQL query execution. 
+     * @return Result set after SQL query execution.
      * @throws SQLException If exception.
      */
     private List<List<?>> compareQueryRes0(IgniteCache cache, String sql, @Nullable Object... args) throws SQLException {
@@ -390,16 +387,16 @@ public class IgniteVsH2QueryTest extends GridCommonAbstractTest {
      * @param cache Ignite cache.
      * @param sql SQL query.
      * @param args SQL arguments.
-     * @param order Expected ordering of SQL results. If {@link Order#ORDERED} 
+     * @param order Expected ordering of SQL results. If {@link Order#ORDERED}
      * then results will compare as ordered queries.
      * @return Result set after SQL query execution.
      * @throws SQLException If exception.
-     */    
+     */
     @SuppressWarnings("unchecked")
     private List<List<?>> compareQueryRes0(IgniteCache cache, String sql, @Nullable Object[] args, Order order) throws SQLException {
         if (args == null)
             args = new Object[] {null};
-        
+
         log.info("Sql=\"" + sql + "\", args=" + Arrays.toString(args));
 
         List<List<?>> h2Res = executeH2Query(sql, args);
@@ -407,7 +404,7 @@ public class IgniteVsH2QueryTest extends GridCommonAbstractTest {
         List<List<?>> cacheRes = cache.query(new SqlFieldsQuery(sql).setArgs(args)).getAll();
 
         assertRsEquals(h2Res, cacheRes, order);
-        
+
         return cacheRes;
     }
 
@@ -433,10 +430,10 @@ public class IgniteVsH2QueryTest extends GridCommonAbstractTest {
 
             while (rs.next()) {
                 List<Object> row = new ArrayList<>(colCnt);
-                
+
                 for (int i = 1; i <= colCnt; i++)
                     row.add(rs.getObject(i));
-                
+
                 res.add(row);
             }
         }
@@ -452,12 +449,12 @@ public class IgniteVsH2QueryTest extends GridCommonAbstractTest {
      *
      * @param rs1 Expected result set.
      * @param rs2 Actual result set.
-     * @param order Expected ordering of SQL results. If {@link Order#ORDERED} 
+     * @param order Expected ordering of SQL results. If {@link Order#ORDERED}
      * then results will compare as ordered queries.
      */
     private void assertRsEquals(List<List<?>> rs1, List<List<?>> rs2, Order order) {
         assertEquals("Rows count has to be equal.", rs1.size(), rs2.size());
-        
+
         switch (order){
             case ORDERED:
                 for (int rowNum = 0; rowNum < rs1.size(); rowNum++) {
@@ -474,7 +471,7 @@ public class IgniteVsH2QueryTest extends GridCommonAbstractTest {
             case RANDOM:
                 Map<List<?>, Integer> rowsWithCnt1 = extractUniqueRowsWithCounts(rs1);
                 Map<List<?>, Integer> rowsWithCnt2 = extractUniqueRowsWithCounts(rs2);
-                
+
                 assertEquals("Unique rows count has to be equal.", rowsWithCnt1.size(), rowsWithCnt2.size());
 
                 for (Map.Entry<List<?>, Integer> entry1 : rowsWithCnt1.entrySet()) {
@@ -485,9 +482,9 @@ public class IgniteVsH2QueryTest extends GridCommonAbstractTest {
 
                     assertEquals("Row has different occurance number.\nRow=" + row, cnt1, cnt2);
                 }
-                
+
                 break;
-            default: 
+            default:
                 throw new IllegalStateException();
         }
     }
@@ -501,10 +498,10 @@ public class IgniteVsH2QueryTest extends GridCommonAbstractTest {
 
         for (List<?> row : rs) {
             Integer cnt = res.get(row);
-            
+
             if (cnt == null)
                 cnt = 0;
-            
+
             res.put(row, cnt + 1);
         }
         return res;
@@ -590,7 +587,7 @@ public class IgniteVsH2QueryTest extends GridCommonAbstractTest {
 
     /**
      * //TODO Investigate.
-     *  
+     *
      * @throws Exception If failed.
      */
     public void testSimpleJoin() throws Exception {
@@ -842,11 +839,11 @@ public class IgniteVsH2QueryTest extends GridCommonAbstractTest {
     }
 
     /**
-     * Order type. 
+     * Order type.
      */
     private enum Order {
         /** Random. */
-        RANDOM, 
+        RANDOM,
         /** Ordered. */
         ORDERED
     }

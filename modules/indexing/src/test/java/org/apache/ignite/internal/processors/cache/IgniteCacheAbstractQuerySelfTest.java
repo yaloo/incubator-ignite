@@ -109,8 +109,6 @@ public abstract class IgniteCacheAbstractQuerySelfTest extends GridCommonAbstrac
         // Otherwise noop swap space will be chosen on Windows.
         c.setSwapSpaceSpi(new FileSwapSpaceSpi());
 
-        c.setMarshaller(new OptimizedMarshaller(false));
-
         if (!gridName.startsWith("client")) {
             CacheConfiguration[] ccs = new CacheConfiguration[2];
 

@@ -57,8 +57,6 @@ public class GridCacheCrossCacheQuerySelfTest extends GridCommonAbstractTest {
 
         c.setDiscoverySpi(disco);
 
-        c.setMarshaller(new OptimizedMarshaller(false));
-
         c.setCacheConfiguration(createCache("replicated", CacheMode.REPLICATED),
             createCache("partitioned", CacheMode.PARTITIONED));
 

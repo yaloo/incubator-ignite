@@ -64,6 +64,9 @@ public class GridNearAtomicUpdateRequest extends GridCacheMessage implements Gri
     /** Topology version. */
     private AffinityTopologyVersion topVer;
 
+    /** Topology locked flag. Set if atomic update is performed inside TX or explicit lock. */
+    private boolean topLocked;
+
     /** Write synchronization mode. */
     private CacheWriteSynchronizationMode syncMode;
 
@@ -158,6 +161,7 @@ public class GridNearAtomicUpdateRequest extends GridCacheMessage implements Gri
         boolean fastMap,
         @Nullable GridCacheVersion updateVer,
         @NotNull AffinityTopologyVersion topVer,
+        boolean topLocked,
         CacheWriteSynchronizationMode syncMode,
         GridCacheOperation op,
         boolean retval,
@@ -174,6 +178,7 @@ public class GridNearAtomicUpdateRequest extends GridCacheMessage implements Gri
         this.updateVer = updateVer;
 
         this.topVer = topVer;
+        this.topLocked = topLocked;
         this.syncMode = syncMode;
         this.op = op;
         this.retval = retval;
@@ -245,6 +250,13 @@ public class GridNearAtomicUpdateRequest extends GridCacheMessage implements Gri
      */
     @Override public AffinityTopologyVersion topologyVersion() {
         return topVer;
+    }
+
+    /**
+     * @return Topology locked flag.
+     */
+    public boolean topologyLocked() {
+        return topLocked;
     }
 
     /**
@@ -645,18 +657,24 @@ public class GridNearAtomicUpdateRequest extends GridCacheMessage implements Gri
                 writer.incrementState();
 
             case 19:
-                if (!writer.writeMessage("topVer", topVer))
+                if (!writer.writeBoolean("topLocked", topLocked))
                     return false;
 
                 writer.incrementState();
 
             case 20:
-                if (!writer.writeMessage("updateVer", updateVer))
+                if (!writer.writeMessage("topVer", topVer))
                     return false;
 
                 writer.incrementState();
 
             case 21:
+                if (!writer.writeMessage("updateVer", updateVer))
+                    return false;
+
+                writer.incrementState();
+
+            case 22:
                 if (!writer.writeCollection("vals", vals, MessageCollectionItemType.MSG))
                     return false;
 
@@ -815,7 +833,7 @@ public class GridNearAtomicUpdateRequest extends GridCacheMessage implements Gri
                 reader.incrementState();
 
             case 19:
-                topVer = reader.readMessage("topVer");
+                topLocked = reader.readBoolean("topLocked");
 
                 if (!reader.isLastRead())
                     return false;
@@ -823,7 +841,7 @@ public class GridNearAtomicUpdateRequest extends GridCacheMessage implements Gri
                 reader.incrementState();
 
             case 20:
-                updateVer = reader.readMessage("updateVer");
+                topVer = reader.readMessage("topVer");
 
                 if (!reader.isLastRead())
                     return false;
@@ -831,6 +849,14 @@ public class GridNearAtomicUpdateRequest extends GridCacheMessage implements Gri
                 reader.incrementState();
 
             case 21:
+                updateVer = reader.readMessage("updateVer");
+
+                if (!reader.isLastRead())
+                    return false;
+
+                reader.incrementState();
+
+            case 22:
                 vals = reader.readCollection("vals", MessageCollectionItemType.MSG);
 
                 if (!reader.isLastRead())

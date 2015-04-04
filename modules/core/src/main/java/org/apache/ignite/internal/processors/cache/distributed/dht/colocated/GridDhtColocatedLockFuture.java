@@ -284,7 +284,7 @@ public final class GridDhtColocatedLockFuture<K, V> extends GridCompoundIdentity
                     false,
                     false);
 
-                cand.topologyVersion(new AffinityTopologyVersion(topVer.get().topologyVersion()));
+                cand.topologyVersion(topVer.get());
             }
         }
         else {
@@ -303,7 +303,7 @@ public final class GridDhtColocatedLockFuture<K, V> extends GridCompoundIdentity
                     false,
                     false);
 
-                cand.topologyVersion(new AffinityTopologyVersion(topVer.get().topologyVersion()));
+                cand.topologyVersion(topVer.get());
             }
             else
                 cand = cand.reenter();

@@ -427,6 +427,8 @@ public class IgniteCacheTestSuite extends TestSuite {
         suite.addTestSuite(IgniteCacheTxStoreValueTest.class);
         suite.addTestSuite(IgniteCacheTxNearEnabledStoreValueTest.class);
 
+        suite.addTestSuite(IgniteCacheAtomicOpWithinTxSelfTest.class);
+
         return suite;
     }
 }

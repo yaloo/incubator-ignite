@@ -103,6 +103,9 @@ public class GridCacheProcessor extends GridProcessorAdapter {
     /** System cache names. */
     private final Set<String> sysCaches;
 
+    /** System cache names. */
+    private final Set<Integer> sysCacheIds;
+
     /** Caches stop sequence. */
     private final Deque<String> stopSeq;
 
@@ -132,6 +135,7 @@ public class GridCacheProcessor extends GridProcessorAdapter {
         preloadFuts = new TreeMap<>();
 
         sysCaches = new HashSet<>();
+        sysCacheIds = new HashSet<>();
         stopSeq = new LinkedList<>();
     }
 
@@ -548,15 +552,24 @@ public class GridCacheProcessor extends GridProcessorAdapter {
             for (FileSystemConfiguration igfsCfg : igfsCfgs) {
                 sysCaches.add(maskNull(igfsCfg.getMetaCacheName()));
                 sysCaches.add(maskNull(igfsCfg.getDataCacheName()));
+
+                sysCacheIds.add(CU.cacheId(igfsCfg.getMetaCacheName()));
+                sysCacheIds.add(CU.cacheId(igfsCfg.getDataCacheName()));
             }
         }
 
-        if (IgniteComponentType.HADOOP.inClassPath())
+        if (IgniteComponentType.HADOOP.inClassPath()) {
             sysCaches.add(CU.SYS_CACHE_HADOOP_MR);
+            sysCacheIds.add(CU.cacheId(CU.SYS_CACHE_HADOOP_MR));
+        }
 
         sysCaches.add(CU.MARSH_CACHE_NAME);
         sysCaches.add(CU.UTILITY_CACHE_NAME);
         sysCaches.add(CU.ATOMICS_CACHE_NAME);
+
+        sysCacheIds.add(CU.cacheId(CU.MARSH_CACHE_NAME));
+        sysCacheIds.add(CU.cacheId(CU.UTILITY_CACHE_NAME));
+        sysCacheIds.add(CU.cacheId(CU.ATOMICS_CACHE_NAME));
 
         CacheConfiguration[] cfgs = ctx.config().getCacheConfiguration();
 
@@ -2235,6 +2248,13 @@ public class GridCacheProcessor extends GridProcessorAdapter {
      */
     public <K, V> GridCache<K, V> atomicsCache() {
         return cache(CU.ATOMICS_CACHE_NAME);
+    }
+
+    /**
+     * @return Collection of all system cache IDs.
+     */
+    public Collection<Integer> systemCacheIds() {
+        return sysCacheIds;
     }
 
     /**

@@ -429,6 +429,8 @@ public class IgniteCacheTestSuite extends TestSuite {
 
         suite.addTestSuite(IgniteCacheAtomicOpWithinTxSelfTest.class);
 
+        suite.addTestSuite(IgniteInternalCacheTypesTest.class);
+
         return suite;
     }
 }

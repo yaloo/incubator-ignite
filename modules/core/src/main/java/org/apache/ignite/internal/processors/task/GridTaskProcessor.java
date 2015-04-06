@@ -18,6 +18,7 @@
 package org.apache.ignite.internal.processors.task;
 
 import org.apache.ignite.*;
+import org.apache.ignite.cache.*;
 import org.apache.ignite.cluster.*;
 import org.apache.ignite.compute.*;
 import org.apache.ignite.events.*;
@@ -83,7 +84,10 @@ public class GridTaskProcessor extends GridProcessorAdapter {
     private final GridSpinReadWriteLock lock = new GridSpinReadWriteLock();
 
     /** Internal metadata cache. */
-    private GridCache<GridTaskNameHashKey, String> tasksMetaCache;
+    private volatile GridCache<GridTaskNameHashKey, String> tasksMetaCache;
+
+    /** */
+    private final CountDownLatch startLatch = new CountDownLatch(1);
 
     /**
      * @param ctx Kernal context.
@@ -111,6 +115,8 @@ public class GridTaskProcessor extends GridProcessorAdapter {
     /** {@inheritDoc} */
     @Override public void onKernalStart() throws IgniteCheckedException {
         tasksMetaCache = ctx.security().enabled() ? ctx.cache().<GridTaskNameHashKey, String>utilityCache() : null;
+
+        startLatch.countDown();
     }
 
     /** {@inheritDoc} */
@@ -188,6 +194,18 @@ public class GridTaskProcessor extends GridProcessorAdapter {
 
         if (log.isDebugEnabled())
             log.debug("Finished executing task processor onKernalStop() callback.");
+    }
+
+    /**
+     * @return Task metadata cache.
+     */
+    private GridCache<GridTaskNameHashKey, String> taskMetaCache() {
+        assert ctx.security().enabled();
+
+        if (tasksMetaCache == null)
+            U.awaitQuiet(startLatch);
+
+        return tasksMetaCache;
     }
 
     /** {@inheritDoc} */
@@ -343,7 +361,13 @@ public class GridTaskProcessor extends GridProcessorAdapter {
 
         assert ctx.security().enabled();
 
-        return tasksMetaCache.peek(new GridTaskNameHashKey(taskNameHash));
+        try {
+            return taskMetaCache().localPeek(
+                new GridTaskNameHashKey(taskNameHash), CachePeekModes.ONHEAP_ONLY, null);
+        }
+        catch (IgniteCheckedException e) {
+            throw new IgniteException(e);
+        }
     }
 
     /**
@@ -669,6 +693,7 @@ public class GridTaskProcessor extends GridProcessorAdapter {
      * Saves task name metadata to utility cache.
      *
      * @param taskName Task name.
+     * @throws IgniteCheckedException If failed.
      */
     private void saveTaskMetadata(String taskName) throws IgniteCheckedException {
         if (ctx.isDaemon())
@@ -683,6 +708,8 @@ public class GridTaskProcessor extends GridProcessorAdapter {
             nameHash = 1;
 
         GridTaskNameHashKey key = new GridTaskNameHashKey(nameHash);
+
+        GridCache<GridTaskNameHashKey, String> tasksMetaCache = taskMetaCache();
 
         String existingName = tasksMetaCache.get(key);
 

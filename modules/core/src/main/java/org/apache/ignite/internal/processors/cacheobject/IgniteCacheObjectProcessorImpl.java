@@ -29,10 +29,12 @@ import org.apache.ignite.internal.util.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 import org.apache.ignite.lang.*;
 import org.jetbrains.annotations.*;
+import org.jsr166.*;
 
 import java.math.*;
 import java.nio.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 import static org.apache.ignite.cache.CacheMemoryMode.*;
 
@@ -49,6 +51,9 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
     /** */
     private final GridBoundedConcurrentLinkedHashMap<Class<?>, Boolean> reflectionCache =
             new GridBoundedConcurrentLinkedHashMap<>(1024, 1024);
+
+    /** */
+    private final ConcurrentMap<String, CacheObjectContext> contexts = new ConcurrentHashMap8<>();
 
     /**
      *
@@ -182,6 +187,23 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
     /** {@inheritDoc} */
     @Override public CacheObjectContext contextForCache(ClusterNode node, @Nullable String cacheName,
         @Nullable CacheConfiguration ccfg) {
+        CacheObjectContext ctx = contexts.get(cacheName);
+
+        if (ctx == null) {
+            CacheObjectContext old = contexts.putIfAbsent(cacheName, ctx = createContext(ccfg));
+
+            if (old != null)
+                ctx = old;
+        }
+
+        return ctx;
+    }
+
+    /**
+     * @param ccfg Configuration.
+     * @return New cache context.
+     */
+    protected CacheObjectContext createContext(@Nullable CacheConfiguration ccfg) {
         if (ccfg != null) {
             CacheMemoryMode memMode = ccfg.getMemoryMode();
 

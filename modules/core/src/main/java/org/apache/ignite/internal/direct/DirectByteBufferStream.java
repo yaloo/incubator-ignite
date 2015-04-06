@@ -535,10 +535,17 @@ public class DirectByteBufferStream {
      */
     public void writeByteBuffer(ByteBuffer val) {
         if (val != null) {
-            // TODO: IGNITE-471 - Support offheap?
-            assert val.hasArray();
+            if (val.hasArray())
+                writeByteArray(val.array(), val.position(), val.remaining());
+            else {
+                val = val.duplicate();
 
-            writeByteArray(val.array(), val.position(), val.remaining());
+                byte[] arr = new byte[val.remaining()];
+
+                val.get(arr);
+
+                writeByteArray(arr);
+            }
         }
         else
             writeInt(-1);

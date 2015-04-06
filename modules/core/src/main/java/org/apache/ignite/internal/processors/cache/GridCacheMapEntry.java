@@ -537,7 +537,6 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
     /**
      * @return Value bytes and flag indicating whether value is byte array.
      */
-    // TODO: IGNITE-471 - Switch to other class here???
     protected IgniteBiTuple<ByteBuffer, Byte> valueBytes0() {
         assert Thread.holdsLock(this);
 

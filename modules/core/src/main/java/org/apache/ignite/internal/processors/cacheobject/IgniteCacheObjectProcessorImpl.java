@@ -187,6 +187,8 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
     /** {@inheritDoc} */
     @Override public CacheObjectContext contextForCache(ClusterNode node, @Nullable String cacheName,
         @Nullable CacheConfiguration ccfg) {
+        cacheName = U.maskName(cacheName);
+
         CacheObjectContext ctx = contexts.get(cacheName);
 
         if (ctx == null) {

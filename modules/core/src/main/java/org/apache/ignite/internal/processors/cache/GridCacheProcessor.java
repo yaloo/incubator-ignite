@@ -2278,13 +2278,6 @@ public class GridCacheProcessor extends GridProcessorAdapter {
     }
 
     /**
-     * @return Collection of all system cache IDs.
-     */
-    public Collection<Integer> systemCacheIds() {
-        return sysCacheIds;
-    }
-
-    /**
      * @param name Cache name.
      * @param <K> type of keys.
      * @param <V> type of values.

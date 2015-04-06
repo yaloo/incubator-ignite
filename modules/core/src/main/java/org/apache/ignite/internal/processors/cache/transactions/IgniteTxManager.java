@@ -655,8 +655,11 @@ public class IgniteTxManager extends GridCacheSharedManagerAdapter {
         if (tx != null && tx.topologyVersionSnapshot() != null)
             return tx;
 
-        for (int cacheId : cctx.cache().systemCacheIds()) {
-            tx = sysThreadMap.get(new TxThreadKey(threadId, cacheId));
+        for (GridCacheContext cacheCtx : cctx.cache().context().cacheContexts()) {
+            if (!cacheCtx.systemTx())
+                continue;
+
+            tx = sysThreadMap.get(new TxThreadKey(threadId, cacheCtx.cacheId()));
 
             if (tx != null && tx.topologyVersionSnapshot() != null)
                 return tx;

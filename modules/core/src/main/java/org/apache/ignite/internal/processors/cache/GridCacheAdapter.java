@@ -5492,7 +5492,7 @@ public abstract class GridCacheAdapter<K, V> implements GridCache<K, V>,
         @Override public void readExternal(ObjectInput in) throws IOException, ClassNotFoundException {
             super.readExternal(in);
 
-            keys = (Set<K>) in.readObject();
+            keys = (Set<K>)in.readObject();
         }
     }
 

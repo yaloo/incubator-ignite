@@ -1679,8 +1679,6 @@ public class IgnitionEx {
 
             final boolean hasHadoop = IgniteComponentType.HADOOP.inClassPath();
 
-            final boolean hasAtomics = cfg.getAtomicConfiguration() != null;
-
             final boolean clientDisco = cfg.getDiscoverySpi() instanceof TcpClientDiscoverySpi;
 
             CacheConfiguration[] copies;
@@ -1709,12 +1707,9 @@ public class IgnitionEx {
                             "\" because it is reserved for internal purposes.");
                 }
 
-                int addCacheCnt = 2; // Always add marshaller and utility caches.
+                int addCacheCnt = 3; // Always add marshaller, utility, atomics caches.
 
                 if (hasHadoop)
-                    addCacheCnt++;
-
-                if (hasAtomics)
                     addCacheCnt++;
 
                 copies = new CacheConfiguration[cacheCfgs.length + addCacheCnt];
@@ -1724,19 +1719,15 @@ public class IgnitionEx {
                 if (hasHadoop)
                     copies[cloneIdx++] = CU.hadoopSystemCache();
 
-                if (hasAtomics)
-                    copies[cloneIdx++] = atomicsSystemCache(cfg.getAtomicConfiguration(), clientDisco);
+                copies[cloneIdx++] = atomicsSystemCache(cfg.getAtomicConfiguration(), clientDisco);
 
                 for (CacheConfiguration ccfg : cacheCfgs)
                     copies[cloneIdx++] = new CacheConfiguration(ccfg);
             }
             else {
-                int cacheCnt = 2; // Always add marshaller and utility caches.
+                int cacheCnt = 3; // Always add marshaller, utility, atomics caches.
 
                 if (hasHadoop)
-                    cacheCnt++;
-
-                if (hasAtomics)
                     cacheCnt++;
 
                 copies = new CacheConfiguration[cacheCnt];
@@ -1746,8 +1737,7 @@ public class IgnitionEx {
                 if (hasHadoop)
                     copies[cacheIdx++] = CU.hadoopSystemCache();
 
-                if (hasAtomics)
-                    copies[cacheIdx] = atomicsSystemCache(cfg.getAtomicConfiguration(), clientDisco);
+                copies[cacheIdx] = atomicsSystemCache(cfg.getAtomicConfiguration(), clientDisco);
             }
 
             // Always add marshaller and utility caches.

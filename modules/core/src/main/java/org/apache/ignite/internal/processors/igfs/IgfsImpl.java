@@ -351,7 +351,8 @@ public final class IgfsImpl implements IgfsEx {
 
                 if (batch != null) {
                     try {
-                        batch.awaitIfFinished();
+                        if (batch.finishing())
+                            batch.await();
                     }
                     catch (IgniteCheckedException ignore) {
                         // No-op.

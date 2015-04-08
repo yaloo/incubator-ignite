@@ -2035,11 +2035,20 @@ public abstract class IgniteUtils {
         if (buf == null)
             out.writeInt(-1);
         else {
-            // TODO: IGNITE-471 - Support offheap?
-            assert buf.hasArray();
+            if (buf.hasArray()) {
+                out.writeInt(buf.remaining());
+                out.write(buf.array(), buf.position(), buf.remaining());
+            }
+            else {
+                buf = buf.duplicate();
 
-            out.writeInt(buf.remaining());
-            out.write(buf.array(), buf.position(), buf.remaining());
+                byte[] arr = new byte[buf.remaining()];
+
+                buf.get(arr);
+
+                out.writeInt(arr.length);
+                out.write(arr);
+            }
         }
     }
 
@@ -9026,8 +9035,6 @@ public abstract class IgniteUtils {
     }
 
     /**
-     * // TODO: IGNITE-471 - Remove method?
-     *
      * @param buf Byte buffer.
      * @return Byte array.
      */

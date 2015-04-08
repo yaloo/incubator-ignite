@@ -225,7 +225,7 @@ public class OptimizedMarshaller extends AbstractMarshaller {
     @SuppressWarnings("unchecked")
     @Override public <T> T unmarshal(ByteBuffer buf, @Nullable ClassLoader clsLdr) throws IgniteCheckedException {
         assert buf != null;
-        assert buf.hasArray(); // TODO: IGNITE-471 - Support offheap?
+        assert buf.hasArray();
 
         OptimizedObjectInputStream objIn = null;
 
@@ -234,7 +234,6 @@ public class OptimizedMarshaller extends AbstractMarshaller {
 
             objIn.context(clsMap, ctx, mapper, clsLdr != null ? clsLdr : dfltClsLdr);
 
-            // TODO: IGNITE-471 - Position is not moved.
             objIn.in().bytes(buf.array(), buf.position(), buf.remaining());
 
             return (T)objIn.readObject();

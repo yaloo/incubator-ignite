@@ -3626,7 +3626,7 @@ public abstract class GridCacheAdapter<K, V> implements GridCache<K, V>,
             });
 
             if (!col.isEmpty())
-                ldr.addData(col);
+                ldr.addDataInternal(col);
         }
     }
 

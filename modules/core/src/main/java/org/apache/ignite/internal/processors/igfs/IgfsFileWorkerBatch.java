@@ -92,6 +92,13 @@ public abstract class IgfsFileWorkerBatch implements Runnable {
     }
 
     /**
+     * Cancel batch processing.
+     */
+    synchronized void cancel() {
+        queue.addFirst(CANCEL_MARKER);
+    }
+
+    /**
      * @return {@code True} if finish was called on this batch.
      */
     boolean finishing() {
@@ -109,12 +116,13 @@ public abstract class IgfsFileWorkerBatch implements Runnable {
 
                     if (data == null)
                         continue;
-
-                    if (data == STOP_MARKER) {
+                    else if (data == STOP_MARKER) {
                         assert queue.isEmpty();
 
                         fut.onDone();
                     }
+                    else if (data == CANCEL_MARKER)
+                        throw new IgniteCheckedException("Write to file was cancelled due to node stop.");
 
                     try {
                         out.write(data);

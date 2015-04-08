@@ -243,17 +243,7 @@ public final class IgfsImpl implements IgfsEx {
         if (secondaryFs != null) {
             // Force all workers to finish their batches.
             for (IgfsFileWorkerBatch batch : workerMap.values())
-                batch.finish();
-
-            // Wait for all writers to finish their execution.
-            for (IgfsFileWorker w : workerMap.values()) {
-                try {
-                    w.join();
-                }
-                catch (InterruptedException e) {
-                    U.error(log, e.getMessage(), e);
-                }
-            }
+                batch.cancel();
 
             if (secondaryFs instanceof AutoCloseable)
                 U.closeQuiet((AutoCloseable)secondaryFs);
@@ -333,7 +323,7 @@ public final class IgfsImpl implements IgfsEx {
     void await(IgfsPath... paths) {
         assert paths != null;
 
-        for (Map.Entry<IgfsPath, IgfsFileWorker> workerEntry : workerMap.entrySet()) {
+        for (Map.Entry<IgfsPath, IgfsFileWorkerBatch> workerEntry : workerMap.entrySet()) {
             IgfsPath workerPath = workerEntry.getKey();
 
             boolean await = false;
@@ -347,7 +337,7 @@ public final class IgfsImpl implements IgfsEx {
             }
 
             if (await) {
-                IgfsFileWorkerBatch batch = workerEntry.getValue().currentBatch();
+                IgfsFileWorkerBatch batch = workerEntry.getValue();
 
                 if (batch != null) {
                     try {

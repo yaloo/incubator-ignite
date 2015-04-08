@@ -28,9 +28,12 @@ import java.util.concurrent.*;
 /**
  * Work batch is an abstraction of the logically grouped tasks.
  */
-public class IgfsFileWorkerBatch {
+public abstract class IgfsFileWorkerBatch implements Runnable {
     /** Stop marker. */
     private static final byte[] STOP_MARKER = new byte[0];
+
+    /** Cancel marker. */
+    private static final byte[] CANCEL_MARKER = new byte[0];
 
     /** Tasks queue. */
     private final BlockingDeque<byte[]> queue = new LinkedBlockingDeque<>();
@@ -98,7 +101,7 @@ public class IgfsFileWorkerBatch {
     /**
      * Process the batch.
      */
-    void process() {
+    public void run() {
         try {
             while (!fut.isDone()) {
                 try {
@@ -135,6 +138,8 @@ public class IgfsFileWorkerBatch {
             assert fut.isDone();
 
             U.closeQuiet(out);
+
+            onDone();
         }
     }
 
@@ -155,4 +160,9 @@ public class IgfsFileWorkerBatch {
     IgfsPath path() {
         return path;
     }
+
+    /**
+     * Callback invoked when execution finishes.
+     */
+    protected abstract void onDone();
 }

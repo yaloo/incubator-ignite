@@ -97,7 +97,7 @@ public final class DataStructuresProcessor extends GridProcessorAdapter {
     private GridCacheProjectionEx<CacheDataStructuresConfigurationKey, Map<String, DataStructureInfo>> dsInfoView;
 
     /** */
-    private GridCacheProjectionEx<CacheDataStructuresCacheKey, List<CacheCollectionInfo>> utilityDataCache;
+    private GridCacheProjectionEx<CacheDataStructuresCacheKey, List<CacheCollectionInfo>> dsCacheInfoView;
 
     /**
      * @param ctx Context.
@@ -121,6 +121,8 @@ public final class DataStructuresProcessor extends GridProcessorAdapter {
         assert atomicsCache != null;
 
         dsInfoView = (GridCacheProjectionEx)atomicsCache;
+
+        dsCacheInfoView = (GridCacheProjectionEx)atomicsCache;
 
         dsView = atomicsCache;
 
@@ -674,12 +676,12 @@ public final class DataStructuresProcessor extends GridProcessorAdapter {
      * @return Cache name.
      */
     private String compatibleConfiguration(CollectionConfiguration cfg) throws IgniteCheckedException {
-        List<CacheCollectionInfo> caches = utilityDataCache.localPeek(DATA_STRUCTURES_CACHE_KEY, null, null);
+        List<CacheCollectionInfo> caches = dsCacheInfoView.localPeek(DATA_STRUCTURES_CACHE_KEY, null, null);
 
         String cacheName = findCompatibleConfiguration(cfg, caches);
 
         if (cacheName == null)
-            cacheName = utilityDataCache.invoke(DATA_STRUCTURES_CACHE_KEY, new AddDataCacheProcessor(cfg)).get();
+            cacheName = dsCacheInfoView.invoke(DATA_STRUCTURES_CACHE_KEY, new AddDataCacheProcessor(cfg)).get();
 
         assert cacheName != null;
 

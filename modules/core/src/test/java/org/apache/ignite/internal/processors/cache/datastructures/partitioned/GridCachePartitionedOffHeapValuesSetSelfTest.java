@@ -15,16 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.internal.util.nodestart;
+package org.apache.ignite.internal.processors.cache.datastructures.partitioned;
 
-import org.apache.ignite.internal.util.lang.*;
+import org.apache.ignite.cache.*;
 
-import java.util.concurrent.*;
+import static org.apache.ignite.cache.CacheMemoryMode.*;
 
 /**
- * SSH-based node starter, returns tuple which contains hostname, success flag and error message
- * if attempt was not successful.
+ * Set tests with off-heap values cache memory mode.
  */
-public interface IgniteNodeCallable extends Callable<GridTuple3<String, Boolean, String>> {
-    // No-op.
+public class GridCachePartitionedOffHeapValuesSetSelfTest extends GridCachePartitionedSetSelfTest {
+    /** {@inheritDoc} */
+    @Override protected CacheMemoryMode collectionMemoryMode() {
+        return OFFHEAP_VALUES;
+    }
 }

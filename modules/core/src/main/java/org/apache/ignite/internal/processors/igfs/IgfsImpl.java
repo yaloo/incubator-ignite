@@ -234,7 +234,7 @@ public final class IgfsImpl implements IgfsEx {
     }
 
     /** {@inheritDoc} */
-    @Override public void stop() {
+    @Override public void stop(boolean cancel) {
         busyLock.block();
 
         // Clear interrupted flag temporarily.
@@ -484,8 +484,7 @@ public final class IgfsImpl implements IgfsEx {
         A.notNull(path, "path");
 
         return safeOp(new Callable<IgfsFile>() {
-            @Override
-            public IgfsFile call() throws Exception {
+            @Override public IgfsFile call() throws Exception {
                 if (log.isDebugEnabled())
                     log.debug("Get file info: " + path);
 
@@ -902,7 +901,8 @@ public final class IgfsImpl implements IgfsEx {
         A.notNull(path, "path");
 
         return safeOp(new Callable<Collection<IgfsFile>>() {
-            @Override public Collection<IgfsFile> call() throws Exception {
+            @Override
+            public Collection<IgfsFile> call() throws Exception {
                 if (log.isDebugEnabled())
                     log.debug("List directory details: " + path);
 
@@ -944,8 +944,7 @@ public final class IgfsImpl implements IgfsEx {
                             files.add(new IgfsFileImpl(p, e.getValue(), data.groupBlockSize()));
                         }
                     }
-                }
-                else if (mode == PRIMARY) {
+                } else if (mode == PRIMARY) {
                     checkConflictWithPrimary(path);
 
                     throw new IgfsPathNotFoundException("Failed to list files (path not found): " + path);
@@ -1326,8 +1325,7 @@ public final class IgfsImpl implements IgfsEx {
     /** {@inheritDoc} */
     @Override public IgfsMetrics metrics() {
         return safeOp(new Callable<IgfsMetrics>() {
-            @Override
-            public IgfsMetrics call() throws Exception {
+            @Override public IgfsMetrics call() throws Exception {
                 IgfsPathSummary sum = new IgfsPathSummary();
 
                 summary0(ROOT_ID, sum);
@@ -1337,7 +1335,8 @@ public final class IgfsImpl implements IgfsEx {
                 if (secondaryFs != null) {
                     try {
                         secondarySpaceSize = secondaryFs.usedSpaceSize();
-                    } catch (IgniteException e) {
+                    }
+                    catch (IgniteException e) {
                         LT.warn(log, e, "Failed to get secondary file system consumed space size.");
 
                         secondarySpaceSize = -1;
@@ -2091,34 +2090,34 @@ public final class IgfsImpl implements IgfsEx {
             throw new IllegalStateException("Failed to perform IGFS action because grid is stopping.");
     }
 
-/**
- * IGFS thread factory.
- */
-@SuppressWarnings("NullableProblems")
-private static class IgfsThreadFactory implements ThreadFactory {
-    /** IGFS name. */
-    private final String name;
-
-    /** Counter. */
-    private final AtomicLong ctr = new AtomicLong();
-
     /**
-     * Constructor.
-     *
-     * @param name IGFS name.
+     * IGFS thread factory.
      */
-    private IgfsThreadFactory(String name) {
-        this.name = name;
+    @SuppressWarnings("NullableProblems")
+    private static class IgfsThreadFactory implements ThreadFactory {
+        /** IGFS name. */
+        private final String name;
+
+        /** Counter. */
+        private final AtomicLong ctr = new AtomicLong();
+
+        /**
+         * Constructor.
+         *
+         * @param name IGFS name.
+         */
+        private IgfsThreadFactory(String name) {
+            this.name = name;
+        }
+
+        /** {@inheritDoc} */
+        @Override public Thread newThread(Runnable r) {
+            Thread t = new Thread(r);
+
+            t.setName("igfs-<" + name + ">-batch-worker-thread-" + ctr.incrementAndGet());
+            t.setDaemon(true);
+
+            return t;
+        }
     }
-
-    /** {@inheritDoc} */
-    @Override public Thread newThread(Runnable r) {
-        Thread t = new Thread(r);
-
-        t.setName("igfs-<" + name + ">-batch-worker-thread-" + ctr.incrementAndGet());
-        t.setDaemon(true);
-
-        return t;
-    }
-}
 }

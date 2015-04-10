@@ -1522,7 +1522,7 @@ public abstract class IgfsAbstractSelfTest extends IgfsCommonAbstractTest {
 
         os.write(chunk);
 
-        igfs.stop();
+        igfs.stop(true);
 
         // Reset test state.
         afterTestsStopped();

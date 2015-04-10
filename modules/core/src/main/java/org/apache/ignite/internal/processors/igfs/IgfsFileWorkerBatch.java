@@ -38,7 +38,7 @@ public abstract class IgfsFileWorkerBatch implements Runnable {
     /** Tasks queue. */
     private final BlockingDeque<byte[]> queue = new LinkedBlockingDeque<>();
 
-    /** Future which completes when batch is finished. */
+    /** Future which completes when batch processing is finished. */
     private final GridFutureAdapter fut = new GridFutureAdapter();
 
     /** Path to the file in the primary file system. */
@@ -108,46 +108,63 @@ public abstract class IgfsFileWorkerBatch implements Runnable {
     /**
      * Process the batch.
      */
+    @SuppressWarnings("unchecked")
     public void run() {
+        Throwable err = null;
+
         try {
-            while (!fut.isDone()) {
+            while (true) {
                 try {
                     byte[] data = queue.poll(1000, TimeUnit.MILLISECONDS);
 
-                    if (data == null)
-                        continue;
-                    else if (data == STOP_MARKER) {
+                    if (data == STOP_MARKER) {
                         assert queue.isEmpty();
 
-                        fut.onDone();
+                        break;
                     }
                     else if (data == CANCEL_MARKER)
                         throw new IgniteCheckedException("Write to file was cancelled due to node stop.");
-
-                    try {
-                        out.write(data);
-                    }
-                    catch (IOException e) {
-                        throw new IgniteCheckedException("Failed to write data to the file due to secondary " +
-                            "file system exception: " + path, e);
+                    else if (data != null) {
+                        try {
+                            out.write(data);
+                        }
+                        catch (IOException e) {
+                            throw new IgniteCheckedException("Failed to write data to the file due to secondary " +
+                                "file system exception: " + path, e);
+                        }
                     }
                 }
                 catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
 
-                    fut.onDone(e);
+                    err = e;
+
+                    break;
                 }
                 catch (Exception e) {
-                    fut.onDone(e);
+                    err = e;
+
+                    break;
                 }
             }
         }
+        catch (Throwable e) {
+            // Safety. This should never happen under normal conditions.
+            err = e;
+        }
         finally {
-            assert fut.isDone();
-
+            // Order of events is very important here. First, we close the stream so that metadata locks are released.
+            // This action must be the very first because otherwise a writer thread could interfere with itself.
             U.closeQuiet(out);
 
+            // Next, we invoke callback so that IgfsImpl is able to enqueue new requests. This is safe because
+            // at this point file processing is completed.
             onDone();
+
+            // Finally, we complete the future, so that waiting threads could resume.
+            assert !fut.isDone();
+
+            fut.onDone(null, err);
         }
     }
 

@@ -289,8 +289,12 @@ public final class IgfsImpl implements IgfsEx {
 
                     if (prevBatch == null)
                         break;
-                    else
+                    else {
+                        assert prevBatch.finishing() :
+                            "File lock should prevent stream creation on a not-closed-yet file.";
+
                         prevBatch.await();
+                    }
                 }
 
                 return batch;
@@ -341,6 +345,15 @@ public final class IgfsImpl implements IgfsEx {
 
                 if (batch != null) {
                     try {
+                        // We wait only on closed files which write process has not finished yet. This check is racy
+                        // if several threads are modifying file system concurrently, but we are ok with that.
+                        // The sole purpose of this waiting is to ensure happens-before semantics for a single thread.
+                        // E.g., we have thread A working with Hadoop file system in another process. This file system
+                        // communicates with a node and actual processing occurs in threads B and C of the current
+                        // process. What we need to ensure is that if thread A called "close" then subsequent
+                        // operations of this thread "see" this close and wait for async writes to finish.
+                        // And as we do not on which paths thread A performed writes earlier, we have to wait for all
+                        // batches on current path and all it's known children.
                         if (batch.finishing())
                             batch.await();
                     }
@@ -393,7 +406,8 @@ public final class IgfsImpl implements IgfsEx {
     @SuppressWarnings("ConstantConditions")
     @Override public IgfsStatus globalSpace() {
         return safeOp(new Callable<IgfsStatus>() {
-            @Override public IgfsStatus call() throws Exception {
+            @Override
+            public IgfsStatus call() throws Exception {
                 IgniteBiTuple<Long, Long> space = igfsCtx.kernalContext().grid().compute().execute(
                     new IgfsGlobalSpaceTask(name()), null);
 
@@ -1170,7 +1184,8 @@ public final class IgfsImpl implements IgfsEx {
         A.ensure(bufSize >= 0, "bufSize >= 0");
 
         return safeOp(new Callable<IgfsOutputStream>() {
-            @Override public IgfsOutputStream call() throws Exception {
+            @Override
+            public IgfsOutputStream call() throws Exception {
                 if (log.isDebugEnabled())
                     log.debug("Open file for appending [path=" + path + ", bufSize=" + bufSize + ", create=" + create +
                         ", props=" + props + ']');
@@ -1292,7 +1307,8 @@ public final class IgfsImpl implements IgfsEx {
         A.ensure(len >= 0, "len >= 0");
 
         return safeOp(new Callable<Collection<IgfsBlockLocation>>() {
-            @Override public Collection<IgfsBlockLocation> call() throws Exception {
+            @Override
+            public Collection<IgfsBlockLocation> call() throws Exception {
                 if (log.isDebugEnabled())
                     log.debug("Get affinity for file block [path=" + path + ", start=" + start + ", len=" + len + ']');
 
@@ -1325,7 +1341,8 @@ public final class IgfsImpl implements IgfsEx {
     /** {@inheritDoc} */
     @Override public IgfsMetrics metrics() {
         return safeOp(new Callable<IgfsMetrics>() {
-            @Override public IgfsMetrics call() throws Exception {
+            @Override
+            public IgfsMetrics call() throws Exception {
                 IgfsPathSummary sum = new IgfsPathSummary();
 
                 summary0(ROOT_ID, sum);
@@ -1335,8 +1352,7 @@ public final class IgfsImpl implements IgfsEx {
                 if (secondaryFs != null) {
                     try {
                         secondarySpaceSize = secondaryFs.usedSpaceSize();
-                    }
-                    catch (IgniteException e) {
+                    } catch (IgniteException e) {
                         LT.warn(log, e, "Failed to get secondary file system consumed space size.");
 
                         secondarySpaceSize = -1;

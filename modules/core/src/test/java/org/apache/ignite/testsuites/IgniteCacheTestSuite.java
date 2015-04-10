@@ -410,6 +410,8 @@ public class IgniteCacheTestSuite extends TestSuite {
 
         suite.addTestSuite(IgniteDynamicCacheStartSelfTest.class);
         suite.addTestSuite(IgniteCacheDynamicStopSelfTest.class);
+        suite.addTestSuite(IgniteCacheConfigurationTemplateTest.class);
+        suite.addTestSuite(IgniteCacheConfigurationDefaultTemplateTest.class);
 
         suite.addTestSuite(GridCacheTxLoadFromStoreOnLockSelfTest.class);
 
@@ -425,6 +427,9 @@ public class IgniteCacheTestSuite extends TestSuite {
         suite.addTestSuite(IgniteCacheTxLocalStoreValueTest.class);
         suite.addTestSuite(IgniteCacheTxStoreValueTest.class);
         suite.addTestSuite(IgniteCacheTxNearEnabledStoreValueTest.class);
+
+        suite.addTestSuite(IgniteCacheLockFailoverSelfTest.class);
+        suite.addTestSuite(IgniteCacheMultiTxLockSelfTest.class);
 
         suite.addTestSuite(IgniteInternalCacheTypesTest.class);
 

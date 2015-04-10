@@ -345,13 +345,13 @@ public final class IgfsImpl implements IgfsEx {
 
                 if (batch != null) {
                     try {
-                        // We wait only on closed files which write process has not finished yet. This check is racy
-                        // if several threads are modifying file system concurrently, but we are ok with that.
-                        // The sole purpose of this waiting is to ensure happens-before semantics for a single thread.
-                        // E.g., we have thread A working with Hadoop file system in another process. This file system
-                        // communicates with a node and actual processing occurs in threads B and C of the current
-                        // process. What we need to ensure is that if thread A called "close" then subsequent
-                        // operations of this thread "see" this close and wait for async writes to finish.
+                        // We wait only on files which had been closed, but their async writes are still in progress.
+                        // This check is racy if several threads are modifying file system concurrently, but we are ok
+                        // with that. The sole purpose of this waiting is to ensure happens-before semantics for a
+                        // single thread. E.g., we have thread A working with Hadoop file system in another process.
+                        // This file system communicates with a node and actual processing occurs in threads B and C
+                        // of the current process. What we need to ensure is that if thread A called "close" then
+                        // subsequent operations of this thread "see" this close and wait for async writes to finish.
                         // And as we do not on which paths thread A performed writes earlier, we have to wait for all
                         // batches on current path and all it's known children.
                         if (batch.finishing())

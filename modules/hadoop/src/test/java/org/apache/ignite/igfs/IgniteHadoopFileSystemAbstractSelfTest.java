@@ -1936,28 +1936,23 @@ public abstract class IgniteHadoopFileSystemAbstractSelfTest extends IgfsCommonA
 
     /** @throws Exception If failed. */
     public void testConsistency() throws Exception {
-        while (true) {
-            // Default buffers values
-            checkConsistency(-1, 1, -1, -1, 1, -1);
-            checkConsistency(-1, 10, -1, -1, 10, -1);
-            checkConsistency(-1, 100, -1, -1, 100, -1);
-            checkConsistency(-1, 1000, -1, -1, 1000, -1);
-            checkConsistency(-1, 10000, -1, -1, 10000, -1);
-            checkConsistency(-1, 100000, -1, -1, 100000, -1);
+        // Default buffers values
+        checkConsistency(-1, 1, -1, -1, 1, -1);
+        checkConsistency(-1, 10, -1, -1, 10, -1);
+        checkConsistency(-1, 100, -1, -1, 100, -1);
+        checkConsistency(-1, 1000, -1, -1, 1000, -1);
+        checkConsistency(-1, 10000, -1, -1, 10000, -1);
+        checkConsistency(-1, 100000, -1, -1, 100000, -1);
 
-            checkConsistency(65 * 1024 + 13, 100000, -1, -1, 100000, -1);
+        checkConsistency(65 * 1024 + 13, 100000, -1, -1, 100000, -1);
 
-            checkConsistency(-1, 100000, 2 * 4 * 1024 + 17, -1, 100000, -1);
+        checkConsistency(-1, 100000, 2 * 4 * 1024 + 17, -1, 100000, -1);
 
-            checkConsistency(-1, 100000, -1, 65 * 1024 + 13, 100000, -1);
+        checkConsistency(-1, 100000, -1, 65 * 1024 + 13, 100000, -1);
 
-            checkConsistency(-1, 100000, -1, -1, 100000, 2 * 4 * 1024 + 17);
+        checkConsistency(-1, 100000, -1, -1, 100000, 2 * 4 * 1024 + 17);
 
-            checkConsistency(65 * 1024 + 13, 100000, 2 * 4 * 1024 + 13, 65 * 1024 + 149, 100000, 2 * 4 * 1024 + 157);
-
-            afterTest();
-            beforeTest();
-        }
+        checkConsistency(65 * 1024 + 13, 100000, 2 * 4 * 1024 + 13, 65 * 1024 + 149, 100000, 2 * 4 * 1024 + 157);
     }
 
     /**

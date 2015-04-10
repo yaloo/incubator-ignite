@@ -51,11 +51,11 @@ public abstract class GridDhtTxLocalAdapter extends IgniteTxLocalAdapter {
     private static final long serialVersionUID = 0L;
 
     /** Near mappings. */
-    protected Map<UUID, GridDistributedTxMapping> nearMap =
+    protected final Map<UUID, GridDistributedTxMapping> nearMap =
         new ConcurrentHashMap8<>();
 
     /** DHT mappings. */
-    protected Map<UUID, GridDistributedTxMapping> dhtMap =
+    protected final Map<UUID, GridDistributedTxMapping> dhtMap =
         new ConcurrentHashMap8<>();
 
     /** Mapped flag. */

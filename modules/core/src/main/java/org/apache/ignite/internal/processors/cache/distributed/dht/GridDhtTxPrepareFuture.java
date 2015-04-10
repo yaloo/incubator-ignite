@@ -482,8 +482,12 @@ public final class GridDhtTxPrepareFuture<K, V> extends GridCompoundIdentityFutu
         this.err.compareAndSet(null, err);
 
         // Must clear prepare future before response is sent or listeners are notified.
-        if (tx.optimistic())
-            tx.clearPrepareFuture(this);
+        tx.clearPrepareFuture(this);
+
+        if (last || tx.isSystemInvalidate()) {
+            if (!tx.near())
+                tx.state(PREPARED);
+        }
 
         if (tx.onePhaseCommit()) {
             assert last;
@@ -681,9 +685,6 @@ public final class GridDhtTxPrepareFuture<K, V> extends GridCompoundIdentityFutu
      * @return {@code True} if {@code done} flag was changed as a result of this call.
      */
     private boolean onComplete() {
-        if (last || tx.isSystemInvalidate())
-            tx.state(PREPARED);
-
         if (super.onDone(tx, err.get())) {
             // Don't forget to clean up.
             cctx.mvcc().removeFuture(this);

@@ -406,7 +406,8 @@ public class GridDhtTxLocal extends GridDhtTxLocalAdapter implements GridCacheMa
         }
         else {
             assert fut.nearMiniId().equals(nearMiniId) : "Wrong near mini id on existing future " +
-                "[futMiniId=" + fut.nearMiniId() + ", miniId=" + nearMiniId + ", fut=" + fut + ']';
+                "[futMiniId=" + fut.nearMiniId() + ", miniId=" + nearMiniId + ", fut=" + fut +
+                ", tx=" + this + ']';
 
             // Prepare was called explicitly.
             return fut;
@@ -482,10 +483,6 @@ public class GridDhtTxLocal extends GridDhtTxLocalAdapter implements GridCacheMa
         if (log.isDebugEnabled())
             log.debug("Committing dht local tx: " + this);
 
-        // In optimistic mode prepare was called explicitly.
-        if (pessimistic())
-            prepareAsync();
-
         final GridDhtTxFinishFuture fut = new GridDhtTxFinishFuture<>(cctx, this, /*commit*/true);
 
         cctx.mvcc().addFuture(fut);
@@ -541,8 +538,6 @@ public class GridDhtTxLocal extends GridDhtTxLocalAdapter implements GridCacheMa
                 });
         }
         else {
-            assert optimistic();
-
             try {
                 if (finish(true))
                     fut.finish();
@@ -567,8 +562,6 @@ public class GridDhtTxLocal extends GridDhtTxLocalAdapter implements GridCacheMa
 
     /** {@inheritDoc} */
     @Override protected void clearPrepareFuture(GridDhtTxPrepareFuture fut) {
-        assert optimistic();
-
         prepFut.compareAndSet(fut, null);
     }
 

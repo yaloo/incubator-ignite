@@ -561,31 +561,31 @@ public class GridNearTxLocal extends GridDhtTxLocalAdapter {
             F.concat(false, mapping.reads(), mapping.writes());
 
         for (IgniteTxEntry txEntry : entries) {
-            while (true) {
-                GridCacheContext cacheCtx = txEntry.cached().context();
+            GridCacheContext cacheCtx = txEntry.cached().context();
 
-                assert cacheCtx.isNear();
+            if (cacheCtx.isNear()) {
+                while (true) {
+                    GridDistributedCacheEntry entry = (GridDistributedCacheEntry)txEntry.cached();
 
-                GridDistributedCacheEntry entry = (GridDistributedCacheEntry)txEntry.cached();
+                    try {
+                        // Handle explicit locks.
+                        GridCacheVersion explicit = txEntry.explicitVersion();
 
-                try {
-                    // Handle explicit locks.
-                    GridCacheVersion explicit = txEntry.explicitVersion();
+                        if (explicit == null)
+                            entry.readyNearLock(xidVer, mapping.dhtVersion(), committedVers, rolledbackVers, pendingVers);
 
-                    if (explicit == null)
-                        entry.readyNearLock(xidVer, mapping.dhtVersion(), committedVers, rolledbackVers, pendingVers);
+                        break;
+                    }
+                    catch (GridCacheEntryRemovedException ignored) {
+                        assert entry.obsoleteVersion() != null;
 
-                    break;
-                }
-                catch (GridCacheEntryRemovedException ignored) {
-                    assert entry.obsoleteVersion() != null;
+                        if (log.isDebugEnabled())
+                            log.debug("Replacing obsolete entry in remote transaction [entry=" + entry +
+                                ", tx=" + this + ']');
 
-                    if (log.isDebugEnabled())
-                        log.debug("Replacing obsolete entry in remote transaction [entry=" + entry +
-                            ", tx=" + this + ']');
-
-                    // Replace the entry.
-                    txEntry.cached(txEntry.context().cache().entryEx(txEntry.key()));
+                        // Replace the entry.
+                        txEntry.cached(txEntry.context().cache().entryEx(txEntry.key()));
+                    }
                 }
             }
         }

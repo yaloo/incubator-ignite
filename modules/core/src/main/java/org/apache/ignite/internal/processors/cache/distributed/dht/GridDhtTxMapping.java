@@ -29,6 +29,9 @@ import java.util.*;
  * DHT transaction mapping.
  */
 public class GridDhtTxMapping<K, V> {
+    /** */
+    private UUID locNodeId;
+
     /** Transaction nodes mapping (primary node -> related backup nodes). */
     private final Map<UUID, Collection<UUID>> txNodes = new GridLeanMap<>();
 
@@ -39,18 +42,25 @@ public class GridDhtTxMapping<K, V> {
     private TxMapping last;
 
     /**
+     * @param locNodeId Local node ID.
+     */
+    public GridDhtTxMapping(UUID locNodeId) {
+        this.locNodeId = locNodeId;
+    }
+
+    /**
      * Adds information about next mapping.
      *
      * @param nodes Nodes.
      */
     @SuppressWarnings("ConstantConditions")
-    public void addMapping(List<ClusterNode> nodes) {
+    public void addMapping(List<ClusterNode> nodes, boolean near) {
         ClusterNode primary = F.first(nodes);
 
         Collection<ClusterNode> backups = F.view(nodes, F.notEqualTo(primary));
 
-        if (last == null || !last.primary.equals(primary.id())) {
-            last = new TxMapping(primary, backups);
+        if (last == null || !last.primary.equals(primary.id()) || last.near != near) {
+            last = new TxMapping(primary, backups, near);
 
             mappings.add(last);
         }
@@ -78,7 +88,8 @@ public class GridDhtTxMapping<K, V> {
      * @param mappings Mappings.
      */
     public void initLast(Collection<GridDistributedTxMapping> mappings) {
-        assert this.mappings.size() == mappings.size();
+        assert this.mappings.size() == mappings.size() :
+            "this.size=" + this.mappings.size() + ", size=" + mappings.size();
 
         int idx = 0;
 
@@ -92,7 +103,7 @@ public class GridDhtTxMapping<K, V> {
             for (int i = idx + 1; i < this.mappings.size(); i++) {
                 TxMapping nextMap = this.mappings.get(i);
 
-                if (nextMap.primary.equals(mapping.primary)) {
+                if (nextMap.primary.equals(mapping.primary) && (!F.eq(locNodeId, nextMap.primary) || nextMap.near == mapping.near)) {
                     last = false;
 
                     break;
@@ -146,14 +157,19 @@ public class GridDhtTxMapping<K, V> {
         /** */
         private final Set<UUID> backups;
 
+        /** */
+        private final boolean near;
+
         /**
          * @param primary Primary node.
          * @param backups Backup nodes.
          */
-        private TxMapping(ClusterNode primary, Iterable<ClusterNode> backups) {
+        private TxMapping(ClusterNode primary, Iterable<ClusterNode> backups, boolean near) {
             this.primary = primary.id();
 
             this.backups = new HashSet<>();
+
+            this.near = near;
 
             add(backups);
         }

@@ -217,7 +217,7 @@ public final class GridNearTxPrepareFuture<K, V> extends GridCompoundIdentityFut
      * @return {@code True} if all locks are owned.
      */
     private boolean checkLocks() {
-        boolean locked = lockKeys.isEmpty();
+        boolean locked = lockKeys.isEmpty() && pending().isEmpty();
 
         if (locked) {
             if (log.isDebugEnabled())
@@ -457,7 +457,7 @@ public final class GridNearTxPrepareFuture<K, V> extends GridCompoundIdentityFut
 
         assert topVer.topologyVersion() > 0;
 
-        txMapping = new GridDhtTxMapping<>();
+        txMapping = new GridDhtTxMapping<>(cctx.localNodeId());
 
         ConcurrentLinkedDeque8<GridDistributedTxMapping> mappings =
             new ConcurrentLinkedDeque8<>();
@@ -540,7 +540,7 @@ public final class GridNearTxPrepareFuture<K, V> extends GridCompoundIdentityFut
 
         AffinityTopologyVersion topVer = tx.topologyVersion();
 
-        txMapping = new GridDhtTxMapping<>();
+        txMapping = new GridDhtTxMapping<>(cctx.localNodeId());
 
         for (IgniteTxEntry txEntry : tx.allEntries()) {
             GridCacheContext cacheCtx = txEntry.context();
@@ -549,7 +549,7 @@ public final class GridNearTxPrepareFuture<K, V> extends GridCompoundIdentityFut
 
             ClusterNode primary = F.first(nodes);
 
-            boolean near = cacheCtx.isNear();
+            boolean near = primary.isLocal() && cacheCtx.isNear();
 
             IgniteBiTuple<ClusterNode, Boolean> key = F.t(primary, near);
 
@@ -567,7 +567,7 @@ public final class GridNearTxPrepareFuture<K, V> extends GridCompoundIdentityFut
 
             nodeMapping.add(txEntry);
 
-            txMapping.addMapping(nodes);
+            txMapping.addMapping(nodes, near);
         }
 
         tx.transactionNodes(txMapping.transactionNodes());
@@ -750,9 +750,9 @@ public final class GridNearTxPrepareFuture<K, V> extends GridCompoundIdentityFut
 
         List<ClusterNode> nodes = cacheCtx.affinity().nodes(entry.key(), topVer);
 
-        txMapping.addMapping(nodes);
-
         ClusterNode primary = F.first(nodes);
+
+        txMapping.addMapping(nodes, cacheCtx.isNear());
 
         assert primary != null;
 
@@ -812,7 +812,7 @@ public final class GridNearTxPrepareFuture<K, V> extends GridCompoundIdentityFut
 
     /** {@inheritDoc} */
     @Override public String toString() {
-        return S.toString(GridNearTxPrepareFuture.class, this, super.toString());
+        return S.toString(GridNearTxPrepareFuture.class, this, "pending", pending(), "super", super.toString());
     }
 
     /**

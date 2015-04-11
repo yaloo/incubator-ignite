@@ -438,7 +438,7 @@ public class GridDiscoveryManager extends GridManagerAdapter<DiscoverySpi> {
             }
 
             @Override public void onExchange(UUID joiningNodeId, UUID nodeId, long topVer, Map<Integer, Serializable> data) {
-                for (Map.Entry<Serializable, Object> e : data.entrySet()) {
+                for (Map.Entry<Integer, Serializable> e : data.entrySet()) {
                     GridComponent comp = null;
 
                     for (GridComponent c : ctx.components()) {

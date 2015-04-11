@@ -746,11 +746,13 @@ abstract class TcpDiscoverySpiAdapter extends IgniteSpiAdapter implements Discov
     /**
      * @param joiningNodeID Joining node ID.
      * @param nodeId Remote node ID for which data is provided.
+     * @param topVer Topology version.
      * @param data Collection of marshalled discovery data objects from different components.
      * @param clsLdr Class loader for discovery data unmarshalling.
      */
     protected void onExchange(UUID joiningNodeID,
         UUID nodeId,
+        long topVer,
         Map<Integer, byte[]> data,
         ClassLoader clsLdr)
     {
@@ -767,7 +769,7 @@ abstract class TcpDiscoverySpiAdapter extends IgniteSpiAdapter implements Discov
             }
         }
 
-        exchange.onExchange(joiningNodeID, nodeId, data0);
+        exchange.onExchange(joiningNodeID, nodeId, topVer, data0);
     }
 
     /**

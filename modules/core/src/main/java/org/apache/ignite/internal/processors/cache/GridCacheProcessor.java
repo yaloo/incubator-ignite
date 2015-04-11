@@ -749,7 +749,8 @@ public class GridCacheProcessor extends GridProcessorAdapter {
         ctx.marshallerContext().onMarshallerCacheStarted(ctx);
 
         marshallerCache().context().preloader().syncFuture().listen(new CIX1<IgniteInternalFuture<?>>() {
-            @Override public void applyx(IgniteInternalFuture<?> f) throws IgniteCheckedException {
+            @Override
+            public void applyx(IgniteInternalFuture<?> f) throws IgniteCheckedException {
                 ctx.marshallerContext().onMarshallerCachePreloaded(ctx);
             }
         });
@@ -1595,7 +1596,7 @@ public class GridCacheProcessor extends GridProcessorAdapter {
     }
 
     /** {@inheritDoc} */
-    @Nullable @Override public Object collectDiscoveryData(UUID nodeId) {
+    @Nullable @Override public Serializable collectDiscoveryData(UUID nodeId) {
         // Collect dynamically started caches to a single object.
         Collection<DynamicCacheChangeRequest> reqs =
             new ArrayList<>(registeredCaches.size() + registeredTemplates.size());
@@ -1634,7 +1635,7 @@ public class GridCacheProcessor extends GridProcessorAdapter {
     }
 
     /** {@inheritDoc} */
-    @Override public void onDiscoveryDataReceived(UUID joiningNodeId, UUID rmtNodeId, long topVer, Object data) {
+    @Override public void onDiscoveryDataReceived(UUID joiningNodeId, UUID rmtNodeId, long topVer, Serializable data) {
         if (data instanceof DynamicCacheChangeBatch) {
             DynamicCacheChangeBatch batch = (DynamicCacheChangeBatch)data;
 

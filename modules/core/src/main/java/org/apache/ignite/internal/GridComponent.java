@@ -22,6 +22,7 @@ import org.apache.ignite.cluster.*;
 import org.apache.ignite.spi.*;
 import org.jetbrains.annotations.*;
 
+import java.io.*;
 import java.util.*;
 
 /**
@@ -81,7 +82,7 @@ public interface GridComponent {
      * @return Discovery data object or {@code null} if there is nothing
      *      to send for this component.
      */
-    @Nullable public Object collectDiscoveryData(UUID nodeId);
+    @Nullable public Serializable collectDiscoveryData(UUID nodeId);
 
     /**
      * Receives discovery data object from remote nodes (called
@@ -91,7 +92,7 @@ public interface GridComponent {
      * @param topVer New topology version (equals to joining node order).
      * @param data Discovery data object or {@code null} if nothing was
      */
-    public void onDiscoveryDataReceived(UUID joiningNodeId, UUID rmtNodeId, long topVer, Object data);
+    public void onDiscoveryDataReceived(UUID joiningNodeId, UUID rmtNodeId, long topVer, Serializable data);
 
     /**
      * Prints memory statistics (sizes of internal structures, etc.).

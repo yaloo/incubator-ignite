@@ -379,12 +379,12 @@ public abstract class AbstractDiscoverySelfTest<T extends IgniteSpi> extends Gri
                 });
 
                 spi.setDataExchange(new DiscoverySpiDataExchange() {
-                    @Override public Map<Integer, Object> collect(UUID nodeId) {
+                    @Override public Map<Integer, Serializable> collect(UUID nodeId) {
                         return new HashMap<>();
                     }
 
                     @Override public void onExchange(UUID joiningNodeId, UUID nodeId, long topVer,
-                        Map<Integer, Object> data) {
+                        Map<Integer, Serializable> data) {
                         // No-op.
                     }
                 });

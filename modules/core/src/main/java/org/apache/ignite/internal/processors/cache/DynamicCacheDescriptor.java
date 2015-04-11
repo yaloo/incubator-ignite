@@ -44,6 +44,9 @@ public class DynamicCacheDescriptor {
     /** Statically configured flag. */
     private boolean staticCfg;
 
+    /** Received topology version. */
+    private boolean rcvdOnStart;
+
     /** Started flag. */
     private boolean started;
 
@@ -126,6 +129,20 @@ public class DynamicCacheDescriptor {
      */
     public void staticallyConfigured(boolean staticCfg) {
         this.staticCfg = staticCfg;
+    }
+
+    /**
+     * @param rcvdOnStart Received on start flag.
+     */
+    public void receivedOnStart(boolean rcvdOnStart) {
+        this.rcvdOnStart = rcvdOnStart;
+    }
+
+    /**
+     * @return Received on start flag.
+     */
+    public boolean receivedOnStart() {
+        return rcvdOnStart;
     }
 
     /**

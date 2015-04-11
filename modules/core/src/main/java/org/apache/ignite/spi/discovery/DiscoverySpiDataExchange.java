@@ -41,5 +41,5 @@ public interface DiscoverySpiDataExchange {
      * @param joiningNodeId Remote node ID.
      * @param data Collection of discovery data objects from different components.
      */
-    public void onExchange(UUID joiningNodeId, UUID nodeId, Map<Integer, Object> data);
+    public void onExchange(UUID joiningNodeId, UUID nodeId, long topVer, Map<Integer, Object> data);
 }

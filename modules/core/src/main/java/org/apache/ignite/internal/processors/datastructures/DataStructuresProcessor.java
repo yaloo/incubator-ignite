@@ -776,7 +776,11 @@ public final class DataStructuresProcessor extends GridProcessorAdapter {
 
                 String cacheName = res.get1();
 
-                final GridCacheContext cacheCtx = ctx.cache().internalCache(cacheName).context();
+                final GridCacheContext cacheCtx = ctx.cache().context().cacheContext(CU.cacheId(cacheName));
+
+                assert cacheCtx != null : "Missing cache context: " + cacheName;
+
+                cacheCtx.awaitStarted();
 
                 col = c.applyx(cacheCtx);
 

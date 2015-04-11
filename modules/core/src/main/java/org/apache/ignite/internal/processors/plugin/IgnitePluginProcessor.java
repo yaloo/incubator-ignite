@@ -171,7 +171,7 @@ public class IgnitePluginProcessor extends GridProcessorAdapter {
     }
 
     /** {@inheritDoc} */
-    @Override public void onDiscoveryDataReceived(UUID nodeId, UUID rmtNodeId, Object data) {
+    @Override public void onDiscoveryDataReceived(UUID nodeId, UUID rmtNodeId, long topVer, Object data) {
         Map<String, Object> discData = (Map<String, Object>)data;
 
         if (discData != null) {

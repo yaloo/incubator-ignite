@@ -117,12 +117,16 @@ public class GridDhtPreloader<K, V> extends GridCachePreloaderAdapter<K, V> {
     /**
      * @param cctx Cache context.
      */
-    public GridDhtPreloader(GridCacheContext<K, V> cctx) {
+    public GridDhtPreloader(final GridCacheContext<K, V> cctx) {
         super(cctx);
 
         top = cctx.dht().topology();
 
-        startFut = new GridFutureAdapter<>();
+        startFut = new GridFutureAdapter<Object>() {
+            @Override public String toString() {
+                return "PreloaderStartFuture [name=" + cctx.name() + ", topVer=" + cctx.startTopologyVersion() + ']';
+            }
+        };
     }
 
     /** {@inheritDoc} */

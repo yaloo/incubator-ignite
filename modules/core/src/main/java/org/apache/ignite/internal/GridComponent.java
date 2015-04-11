@@ -88,9 +88,10 @@ public interface GridComponent {
      * on new node during discovery process).
      * @param joiningNodeId Joining node ID.
      * @param rmtNodeId Remote node ID for which data is provided.
+     * @param topVer New topology version (equals to joining node order).
      * @param data Discovery data object or {@code null} if nothing was
      */
-    public void onDiscoveryDataReceived(UUID joiningNodeId, UUID rmtNodeId, Object data);
+    public void onDiscoveryDataReceived(UUID joiningNodeId, UUID rmtNodeId, long topVer, Object data);
 
     /**
      * Prints memory statistics (sizes of internal structures, etc.).

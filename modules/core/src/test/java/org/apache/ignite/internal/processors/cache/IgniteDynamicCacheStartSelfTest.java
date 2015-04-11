@@ -264,11 +264,6 @@ public class IgniteDynamicCacheStartSelfTest extends GridCommonAbstractTest {
         kernal.createCache(ccfg);
 
         for (int g = 0; g < nodeCount(); g++) {
-            IgniteEx kernal0 = grid(g);
-
-            for (IgniteInternalFuture f : kernal0.context().cache().context().exchange().exchangeFutures())
-                f.get();
-
             info("Getting cache for node: " + g);
 
             assertNotNull(grid(g).cache(DYNAMIC_CACHE_NAME));
@@ -288,12 +283,9 @@ public class IgniteDynamicCacheStartSelfTest extends GridCommonAbstractTest {
         kernal.context().cache().dynamicStopCache(DYNAMIC_CACHE_NAME).get();
 
         for (int g = 0; g < nodeCount(); g++) {
-            final IgniteKernal kernal0 = (IgniteKernal) grid(g);
+            final Ignite kernal0 = grid(g);
 
             final int idx = g;
-
-            for (IgniteInternalFuture f : kernal0.context().cache().context().exchange().exchangeFutures())
-                f.get();
 
             GridTestUtils.assertThrows(log, new Callable<Object>() {
                 @Override public Object call() throws Exception {
@@ -348,10 +340,7 @@ public class IgniteDynamicCacheStartSelfTest extends GridCommonAbstractTest {
 
             // Check that cache is not deployed on new node after undeploy.
             for (int g = 0; g < nodeCount() + 2; g++) {
-                final IgniteKernal kernal0 = (IgniteKernal) grid(g);
-
-                for (IgniteInternalFuture f : kernal0.context().cache().context().exchange().exchangeFutures())
-                    f.get();
+                final Ignite kernal0 = grid(g);
 
                 GridTestUtils.assertThrows(log, new Callable<Object>() {
                     @Override public Object call() throws Exception {
@@ -409,9 +398,6 @@ public class IgniteDynamicCacheStartSelfTest extends GridCommonAbstractTest {
             // Check that cache is not deployed on new node after undeploy.
             for (int g = 0; g < nodeCount() + 2; g++) {
                 final IgniteKernal kernal0 = (IgniteKernal) grid(g);
-
-                for (IgniteInternalFuture f : kernal0.context().cache().context().exchange().exchangeFutures())
-                    f.get();
 
                 if (g < nodeCount())
                     assertNotNull(grid(g).cache(DYNAMIC_CACHE_NAME));
@@ -669,7 +655,7 @@ public class IgniteDynamicCacheStartSelfTest extends GridCommonAbstractTest {
                 assertTrue(cacheAdapter.context().isNear());
 
                 try {
-                    IgniteEx grid = (IgniteEx)startGrid(nodeCount() + 1);
+                    IgniteEx grid = startGrid(nodeCount() + 1);
 
                     // Check that new node sees near node.
                     GridDiscoveryManager disco = grid.context().discovery();
@@ -728,6 +714,8 @@ public class IgniteDynamicCacheStartSelfTest extends GridCommonAbstractTest {
                 assertFalse(nCtx.affinityNode());
 
                 IgniteEx clientGrid = grid(nodeCount() + 1);
+
+                info("Before get or create: " + clientGrid.localNode().id());
 
                 clientGrid.getOrCreateCache(cfg);
                 clientGrid.getOrCreateCache(cfg);

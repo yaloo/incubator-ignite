@@ -527,6 +527,7 @@ public final class GridDhtLockFuture<K, V> extends GridCompoundIdentityFuture<Bo
     private void readyLocks() {
         if (log.isDebugEnabled())
             log.debug("Marking local locks as ready for DHT lock future: " + this);
+        GridDebug.debug("Marking local locks as ready for DHT lock future: " + lockVer + ", near=" + nearLockVer);
 
         for (int i = 0; i < entries.size(); i++) {
             while (true) {
@@ -976,7 +977,8 @@ public final class GridDhtLockFuture<K, V> extends GridCompoundIdentityFuture<Bo
                     null,
                     loadMap.keySet(),
                     new CI2<KeyCacheObject, Object>() {
-                        @Override public void apply(KeyCacheObject key, Object val) {
+                        @Override
+                        public void apply(KeyCacheObject key, Object val) {
                             // No value loaded from store.
                             if (val == null)
                                 return;

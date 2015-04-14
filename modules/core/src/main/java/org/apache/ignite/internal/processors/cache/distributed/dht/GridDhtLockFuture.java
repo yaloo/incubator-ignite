@@ -635,6 +635,9 @@ public final class GridDhtLockFuture<K, V> extends GridCompoundIdentityFuture<Bo
      * @return {@code True} if locks have been acquired.
      */
     private boolean checkLocks() {
+        if (!pendingLocks.isEmpty())
+            GridDebug.debug("Pending locks for DHT lock future [lockVer=" + lockVer + ", pending=" + pendingLocks + ']');
+
         return pendingLocks.isEmpty();
     }
 
@@ -887,12 +890,18 @@ public final class GridDhtLockFuture<K, V> extends GridCompoundIdentityFuture<Bo
                             it.set(addOwned(req, e));
                         }
 
-                        add(fut); // Append new future.
+                        if (!F.isEmpty(req.keys())) {
+                            add(fut); // Append new future.
 
-                        if (log.isDebugEnabled())
-                            log.debug("Sending DHT lock request to DHT node [node=" + n.id() + ", req=" + req + ']');
+                            if (log.isDebugEnabled())
+                                log.debug("Sending DHT lock request to DHT node [node=" + n.id() + ", req=" + req + ']');
 
-                        cctx.io().send(n, req, cctx.ioPolicy());
+                            GridDebug.debug("Sending DHT lock request to DHT node [node=" + n.id() + ", req=" + req + ']');
+
+                            cctx.io().send(n, req, cctx.ioPolicy());
+                        }
+                        else
+                            GridDebug.debug("Will not send lock request to DHT node: " + tx);
                     }
                     catch (IgniteCheckedException e) {
                         // Fail the whole thing.

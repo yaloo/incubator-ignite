@@ -30,14 +30,14 @@ import java.util.*;
  */
 class IgfsSecondaryFileSystemImpl implements IgfsSecondaryFileSystem {
     /** Delegate. */
-    private final IgfsImpl igfs;
+    private final IgfsEx igfs;
 
     /**
      * Constructor.
      *
      * @param igfs Delegate.
      */
-    IgfsSecondaryFileSystemImpl(IgfsImpl igfs) {
+    IgfsSecondaryFileSystemImpl(IgfsEx igfs) {
         this.igfs = igfs;
     }
 
@@ -117,5 +117,17 @@ class IgfsSecondaryFileSystemImpl implements IgfsSecondaryFileSystem {
     /** {@inheritDoc} */
     @Override public Map<String, String> properties() {
         return Collections.emptyMap();
+    }
+
+    /** {@inheritDoc} */
+    @Override public IgfsSecondaryFileSystem forUser(String userName) throws IgniteCheckedException {
+        IgfsEx forUser = igfs.forUser(userName);
+
+        return new IgfsSecondaryFileSystemImpl(forUser);
+    }
+
+    /** {@inheritDoc} */
+    @Override public String getUser() {
+        return igfs.user();
     }
 }

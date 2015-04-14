@@ -89,7 +89,7 @@ public class HadoopFileSystemsTest extends HadoopAbstractSelfTest {
 
                     FileSystem fs = FileSystem.get(uri, cfg);
 
-                    HadoopFileSystemsUtils.setUser(fs, "user" + curThreadNum);
+                    //HadoopFileSystemsUtils.setUser(fs, "user" + curThreadNum);
 
                     if ("file".equals(uri.getScheme()))
                         FileSystem.get(uri, cfg).setWorkingDirectory(new Path("file:///user/user" + curThreadNum));

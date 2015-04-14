@@ -198,4 +198,18 @@ public interface IgfsSecondaryFileSystem {
      * @return Map of properties.
      */
     public Map<String,String> properties();
+
+    /**
+     * Gets an instance of 2ndary Fs for the specified user (may be 'this').
+     * @param userName the user name
+     * @return the instance
+     * @throws IgniteCheckedException
+     */
+    public IgfsSecondaryFileSystem forUser(String userName) throws IgniteCheckedException;
+
+    /**
+     * The user name this 2ndary Fs works on behalf of.
+     * @return the user name.
+     */
+    public String getUser();
 }

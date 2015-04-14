@@ -63,6 +63,8 @@ public class IgfsPathControlRequest extends IgfsMessage {
     /** Last modification time. */
     private long modificationTime;
 
+    private String userName;
+
     /**
      * @param path Path.
      */
@@ -234,5 +236,15 @@ public class IgfsPathControlRequest extends IgfsMessage {
     /** {@inheritDoc} */
     @Override public String toString() {
         return S.toString(IgfsPathControlRequest.class, this, "cmd", command());
+    }
+
+    public final String userName() {
+        assert userName != null;
+
+        return userName;
+    }
+
+    public final void userName(String userName) {
+        this.userName = U.fixUserName(userName);
     }
 }

@@ -17,13 +17,21 @@
 
 package org.apache.ignite.internal.processors.hadoop.taskexecutor;
 
+import org.apache.hadoop.conf.*;
+import org.apache.hadoop.fs.*;
+import org.apache.hadoop.security.*;
 import org.apache.ignite.*;
+import org.apache.ignite.configuration.*;
 import org.apache.ignite.internal.processors.hadoop.*;
 import org.apache.ignite.internal.processors.hadoop.counter.*;
 import org.apache.ignite.internal.processors.hadoop.shuffle.collections.*;
+import org.apache.ignite.internal.processors.hadoop.v2.*;
 import org.apache.ignite.internal.util.offheap.unsafe.*;
+import org.apache.ignite.internal.util.typedef.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 
+import java.io.*;
+import java.security.*;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -99,6 +107,44 @@ public abstract class HadoopRunnableTask implements Callable<Void> {
 
     /** {@inheritDoc} */
     @Override public Void call() throws IgniteCheckedException {
+        final String user = job.info().user();
+
+        assert !F.isEmpty(user);
+
+        if (F.eq(user, FileSystemConfiguration.DFLT_USER_NAME))
+            // do direct call:
+            return callImpl();
+        else {
+            // do the call in the context of 'user':
+            try {
+                final String ticketCachePath;
+
+                if (job instanceof HadoopV2Job) {
+                    Configuration conf = ((HadoopV2Job)job).jobConf();
+
+                    ticketCachePath = conf.get(CommonConfigurationKeys.KERBEROS_TICKET_CACHE_PATH);
+                } else
+                    ticketCachePath = job.info().property(CommonConfigurationKeys.KERBEROS_TICKET_CACHE_PATH);
+
+                UserGroupInformation ugi = UserGroupInformation.getBestUGI(ticketCachePath, user);
+
+                return ugi.doAs(new PrivilegedExceptionAction<Void>() {
+                    @Override public Void run() throws IgniteCheckedException {
+                        return callImpl();
+                    }
+                });
+            } catch (IOException | InterruptedException e) {
+                throw new IgniteCheckedException(e);
+            }
+        }
+    }
+
+    /**
+     * Runnable task call implementation
+     * @return
+     * @throws IgniteCheckedException
+     */
+    Void callImpl() throws IgniteCheckedException {
         execStartTs = U.currentTimeMillis();
 
         Throwable err = null;

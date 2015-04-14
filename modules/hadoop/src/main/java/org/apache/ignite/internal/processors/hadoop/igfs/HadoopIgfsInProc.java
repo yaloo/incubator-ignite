@@ -46,14 +46,22 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
     /** Logger. */
     private final Log log;
 
+    /** The user this Igfs works on behalf of. */
+    private final String user;
+
     /**
      * Constructor.
      *
      * @param igfs Target IGFS.
      * @param log Log.
      */
-    public HadoopIgfsInProc(IgfsEx igfs, Log log) {
-        this.igfs = igfs;
+    public HadoopIgfsInProc(IgfsEx igfs, Log log, String userName) throws IgniteCheckedException {
+        this.user = userName;
+
+        this.igfs = igfs.forUser(userName);
+
+        assert this.user == this.igfs.user();
+
         this.log = log;
 
         bufSize = igfs.configuration().getBlockSize() * 2;
@@ -406,5 +414,10 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
 
         if (lsnr0 != null && log.isDebugEnabled())
             log.debug("Removed stream event listener [delegate=" + delegate + ']');
+    }
+
+    /** {@inheritDoc} */
+    @Override public String user() {
+        return user;
     }
 }

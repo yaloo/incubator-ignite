@@ -51,10 +51,10 @@ class IgfsIpcHandler implements IgfsServerHandler {
     private final int bufSize; // Buffer size. Must not be less then file block size.
 
     /** IGFS instance for this handler. */
-    private IgfsEx igfs;
+    private final IgfsEx igfs;
 
     /** Resource ID generator. */
-    private AtomicLong rsrcIdGen = new AtomicLong();
+    private final AtomicLong rsrcIdGen = new AtomicLong();
 
     /** Stopping flag. */
     private volatile boolean stopping;
@@ -250,77 +250,83 @@ class IgfsIpcHandler implements IgfsServerHandler {
 
         IgfsControlResponse res = new IgfsControlResponse();
 
+        final String userName = req.userName();
+
+        assert userName != null;
+
+        final IgfsEx userIgfs = igfs.forUser(userName);
+
         try {
             switch (cmd) {
                 case EXISTS:
-                    res.response(igfs.exists(req.path()));
+                    res.response(userIgfs.exists(req.path()));
 
                     break;
 
                 case INFO:
-                    res.response(igfs.info(req.path()));
+                    res.response(userIgfs.info(req.path()));
 
                     break;
 
                 case PATH_SUMMARY:
-                    res.response(igfs.summary(req.path()));
+                    res.response(userIgfs.summary(req.path()));
 
                     break;
 
                 case UPDATE:
-                    res.response(igfs.update(req.path(), req.properties()));
+                    res.response(userIgfs.update(req.path(), req.properties()));
 
                     break;
 
                 case RENAME:
-                    igfs.rename(req.path(), req.destinationPath());
+                    userIgfs.rename(req.path(), req.destinationPath());
 
                     res.response(true);
 
                     break;
 
                 case DELETE:
-                    res.response(igfs.delete(req.path(), req.flag()));
+                    res.response(userIgfs.delete(req.path(), req.flag()));
 
                     break;
 
                 case MAKE_DIRECTORIES:
-                    igfs.mkdirs(req.path(), req.properties());
+                    userIgfs.mkdirs(req.path(), req.properties());
 
                     res.response(true);
 
                     break;
 
                 case LIST_PATHS:
-                    res.paths(igfs.listPaths(req.path()));
+                    res.paths(userIgfs.listPaths(req.path()));
 
                     break;
 
                 case LIST_FILES:
-                    res.files(igfs.listFiles(req.path()));
+                    res.files(userIgfs.listFiles(req.path()));
 
                     break;
 
                 case SET_TIMES:
-                    igfs.setTimes(req.path(), req.accessTime(), req.modificationTime());
+                    userIgfs.setTimes(req.path(), req.accessTime(), req.modificationTime());
 
                     res.response(true);
 
                     break;
 
                 case AFFINITY:
-                    res.locations(igfs.affinity(req.path(), req.start(), req.length()));
+                    res.locations(userIgfs.affinity(req.path(), req.start(), req.length()));
 
                     break;
 
                 case OPEN_READ: {
-                    IgfsInputStreamAdapter igfsIn = !req.flag() ? igfs.open(req.path(), bufSize) :
-                        igfs.open(req.path(), bufSize, req.sequentialReadsBeforePrefetch());
+                    IgfsInputStreamAdapter igfsIn = !req.flag() ? userIgfs.open(req.path(), bufSize) :
+                        userIgfs.open(req.path(), bufSize, req.sequentialReadsBeforePrefetch());
 
                     long streamId = registerResource(ses, igfsIn);
 
                     if (log.isDebugEnabled())
-                        log.debug("Opened IGFS input stream for file read [igfsName=" + igfs.name() + ", path=" +
+                        log.debug("Opened IGFS input stream for file read [igfsName=" + userIgfs.name() + ", path=" +
                             req.path() + ", streamId=" + streamId + ", ses=" + ses + ']');
 
                     IgfsFileInfo info = new IgfsFileInfo(igfsIn.fileInfo(), null,
@@ -332,7 +338,7 @@ class IgfsIpcHandler implements IgfsServerHandler {
                 }
 
                 case OPEN_CREATE: {
-                    long streamId = registerResource(ses, igfs.create(
+                    long streamId = registerResource(ses, userIgfs.create(
                         req.path(),       // Path.
                         bufSize,          // Buffer size.
                         req.flag(),       // Overwrite if exists.
@@ -343,7 +349,7 @@ class IgfsIpcHandler implements IgfsServerHandler {
                     ));
 
                     if (log.isDebugEnabled())
-                        log.debug("Opened IGFS output stream for file create [igfsName=" + igfs.name() + ", path=" +
+                        log.debug("Opened IGFS output stream for file create [igfsName=" + userIgfs.name() + ", path=" +
                             req.path() + ", streamId=" + streamId + ", ses=" + ses + ']');
 
                     res.response(streamId);
@@ -352,7 +358,7 @@ class IgfsIpcHandler implements IgfsServerHandler {
                 }
 
                 case OPEN_APPEND: {
-                    long streamId = registerResource(ses, igfs.append(
+                    long streamId = registerResource(ses, userIgfs.append(
                         req.path(),        // Path.
                         bufSize,           // Buffer size.
                         req.flag(),        // Create if absent.
@@ -360,7 +366,7 @@ class IgfsIpcHandler implements IgfsServerHandler {
                     ));
 
                     if (log.isDebugEnabled())
-                        log.debug("Opened IGFS output stream for file append [igfsName=" + igfs.name() + ", path=" +
+                        log.debug("Opened IGFS output stream for file append [igfsName=" + userIgfs.name() + ", path=" +
                             req.path() + ", streamId=" + streamId + ", ses=" + ses + ']');
 
                     res.response(streamId);
@@ -379,7 +385,7 @@ class IgfsIpcHandler implements IgfsServerHandler {
         }
 
         if (log.isDebugEnabled())
-            log.debug("Finished processing path control request [igfsName=" + igfs.name() + ", req=" + req +
+            log.debug("Finished processing path control request [igfsName=" + userIgfs.name() + ", req=" + req +
                 ", res=" + res + ']');
 
         return res;

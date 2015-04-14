@@ -169,4 +169,18 @@ public interface IgfsEx extends IgniteFileSystem {
      * @return Secondary file system wrapper.
      */
     public IgfsSecondaryFileSystem asSecondary();
+
+    /**
+     * TODO
+     * @param userName
+     * @return
+     * @throws IgniteCheckedException
+     */
+    public IgfsEx forUser(@Nullable String userName) throws IgniteCheckedException;
+
+    /**
+     * Getter for user name.
+     * @return user name.
+     */
+    public String user();
 }

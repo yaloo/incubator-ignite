@@ -233,9 +233,10 @@ public class HadoopV2TaskContext extends HadoopTaskContext {
         Thread.currentThread().setContextClassLoader(jobConf().getClassLoader());
 
         try {
-            FileSystem fs = FileSystem.get(jobConf());
-
-            HadoopFileSystemsUtils.setUser(fs, jobConf().getUser());
+            //FileSystem fs = HadoopV2JobResourceManager.fileSystemForUser(null, jobConf());
+            //String user = jobConf().getUser();
+            //System.out.println("Setting user ["+user+"] to fs=" + fs + ", thread = " + Thread.currentThread());
+            //HadoopFileSystemsUtils.setUser(fs, user); //
 
             LocalFileSystem locFs = FileSystem.getLocal(jobConf());
 
@@ -412,7 +413,7 @@ public class HadoopV2TaskContext extends HadoopTaskContext {
     private Object readExternalSplit(HadoopExternalSplit split) throws IgniteCheckedException {
         Path jobDir = new Path(jobConf().get(MRJobConfig.MAPREDUCE_JOB_DIR));
 
-        try (FileSystem fs = FileSystem.get(jobDir.toUri(), jobConf());
+        try (FileSystem fs = HadoopV2JobResourceManager.fileSystemForUser(jobDir.toUri(), jobConf());
             FSDataInputStream in = fs.open(JobSubmissionFiles.getJobSplitFile(jobDir))) {
 
             in.seek(split.offset());

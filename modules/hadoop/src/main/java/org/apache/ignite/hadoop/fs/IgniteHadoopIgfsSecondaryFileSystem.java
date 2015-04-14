@@ -20,7 +20,6 @@ package org.apache.ignite.hadoop.fs;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.permission.*;
-import org.apache.hadoop.ipc.*;
 import org.apache.ignite.*;
 import org.apache.ignite.igfs.*;
 import org.apache.ignite.igfs.secondary.*;
@@ -43,7 +42,11 @@ public class IgniteHadoopIgfsSecondaryFileSystem implements IgfsSecondaryFileSys
     /** Hadoop file system. */
     private final FileSystem fileSys;
 
-    /** Properties of file system */
+    /** Properties of file system, see {@link #properties()}
+     * See {@link IgfsEx#SECONDARY_FS_USER_NAME}
+     * See {@link IgfsEx#SECONDARY_FS_CONFIG_PATH}
+     * See {@link IgfsEx#SECONDARY_FS_URI}
+     * */
     private final Map<String, String> props = new HashMap<>();
 
     /**
@@ -131,14 +134,9 @@ public class IgniteHadoopIgfsSecondaryFileSystem implements IgfsSecondaryFileSys
      * @param detailMsg Detailed error message.
      * @return Appropriate exception.
      */
-    @SuppressWarnings({"ThrowableResultOfMethodCallIgnored", "unchecked"})
     private IgfsException handleSecondaryFsError(IOException e, String detailMsg) {
-        boolean wrongVer = X.hasCause(e, RemoteException.class) ||
-            (e.getMessage() != null && e.getMessage().contains("Failed on local"));
-
-        return !wrongVer ? cast(detailMsg, e) :
-            new IgfsInvalidHdfsVersionException("HDFS version you are connecting to differs from local " +
-                "version.", e);    }
+        return cast(detailMsg, e);
+    }
 
     /**
      * Cast IO exception to IGFS exception.
@@ -449,5 +447,31 @@ public class IgniteHadoopIgfsSecondaryFileSystem implements IgfsSecondaryFileSys
      */
     public FileSystem fileSystem() {
         return fileSys;
+    }
+
+    /**
+     * TODO
+     * @param user2
+     * @return
+     * @throws IgniteCheckedException
+     */
+    @Override public IgfsSecondaryFileSystem forUser(String user2) throws IgniteCheckedException {
+        String user = props.get(SECONDARY_FS_USER_NAME);
+        if (F.eq(user, user2))
+            return this;
+        else {
+            String uri = props.get(SECONDARY_FS_URI);
+            String cfgPath = props.get(SECONDARY_FS_CONFIG_PATH);
+
+            return new IgniteHadoopIgfsSecondaryFileSystem(uri, cfgPath, user2);
+        }
+    }
+
+    /**
+     * TODO
+     * @return
+     */
+    @Override public String getUser() {
+        return props.get(SECONDARY_FS_USER_NAME);
     }
 }

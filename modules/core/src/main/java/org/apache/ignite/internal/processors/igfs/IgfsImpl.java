@@ -42,6 +42,7 @@ import org.jetbrains.annotations.*;
 import org.jsr166.*;
 
 import java.io.*;
+import java.lang.ref.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -56,7 +57,7 @@ import static org.apache.ignite.internal.processors.igfs.IgfsFileInfo.*;
 /**
  * Cache-based IGFS implementation.
  */
-public final class IgfsImpl implements IgfsEx {
+public class IgfsImpl implements IgfsEx {
     /** Default permissions for file system entry. */
     private static final String PERMISSION_DFLT_VAL = "0777";
 
@@ -64,7 +65,7 @@ public final class IgfsImpl implements IgfsEx {
     private static final Map<String, String> DFLT_DIR_META = F.asMap(PROP_PERMISSION, PERMISSION_DFLT_VAL);
 
     /** Handshake message. */
-    private final IgfsPaths secondaryPaths;
+    private IgfsPaths secondaryPaths;
 
     /** Cache based structure (meta data) manager. */
     private IgfsMetaManager meta;
@@ -73,7 +74,10 @@ public final class IgfsImpl implements IgfsEx {
     private IgfsDataManager data;
 
     /** FS configuration. */
-    private FileSystemConfiguration cfg;
+    private final FileSystemConfiguration cfg;
+
+    /** The user name this Fs works on behalf of. */
+    private final String user;
 
     /** IGFS context. */
     private IgfsContext igfsCtx;
@@ -88,7 +92,7 @@ public final class IgfsImpl implements IgfsEx {
     private IgniteLogger log;
 
     /** Mode resolver. */
-    private final IgfsModeResolver modeRslvr;
+    private IgfsModeResolver modeRslvr;
 
     /** Connection to the secondary file system. */
     private IgfsSecondaryFileSystem secondaryFs;
@@ -96,7 +100,7 @@ public final class IgfsImpl implements IgfsEx {
     /** Busy lock. */
     private final GridSpinBusyLock busyLock = new GridSpinBusyLock();
 
-    /** Writers map. */
+    /** Writers userToIgfsExMap. */
     private final ConcurrentHashMap8<IgfsPath, IgfsFileWorker> workerMap = new ConcurrentHashMap8<>();
 
     /** Delete futures. */
@@ -120,6 +124,8 @@ public final class IgfsImpl implements IgfsEx {
     /** Eviction policy (if set). */
     private IgfsPerBlockLruEvictionPolicy evictPlc;
 
+    private final ConcurrentMap<String, Reference<IgfsImpl>> userToIgfsExMap = new ConcurrentHashMap<>();
+
     /**
      * Creates IGFS instance with given context.
      *
@@ -137,10 +143,67 @@ public final class IgfsImpl implements IgfsEx {
         evts = igfsCtx.kernalContext().event();
         meta = igfsCtx.meta();
         data = igfsCtx.data();
-        secondaryFs = cfg.getSecondaryFileSystem();
+
+        user = U.fixUserName(getSecondaryFsUser());
+
+        assert user != null;
+
+        initIgfsSecondaryFileSystem();
+
+        // Check whether IGFS LRU eviction policy is set on data cache.
+        String dataCacheName = igfsCtx.configuration().getDataCacheName();
+
+        for (CacheConfiguration cacheCfg : igfsCtx.kernalContext().config().getCacheConfiguration()) {
+            if (F.eq(dataCacheName, cacheCfg.getName())) {
+                EvictionPolicy evictPlc = cacheCfg.getEvictionPolicy();
+
+                if (evictPlc != null & evictPlc instanceof IgfsPerBlockLruEvictionPolicy)
+                    this.evictPlc = (IgfsPerBlockLruEvictionPolicy)evictPlc;
+
+                break;
+            }
+        }
+
+        topic = F.isEmpty(name()) ? TOPIC_IGFS : TOPIC_IGFS.topic(name());
+
+        igfsCtx.kernalContext().io().addMessageListener(topic, delMsgLsnr);
+        igfsCtx.kernalContext().event().addLocalEventListener(delDiscoLsnr, EVT_NODE_LEFT, EVT_NODE_FAILED);
+    }
+
+    /**
+     * Gets secondary file system user, or null, if no secondary file system is present.
+     * @return the secondary file system user.
+     */
+    @Nullable protected String getSecondaryFsUser() {
+        FileSystemConfiguration fsCfg = igfsCtx.configuration();
+
+        if (fsCfg == null)
+            return null;
+
+        IgfsSecondaryFileSystem sec = fsCfg.getSecondaryFileSystem();
+
+        if (sec == null)
+            return null;
+
+        return sec.getUser();
+    }
+
+    /**
+     * Initializes 2ndary file system.
+     * @throws IgniteCheckedException on error
+     */
+    private void initIgfsSecondaryFileSystem() throws IgniteCheckedException {
+        // This is the "prototype" (in terms of GOF pattern) of the 2ndary Fs to be cloned
+        // for the specified user:
+        final IgfsSecondaryFileSystem secondaryFs0 = cfg.getSecondaryFileSystem();
+
+        if (secondaryFs0 == null)
+            secondaryFs = null;
+        else
+            secondaryFs = secondaryFs0.forUser(user);
 
         /* Default IGFS mode. */
-        IgfsMode dfltMode;
+        final IgfsMode dfltMode;
 
         if (secondaryFs == null) {
             if (cfg.getDefaultMode() == PROXY)
@@ -195,25 +258,6 @@ public final class IgfsImpl implements IgfsEx {
 
         secondaryPaths = new IgfsPaths(secondaryFs == null ? null : secondaryFs.properties(), dfltMode,
             modeRslvr.modesOrdered());
-
-        // Check whether IGFS LRU eviction policy is set on data cache.
-        String dataCacheName = igfsCtx.configuration().getDataCacheName();
-
-        for (CacheConfiguration cacheCfg : igfsCtx.kernalContext().config().getCacheConfiguration()) {
-            if (F.eq(dataCacheName, cacheCfg.getName())) {
-                EvictionPolicy evictPlc = cacheCfg.getEvictionPolicy();
-
-                if (evictPlc != null & evictPlc instanceof IgfsPerBlockLruEvictionPolicy)
-                    this.evictPlc = (IgfsPerBlockLruEvictionPolicy)evictPlc;
-
-                break;
-            }
-        }
-
-        topic = F.isEmpty(name()) ? TOPIC_IGFS : TOPIC_IGFS.topic(name());
-
-        igfsCtx.kernalContext().io().addMessageListener(topic, delMsgLsnr);
-        igfsCtx.kernalContext().event().addLocalEventListener(delDiscoLsnr, EVT_NODE_LEFT, EVT_NODE_FAILED);
     }
 
     /**
@@ -2095,5 +2139,67 @@ public final class IgfsImpl implements IgfsEx {
         }
         else
             throw new IllegalStateException("Failed to perform IGFS action because grid is stopping.");
+    }
+
+    /** {@inheritDoc} */
+    @Override public IgfsEx forUser(String userName) throws IgniteCheckedException {
+        final String userFixed = U.fixUserName(userName);
+
+        if (this.user == userFixed)
+            return this; // same user
+
+        Reference<IgfsImpl> ref = userToIgfsExMap.get(userFixed);
+
+        IgfsImpl val = (ref == null) ? null : ref.get();
+
+        if (val == null) {
+            // Create impl from the same context but with different user:
+            IgfsImpl newVal = new IgfsImpl(igfsCtx) {
+                @Override protected String getSecondaryFsUser() {
+                    return userFixed;
+                }
+            };
+            final Reference<IgfsImpl> newRef = new WeakReference<>(newVal);
+
+            while (true) {
+                ref = userToIgfsExMap.get(userFixed);
+
+                if (ref == null) {
+                    ref = userToIgfsExMap.putIfAbsent(userFixed, newRef);
+
+                    if (ref == null) {
+                        ref = newRef;
+                        val = newVal;
+
+                        break; // ref replaced with newRef
+                    }
+                }
+
+                val = ref.get();
+
+                if (val != null)
+                    break; // there is an existing value
+
+                boolean replaced = userToIgfsExMap.replace(userFixed, ref, newRef);
+
+                if (replaced) {
+                    ref = newRef;
+                    val = newVal;
+
+                    break;
+                }
+            }
+        }
+
+        assert val == ref.get();
+        assert val != null;
+        assert F.eq(val.user(), userFixed);
+
+        return val;
+    }
+
+    /** {@inheritDoc} */
+    @Override public String user() {
+        return user;
     }
 }

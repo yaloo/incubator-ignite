@@ -19,12 +19,14 @@ package org.apache.ignite.internal.processors.hadoop;
 
 import org.apache.hadoop.conf.*;
 import org.apache.hadoop.fs.*;
+import org.apache.hadoop.security.*;
 import org.apache.ignite.internal.util.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 import org.jetbrains.annotations.*;
 
 import java.io.*;
 import java.net.*;
+import java.security.*;
 
 /**
  * Encapsulates logic of secondary filesystem creation.
@@ -109,10 +111,28 @@ public class SecondaryFileSystemProvider {
 
     /**
      * @return {@link org.apache.hadoop.fs.AbstractFileSystem} instance for this secondary Fs.
-     * @throws IOException
+     * @throws IOException in case of error.
      */
     public AbstractFileSystem createAbstractFileSystem() throws IOException {
-        return AbstractFileSystem.get(uri, cfg);
+        if (userName == null)
+            return AbstractFileSystem.get(uri, cfg);
+        else {
+            String ticketCachePath = cfg.get(CommonConfigurationKeys.KERBEROS_TICKET_CACHE_PATH);
+
+            UserGroupInformation ugi = UserGroupInformation.getBestUGI(ticketCachePath, userName);
+
+            try {
+                return ugi.doAs(new PrivilegedExceptionAction<AbstractFileSystem>() {
+                    @Override public AbstractFileSystem run() throws IOException {
+                        return AbstractFileSystem.get(uri, cfg);
+                    }
+                });
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+
+                throw new IOException("Failed to create file system due to interrupt.", ie);
+            }
+        }
     }
 
     /**

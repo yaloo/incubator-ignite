@@ -916,6 +916,16 @@ public class HadoopDefaultMapReducePlannerSelfTest extends HadoopAbstractSelfTes
         @Override public IgfsSecondaryFileSystem asSecondary() {
             return null;
         }
+
+        /** {@inheritDoc} */
+        @Override public IgfsEx forUser(String userName) throws IgniteCheckedException {
+            return this;
+        }
+
+        /** {@inheritDoc} */
+        @Override public String user() {
+            return null;
+        }
     }
 
     /**
@@ -1000,5 +1010,7 @@ public class HadoopDefaultMapReducePlannerSelfTest extends HadoopAbstractSelfTes
         @Override public GridKernalContext context() {
             return null;
         }
+
+
     }
 }

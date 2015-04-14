@@ -68,7 +68,7 @@ public final class GridNearTxPrepareFuture<K, V> extends GridCompoundIdentityFut
     private IgniteUuid futId;
 
     /** Transaction. */
-    @GridToStringInclude
+    @GridToStringExclude
     private GridNearTxLocal tx;
 
     /** Error. */

@@ -695,6 +695,11 @@ public class GridDhtPartitionsExchangeFuture extends GridFutureAdapter<AffinityT
 
         for (GridCacheFuture<?> fut : cctx.mvcc().activeFutures())
             U.warn(log, ">>> " + fut);
+
+        U.warn(log, "Locally locked entries:");
+
+        for (GridCacheEntryEx entry : cctx.mvcc().locked())
+            U.warn(log, ">>> " + entry);
     }
 
     /**
@@ -1239,6 +1244,8 @@ public class GridDhtPartitionsExchangeFuture extends GridFutureAdapter<AffinityT
                         U.debug(log, "Dumping last messages...");
 
                         GridDebug.dumpWithReset(log);
+
+                        dumpPendingObjects();
 
                         U.warn(log,
                             "Retrying preload partition exchange due to timeout [done=" + isDone() +

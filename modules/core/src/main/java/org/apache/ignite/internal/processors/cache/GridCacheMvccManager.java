@@ -567,7 +567,7 @@ public class GridCacheMvccManager extends GridCacheSharedManagerAdapter {
     /**
      * @return Collection of all locked entries.
      */
-    private Collection<GridDistributedCacheEntry> locked() {
+    public Collection<GridDistributedCacheEntry> locked() {
         return F.concat(false, locked.values(), nearLocked.values());
     }
 

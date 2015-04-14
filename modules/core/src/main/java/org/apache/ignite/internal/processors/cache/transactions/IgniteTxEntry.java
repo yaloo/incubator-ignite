@@ -720,6 +720,9 @@ public class IgniteTxEntry implements GridPeerDeployAware, Message {
         if (this.ctx == null) {
             GridCacheContext<?, ?> cacheCtx = ctx.cacheContext(cacheId);
 
+            assert cacheCtx != null : "Missing cache context [locNodeId=" + ctx.localNodeId() +
+                ", cacheId=" + cacheId + ", entry=" + this + ']';
+
             if (cacheCtx.isNear() && !near)
                 cacheCtx = cacheCtx.near().dht().context();
             else if (!cacheCtx.isNear() && near)

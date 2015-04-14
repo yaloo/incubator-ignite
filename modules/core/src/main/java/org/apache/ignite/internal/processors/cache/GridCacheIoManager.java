@@ -234,7 +234,7 @@ public class GridCacheIoManager extends GridCacheSharedManagerAdapter {
                     "you should have all required classes in CLASSPATH on all nodes in topology) " +
                     "[senderId=" + nodeId + ", err=" + X.cause(e, ClassNotFoundException.class).getMessage() + ']');
             else
-                U.error(log, "Failed to process message [senderId=" + nodeId + ']', e);
+                U.error(log, "Failed to process message [senderId=" + nodeId + ", msg=" + cacheMsg + ']', e);
         }
         finally {
             if (depEnabled)

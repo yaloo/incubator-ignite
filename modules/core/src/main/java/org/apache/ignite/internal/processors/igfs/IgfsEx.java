@@ -172,6 +172,7 @@ public interface IgfsEx extends IgniteFileSystem {
      */
     public IgfsSecondaryFileSystem asSecondary();
 
+    // TODO: REmove.
     /**
      * TODO
      * @param userName

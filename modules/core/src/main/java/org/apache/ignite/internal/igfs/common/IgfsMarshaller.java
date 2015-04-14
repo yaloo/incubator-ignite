@@ -90,6 +90,7 @@ public class IgfsMarshaller {
 
                     IgfsHandshakeRequest req = (IgfsHandshakeRequest)msg;
 
+                    // TODO: Remove.
                     U.writeString(out, req.userName());
                     U.writeString(out, req.gridName());
                     U.writeString(out, req.igfsName());
@@ -208,6 +209,7 @@ public class IgfsMarshaller {
                 case HANDSHAKE: {
                     IgfsHandshakeRequest req = new IgfsHandshakeRequest();
 
+                    // TODO: Remove.
                     req.userName(U.readString(in));
                     req.gridName(U.readString(in));
                     req.igfsName(U.readString(in));

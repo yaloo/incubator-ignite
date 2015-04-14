@@ -31,6 +31,7 @@ public class IgfsHandshakeRequest extends IgfsMessage {
     /** Expected IGFS name. */
     private String igfsName;
 
+    // TODO: Remove.
     /** User name the request is done on behalf of. */
     private String userName;
 

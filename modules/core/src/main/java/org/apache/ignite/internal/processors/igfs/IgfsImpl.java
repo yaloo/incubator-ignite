@@ -2171,6 +2171,22 @@ public class IgfsImpl implements IgfsEx {
 
     /** {@inheritDoc} */
     @Override public IgfsEx forUser(String userName) throws IgniteCheckedException {
+
+//        Wrapper w = map.get(userName);
+//
+//        if (w != null)
+//            return w.get();
+//        else {
+//            Wrapper newWrapper = new Wrapper();
+//            Wrapper old = map.putIfAbsent(userName, newWrapper);
+//
+//            if (old != null)
+//                return old.get();
+//            else
+//                return newWrapper.init();
+//        }
+
+
         final String userFixed = U.fixUserName(userName);
 
         if (this.user == userFixed)
@@ -2187,6 +2203,9 @@ public class IgfsImpl implements IgfsEx {
                     return userFixed;
                 }
             };
+
+
+
             final Reference<IgfsImpl> newRef = new WeakReference<>(newVal);
 
             while (true) {
@@ -2261,4 +2280,27 @@ public class IgfsImpl implements IgfsEx {
             return t;
         }
     }
+
+//    private ConcurrentHashMap8<String, Wrapper> map;
+
+//    private static class Wrapper {
+//
+//        private IgfsSecondaryFileSystem fs;
+//
+//        private CountDownLatch latch;
+//
+//        public IgfsSecondaryFileSystem init() {
+//            // fs = ...
+//
+//            latch.countDown();
+//
+//            return fs;
+//        }
+//
+//        public IgfsSecondaryFileSystem get() {
+//            latch.await();
+//
+//            return fs;
+//        }
+//    }
 }

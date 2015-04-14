@@ -690,6 +690,8 @@ public final class GridDhtLockFuture<K, V> extends GridCompoundIdentityFuture<Bo
         if (err.get() == null)
             loadMissingFromStore();
 
+        GridDebug.debug("Completing DHT lock future: " + this);
+
         if (super.onDone(success, err.get())) {
             if (log.isDebugEnabled())
                 log.debug("Completing future: " + this);

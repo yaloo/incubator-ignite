@@ -1236,6 +1236,10 @@ public class GridDhtPartitionsExchangeFuture extends GridFutureAdapter<AffinityT
                         return;
 
                     try {
+                        U.debug(log, "Dumping last messages...");
+
+                        GridDebug.dumpWithReset(log);
+
                         U.warn(log,
                             "Retrying preload partition exchange due to timeout [done=" + isDone() +
                                 ", dummy=" + dummy + ", exchId=" + exchId + ", rcvdIds=" + F.id8s(rcvdIds) +

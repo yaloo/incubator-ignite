@@ -17,6 +17,7 @@
 
 package org.apache.ignite.internal.util;
 
+import org.apache.ignite.*;
 import org.apache.ignite.internal.util.typedef.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 import org.jetbrains.annotations.*;
@@ -33,6 +34,9 @@ import java.util.concurrent.atomic.*;
  * Utility class for debugging.
  */
 public class GridDebug {
+    /** Max queue size. */
+    public static final int MAX_SIZE = 2_000;
+
     /** */
     private static final AtomicReference<ConcurrentLinkedQueue<Item>> que =
         new AtomicReference<>(new ConcurrentLinkedQueue<Item>());
@@ -124,6 +128,9 @@ public class GridDebug {
 
         if (q != null)
             q.add(new Item(x));
+
+        if (q.size() > MAX_SIZE)
+            q.poll();
     }
 
     /**
@@ -175,8 +182,8 @@ public class GridDebug {
     /**
      * Dump collected data to stdout.
      */
-    public static void dump() {
-        dump(que.get());
+    public static void dump(@Nullable IgniteLogger log) {
+        dump(que.get(), log);
     }
 
     /**
@@ -185,7 +192,7 @@ public class GridDebug {
      * @param que Queue.
      */
     @SuppressWarnings("TypeMayBeWeakened")
-    public static void dump(ConcurrentLinkedQueue<Item> que) {
+    public static void dump(ConcurrentLinkedQueue<Item> que, @Nullable IgniteLogger log) {
         if (que == null)
             return;
 
@@ -194,8 +201,12 @@ public class GridDebug {
         int x = 0;
 
         for (Item i : que) {
-            if (x++ > start)
-                System.out.println(i);
+            if (x++ > start) {
+                if (log == null)
+                    System.out.println(i);
+                else
+                    log.info(String.valueOf(i));
+            }
         }
     }
 
@@ -215,8 +226,8 @@ public class GridDebug {
      *
      * @return Empty string (useful for assertions like {@code assert x == 0 : D.dumpWithReset();} ).
      */
-    public static String dumpWithReset() {
-        return dumpWithReset(new ConcurrentLinkedQueue<Item>());
+    public static String dumpWithReset(@Nullable IgniteLogger log) {
+        return dumpWithReset(new ConcurrentLinkedQueue<Item>(), log);
     }
 
     /**
@@ -225,7 +236,7 @@ public class GridDebug {
      * @param q2 Queue.
      * @return Empty string.
      */
-    private static String dumpWithReset(@Nullable ConcurrentLinkedQueue<Item> q2) {
+    private static String dumpWithReset(@Nullable ConcurrentLinkedQueue<Item> q2, @Nullable IgniteLogger log) {
         ConcurrentLinkedQueue<Item> q;
 
         do {
@@ -236,7 +247,7 @@ public class GridDebug {
         }
         while (!que.compareAndSet(q, q2));
 
-        dump(q);
+        dump(q, log);
 
         return "";
     }

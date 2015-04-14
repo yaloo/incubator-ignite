@@ -29,6 +29,7 @@ import org.apache.ignite.internal.processors.cache.distributed.near.*;
 import org.apache.ignite.internal.processors.cache.transactions.*;
 import org.apache.ignite.internal.processors.cache.version.*;
 import org.apache.ignite.internal.processors.timeout.*;
+import org.apache.ignite.internal.util.*;
 import org.apache.ignite.internal.util.future.*;
 import org.apache.ignite.internal.util.tostring.*;
 import org.apache.ignite.internal.util.typedef.*;
@@ -473,6 +474,8 @@ public final class GridDhtColocatedLockFuture<K, V> extends GridCompoundIdentity
 
         if (tx != null)
             cctx.tm().txContext(tx);
+
+        GridDebug.debug("Completing colocated lock future: " + this);
 
         if (super.onDone(success, err.get())) {
             if (log.isDebugEnabled())

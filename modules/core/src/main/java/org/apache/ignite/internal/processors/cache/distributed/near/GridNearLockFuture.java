@@ -28,6 +28,7 @@ import org.apache.ignite.internal.processors.cache.distributed.dht.*;
 import org.apache.ignite.internal.processors.cache.transactions.*;
 import org.apache.ignite.internal.processors.cache.version.*;
 import org.apache.ignite.internal.processors.timeout.*;
+import org.apache.ignite.internal.util.*;
 import org.apache.ignite.internal.util.future.*;
 import org.apache.ignite.internal.util.tostring.*;
 import org.apache.ignite.internal.util.typedef.*;
@@ -605,6 +606,8 @@ public final class GridNearLockFuture<K, V> extends GridCompoundIdentityFuture<B
 
         if (tx != null)
             cctx.tm().txContext(tx);
+
+        GridDebug.debug("Completing near lock future: " + this);
 
         if (super.onDone(success, err.get())) {
             if (log.isDebugEnabled())

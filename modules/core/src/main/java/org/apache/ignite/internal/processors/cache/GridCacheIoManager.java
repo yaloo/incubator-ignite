@@ -95,7 +95,7 @@ public class GridCacheIoManager extends GridCacheSharedManagerAdapter {
                 }
             }
             else {
-                U.debug(log, "Received unordered cache communication message [nodeId=" + nodeId +
+                GridDebug.debug("Received unordered cache communication message [nodeId=" + nodeId +
                     ", locId=" + cctx.localNodeId() + ", msg=" + msg + ']');
 
                 AffinityTopologyVersion locAffVer = cctx.exchange().readyAffinityVersion();

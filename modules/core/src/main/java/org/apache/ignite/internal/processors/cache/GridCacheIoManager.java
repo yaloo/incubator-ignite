@@ -107,6 +107,9 @@ public class GridCacheIoManager extends GridCacheSharedManagerAdapter {
                             ", locTopVer=" + locAffVer + ", rmtTopVer=" + rmtAffVer + ']');
 
                     fut = cctx.exchange().affinityReadyFuture(rmtAffVer);
+
+                    GridDebug.debug("Received message has higher affinity topology version [msg=" + msg +
+                        ", locTopVer=" + locAffVer + ", rmtTopVer=" + rmtAffVer + ", waitFut=" + fut + ']');
                 }
             }
 
@@ -148,6 +151,8 @@ public class GridCacheIoManager extends GridCacheSharedManagerAdapter {
             if (log.isDebugEnabled())
                 log.debug("Received message without registered handler (will ignore) [msg=" + cacheMsg +
                     ", nodeId=" + nodeId + ']');
+            GridDebug.debug("Received message without registered handler (will ignore) [msg=" + cacheMsg +
+                ", nodeId=" + nodeId + ']');
 
             return;
         }

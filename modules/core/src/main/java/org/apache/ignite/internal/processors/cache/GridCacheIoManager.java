@@ -151,6 +151,8 @@ public class GridCacheIoManager extends GridCacheSharedManagerAdapter {
             if (log.isDebugEnabled())
                 log.debug("Received message without registered handler (will ignore) [msg=" + cacheMsg +
                     ", nodeId=" + nodeId + ']');
+            U.warn(log, "Received message without registered handler (will ignore) [msg=" + cacheMsg +
+                ", nodeId=" + nodeId + ']');
             GridDebug.debug("Received message without registered handler (will ignore) [msg=" + cacheMsg +
                 ", nodeId=" + nodeId + ']');
 

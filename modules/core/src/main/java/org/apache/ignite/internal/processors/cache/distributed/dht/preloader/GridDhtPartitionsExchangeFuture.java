@@ -838,6 +838,8 @@ public class GridDhtPartitionsExchangeFuture extends GridFutureAdapter<AffinityT
     @Override public boolean onDone(AffinityTopologyVersion res, Throwable err) {
         cctx.cache().onExchangeDone(exchId.topologyVersion(), reqs, err);
 
+        GridDebug.debug("Completing exchange [locNodeId=" + cctx.localNodeId() + ", exchId=" + exchId + ']');
+
         cctx.exchange().onExchangeDone(this, err);
 
         if (super.onDone(res, err) && !dummy && !forcePreload) {

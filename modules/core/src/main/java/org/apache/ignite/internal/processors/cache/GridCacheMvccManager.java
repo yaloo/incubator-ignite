@@ -237,8 +237,9 @@ public class GridCacheMvccManager extends GridCacheSharedManagerAdapter {
     /**
      * @return Collection of active futures.
      */
+    @SuppressWarnings("unchecked")
     public Collection<GridCacheFuture<?>> activeFutures() {
-        return F.flatCollections(futs.values());
+        return F.concat(false, F.flatCollections(futs.values()), (Collection)atomicFuts.values());
     }
 
     /**

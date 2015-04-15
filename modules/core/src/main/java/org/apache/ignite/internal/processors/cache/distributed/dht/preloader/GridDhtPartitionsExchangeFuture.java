@@ -575,6 +575,8 @@ public class GridDhtPartitionsExchangeFuture extends GridFutureAdapter<AffinityT
                         break;
                     }
                     catch (IgniteFutureTimeoutCheckedException ignored) {
+                        U.debug(log, "Release future: " + partReleaseFut);
+
                         // Print pending transactions and locks that might have led to hang.
                         dumpPendingObjects();
                     }
@@ -678,8 +680,8 @@ public class GridDhtPartitionsExchangeFuture extends GridFutureAdapter<AffinityT
      *
      */
     private void dumpPendingObjects() {
-        U.warn(log, "Failed to wait for partition release future. Dumping pending objects that might be the cause: " +
-            cctx.localNodeId());
+        U.warn(log, "Failed to wait for partition release future. Dumping pending objects that might be " +
+            "the cause [locNodeId=" + cctx.localNodeId() + ", exchId=" + exchId + ']');
 
         U.warn(log, "Pending transactions:");
 

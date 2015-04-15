@@ -311,7 +311,7 @@ public abstract class GridCacheQueueMultiNodeAbstractSelfTest extends IgniteColl
             Collection<IgniteInternalFuture> futs = new ArrayList<>();
 
             final int THREADS_PER_NODE = 3;
-            final int ITEMS_PER_THREAD = 1000;
+            final int ITEMS_PER_THREAD = 300;
 
             for (int i = 0; i < GRID_CNT; i++) {
                 final int idx = i;
@@ -322,8 +322,14 @@ public abstract class GridCacheQueueMultiNodeAbstractSelfTest extends IgniteColl
 
                         IgniteQueue<Integer> queue = grid(idx).queue(queueName, 0, colCfg);
 
-                        for (int i = 0; i < ITEMS_PER_THREAD; i++)
+                        for (int i = 0; i < ITEMS_PER_THREAD; i++) {
                             assertTrue(queue.add(i));
+
+                            if (i > 0 && i % 100 == 0)
+                                info("Finished: " + i);
+                        }
+
+                        info("Finished");
 
                         return null;
                     }
@@ -376,7 +382,7 @@ public abstract class GridCacheQueueMultiNodeAbstractSelfTest extends IgniteColl
 
             final int PUT_THREADS_PER_NODE = 3;
             final int POLL_THREADS_PER_NODE = 2;
-            final int ITEMS_PER_THREAD = 1000;
+            final int ITEMS_PER_THREAD = 300;
 
             final AtomicBoolean stopPoll = new AtomicBoolean();
 
@@ -391,8 +397,12 @@ public abstract class GridCacheQueueMultiNodeAbstractSelfTest extends IgniteColl
 
                         IgniteQueue<Integer> queue = grid(idx).queue(queueName, 0, colCfg);
 
-                        for (int i = 0; i < ITEMS_PER_THREAD; i++)
+                        for (int i = 0; i < ITEMS_PER_THREAD; i++) {
                             assertTrue(queue.add(i));
+
+                            if (i > 0 && i % 100 == 0)
+                                info("Added: " + i);
+                        }
 
                         return null;
                     }

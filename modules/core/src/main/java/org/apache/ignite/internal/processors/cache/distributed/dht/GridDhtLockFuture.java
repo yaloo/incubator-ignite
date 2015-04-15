@@ -902,7 +902,7 @@ public final class GridDhtLockFuture<K, V> extends GridCompoundIdentityFuture<Bo
                             cctx.io().send(n, req, cctx.ioPolicy());
                         }
                         else
-                            GridDebug.debug("Will not send lock request to DHT node: " + tx);
+                            GridDebug.debug("Will not send lock request to DHT node: " + tx.xidVersion());
                     }
                     catch (IgniteCheckedException e) {
                         // Fail the whole thing.

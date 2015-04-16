@@ -144,7 +144,7 @@ public class IgniteHadoopFileSystem extends AbstractFileSystem implements Closea
 
         uri = name;
 
-        user = getHadoopUser(cfg);
+        user = getFsHadoopUser();
 
         try {
             initialize(name, cfg);
@@ -294,6 +294,7 @@ public class IgniteHadoopFileSystem extends AbstractFileSystem implements Closea
                     SecondaryFileSystemProvider secProvider = new SecondaryFileSystemProvider(secUri, secConfPath);
 
                     secondaryFs = secProvider.createAbstractFileSystem(user);
+
                     secondaryUri = secProvider.uri();
                 }
                 catch (IOException e) {

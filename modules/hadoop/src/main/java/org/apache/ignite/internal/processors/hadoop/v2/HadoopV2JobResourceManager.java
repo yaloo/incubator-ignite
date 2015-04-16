@@ -103,7 +103,7 @@ public class HadoopV2JobResourceManager {
         String user = cfg.get(MRJobConfig.USER_NAME);
 
         if (user == null)
-            user = IgniteHadoopFileSystem.getFsHadoopUser();
+            user = IgniteHadoopFileSystem.getFsHadoopUser(cfg);
 
         user = user.intern();
 

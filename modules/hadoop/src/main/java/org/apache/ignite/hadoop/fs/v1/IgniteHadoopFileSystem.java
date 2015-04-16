@@ -194,6 +194,7 @@ public class IgniteHadoopFileSystem extends FileSystem {
     public static String getHadoopUser(@Nullable Configuration cfg) throws IOException {
         String user = null;
 
+        // TODO: Create ticket to remove these lines.
         // First, try to get the user from MR Job configuration:
         if (cfg != null)
             user = cfg.get(MRJobConfig.USER_NAME);

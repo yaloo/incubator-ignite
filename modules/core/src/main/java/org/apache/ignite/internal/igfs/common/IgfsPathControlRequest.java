@@ -245,6 +245,6 @@ public class IgfsPathControlRequest extends IgfsMessage {
     }
 
     public final void userName(String userName) {
-        this.userName = U.fixUserName(userName);
+        this.userName = IgfsUserContext.fixUserName(userName);
     }
 }

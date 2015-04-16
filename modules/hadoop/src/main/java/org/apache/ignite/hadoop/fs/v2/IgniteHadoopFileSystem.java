@@ -291,10 +291,9 @@ public class IgniteHadoopFileSystem extends AbstractFileSystem implements Closea
                 String secConfPath = props.get(SECONDARY_FS_CONFIG_PATH);
 
                 try {
-                    SecondaryFileSystemProvider secProvider = new SecondaryFileSystemProvider(secUri, secConfPath,
-                        user);
+                    SecondaryFileSystemProvider secProvider = new SecondaryFileSystemProvider(secUri, secConfPath);
 
-                    secondaryFs = secProvider.createAbstractFileSystem();
+                    secondaryFs = secProvider.createAbstractFileSystem(user);
                     secondaryUri = secProvider.uri();
                 }
                 catch (IOException e) {

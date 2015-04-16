@@ -152,7 +152,6 @@ public class HadoopIgfsOutProc implements HadoopIgfsEx, HadoopIgfsIpcIoListener 
     @Override public IgfsHandshakeResponse handshake(String logDir) throws IgniteCheckedException {
         final IgfsHandshakeRequest req = new IgfsHandshakeRequest();
 
-        req.userName(userName);
         req.gridName(grid);
         req.igfsName(igfs);
         req.logDirectory(logDir);

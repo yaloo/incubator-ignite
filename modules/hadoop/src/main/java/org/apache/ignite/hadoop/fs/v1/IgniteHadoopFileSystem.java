@@ -194,25 +194,13 @@ public class IgniteHadoopFileSystem extends FileSystem {
     public static String getHadoopUser(@Nullable Configuration cfg) throws IOException {
         String user = null;
 
-        // First, try to get the user from MR Job configuration:
-        if (cfg != null)
-            user = cfg.get(MRJobConfig.USER_NAME);
+        UserGroupInformation currentUgi = UserGroupInformation.getCurrentUser();
+        if (currentUgi != null)
+             user = currentUgi.getShortUserName();
 
-        // 2nd, try to get it from UserGroupInformation (may return any result if we're
-        // inside UserGroupInformation.doAs(...) closure):
-        if (user == null) {
-            UserGroupInformation currentUgi = UserGroupInformation.getCurrentUser();
-            if (currentUgi != null)
-                user = currentUgi.getShortUserName();
-        }
-
-        // 3rd, get the default system (process owner) user name (defaults to "anonymous" in case of null):
-        if (user == null)
-            user = DFLT_USER_NAME;
+        user = IgfsUserContext.fixUserName(user);
 
         assert user != null;
-
-        user = U.fixUserName(user);
 
         return user;
     }
@@ -258,8 +246,6 @@ public class IgniteHadoopFileSystem extends FileSystem {
             uriAuthority = uri.getAuthority();
 
             user = getHadoopUser(cfg);
-
-            //setUser(user);
 
             // Override sequential reads before prefetch if needed.
             seqReadsBeforePrefetch = parameter(cfg, PARAM_IGFS_SEQ_READS_BEFORE_PREFETCH, uriAuthority, 0);
@@ -329,10 +315,10 @@ public class IgniteHadoopFileSystem extends FileSystem {
                 String secConfPath = props.get(SECONDARY_FS_CONFIG_PATH);
 
                 try {
-                    SecondaryFileSystemProvider secProvider = new SecondaryFileSystemProvider(secUri, secConfPath,
-                        user);
+                    SecondaryFileSystemProvider secProvider = new SecondaryFileSystemProvider(secUri, secConfPath);
 
-                    secondaryFs = secProvider.createFileSystem();
+                    secondaryFs = secProvider.createFileSystem(user);
+
                     secondaryUri = secProvider.uri();
                 }
                 catch (IOException e) {
@@ -894,19 +880,19 @@ public class IgniteHadoopFileSystem extends FileSystem {
         return path.makeQualified(getUri(), null);
     }
 
-    /**
-     * Set user name and default working directory for current thread.
-     *
-     * @param userName User name.
-     */
-    @Deprecated // TODO: remove this method.
-    public void setUser(String userName) {
-        //System.out.println(this + ": ##### setting user = " + userName + ", thread = " + Thread.currentThread());
-        assert F.eq(user, userName);
-        //this.userName.set(userName);
-
-        //setWorkingDirectory(null);
-    }
+//    /**
+//     * Set user name and default working directory for current thread.
+//     *
+//     * @param userName User name.
+//     */
+//    @Deprecated // TODO: remove this method.
+//    public void setUser(String userName) {
+//        //System.out.println(this + ": ##### setting user = " + userName + ", thread = " + Thread.currentThread());
+//        assert F.eq(user, userName);
+//        //this.userName.set(userName);
+//
+//        //setWorkingDirectory(null);
+//    }
 
     /** {@inheritDoc} */
     @Override public void setWorkingDirectory(Path newPath) {

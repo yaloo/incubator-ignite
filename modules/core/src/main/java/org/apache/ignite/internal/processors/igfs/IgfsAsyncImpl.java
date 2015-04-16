@@ -314,15 +314,4 @@ public class IgfsAsyncImpl extends AsyncSupportAdapter<IgniteFileSystem> impleme
     @Override public IgfsSecondaryFileSystem asSecondary() {
         return igfs.asSecondary();
     }
-
-    // TODO: Remove.
-    /** {@inheritDoc} */
-    @Override public IgfsEx forUser(String userName) throws IgniteCheckedException {
-        return igfs.forUser(userName);
-    }
-
-    /** {@inheritDoc} */
-    @Override public String user() {
-        return igfs.user();
-    }
 }

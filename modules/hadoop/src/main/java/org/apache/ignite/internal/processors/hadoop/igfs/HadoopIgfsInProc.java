@@ -58,9 +58,9 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
     public HadoopIgfsInProc(IgfsEx igfs, Log log, String userName) throws IgniteCheckedException {
         this.user = userName;
 
-        this.igfs = igfs.forUser(userName);
+        this.igfs = igfs; //.forUser(userName);
 
-        assert this.user == this.igfs.user();
+        //assert this.user == this.igfs.user();
 
         this.log = log;
 

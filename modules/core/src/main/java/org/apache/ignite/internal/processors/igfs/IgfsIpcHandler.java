@@ -254,7 +254,9 @@ class IgfsIpcHandler implements IgfsServerHandler {
 
         assert userName != null;
 
-        final IgfsEx userIgfs = igfs.forUser(userName);
+        final IgfsEx userIgfs = igfs; //.forUser(userName);
+
+        //IgfsUtils.setContextUser(userName);
 
         try {
             switch (cmd) {

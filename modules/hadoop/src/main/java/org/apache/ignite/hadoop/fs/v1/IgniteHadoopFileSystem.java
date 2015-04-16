@@ -98,21 +98,7 @@ public class IgniteHadoopFileSystem extends FileSystem {
     /** Grid remote client. */
     private HadoopIgfsWrapper rmtClient;
 
-//    /** User name for each thread. */
-//    private final ThreadLocal<String> userName = new ThreadLocal<String>(){
-//        /** {@inheritDoc} */
-//        @Override protected String initialValue() {
-//            return DFLT_USER_NAME;
-//        }
-//    };
-
-//    /** Working directory for each thread. */
-//    private final ThreadLocal<Path> workingDir = new ThreadLocal<Path>(){
-//        /** {@inheritDoc} */
-//        @Override protected Path initialValue() {
-//            return getHomeDirectory();
-//        }
-//    };
+    /** working directory. */
     private Path workingDir;
 
     /** Default replication factor. */
@@ -193,6 +179,11 @@ public class IgniteHadoopFileSystem extends FileSystem {
      */
     public static String getHadoopUser(@Nullable Configuration cfg) throws IOException {
         String user = null;
+
+        // TODO: Create ticket to remove these lines.
+//        // First, try to get the user from MR Job configuration:
+//        if (cfg != null)
+//            user = cfg.get(MRJobConfig.USER_NAME);
 
         UserGroupInformation currentUgi = UserGroupInformation.getCurrentUser();
         if (currentUgi != null)

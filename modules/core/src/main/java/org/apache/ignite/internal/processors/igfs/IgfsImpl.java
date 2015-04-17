@@ -56,9 +56,8 @@ import static org.apache.ignite.internal.processors.igfs.IgfsFileInfo.*;
 
 /**
  * Cache-based IGFS implementation.
- * This is a singleton: only 1 IgfsImpl exists in Ignite node.
  */
-public class IgfsImpl implements IgfsEx {
+public final class IgfsImpl implements IgfsEx {
     /** Default permissions for file system entry. */
     private static final String PERMISSION_DFLT_VAL = "0777";
 
@@ -66,7 +65,7 @@ public class IgfsImpl implements IgfsEx {
     private static final Map<String, String> DFLT_DIR_META = F.asMap(PROP_PERMISSION, PERMISSION_DFLT_VAL);
 
     /** Handshake message. */
-    private IgfsPaths secondaryPaths;
+    private final IgfsPaths secondaryPaths;
 
     /** Cache based structure (meta data) manager. */
     private IgfsMetaManager meta;
@@ -75,7 +74,7 @@ public class IgfsImpl implements IgfsEx {
     private IgfsDataManager data;
 
     /** FS configuration. */
-    private final FileSystemConfiguration cfg;
+    private FileSystemConfiguration cfg;
 
     /** IGFS context. */
     private IgfsContext igfsCtx;
@@ -90,7 +89,7 @@ public class IgfsImpl implements IgfsEx {
     private IgniteLogger log;
 
     /** Mode resolver. */
-    private IgfsModeResolver modeRslvr;
+    private final IgfsModeResolver modeRslvr;
 
     /** Connection to the secondary file system. */
     private IgfsSecondaryFileSystem secondaryFs;
@@ -123,7 +122,7 @@ public class IgfsImpl implements IgfsEx {
     private IgfsPerBlockLruEvictionPolicy evictPlc;
 
     /** Pool for threads working in DUAL mode. */
-    private IgniteThreadPoolExecutor dualPool;
+    private final IgniteThreadPoolExecutor dualPool;
 
     /**
      * Creates IGFS instance with given context.
@@ -142,11 +141,10 @@ public class IgfsImpl implements IgfsEx {
         evts = igfsCtx.kernalContext().event();
         meta = igfsCtx.meta();
         data = igfsCtx.data();
-
         secondaryFs = cfg.getSecondaryFileSystem();
 
         /* Default IGFS mode. */
-        final IgfsMode dfltMode;
+        IgfsMode dfltMode;
 
         if (secondaryFs == null) {
             if (cfg.getDefaultMode() == PROXY)
@@ -202,9 +200,6 @@ public class IgfsImpl implements IgfsEx {
         secondaryPaths = new IgfsPaths(secondaryFs == null ? null : secondaryFs.properties(), dfltMode,
             modeRslvr.modesOrdered());
 
-        dualPool = secondaryFs != null ? new IgniteThreadPoolExecutor(4, Integer.MAX_VALUE, 5000L,
-            new LinkedBlockingQueue<Runnable>(), new IgfsThreadFactory(cfg.getName()), null) : null;
-
         // Check whether IGFS LRU eviction policy is set on data cache.
         String dataCacheName = igfsCtx.configuration().getDataCacheName();
 
@@ -223,6 +218,9 @@ public class IgfsImpl implements IgfsEx {
 
         igfsCtx.kernalContext().io().addMessageListener(topic, delMsgLsnr);
         igfsCtx.kernalContext().event().addLocalEventListener(delDiscoLsnr, EVT_NODE_LEFT, EVT_NODE_FAILED);
+
+        dualPool = secondaryFs != null ? new IgniteThreadPoolExecutor(4, Integer.MAX_VALUE, 5000L,
+            new LinkedBlockingQueue<Runnable>(), new IgfsThreadFactory(cfg.getName()), null) : null;
     }
 
     /**

@@ -105,8 +105,6 @@ public class HadoopV2JobResourceManager {
         if (user == null)
             user = IgniteHadoopFileSystem.getFsHadoopUser(cfg);
 
-        user = user.intern();
-
         return user;
     }
 
@@ -128,9 +126,11 @@ public class HadoopV2JobResourceManager {
             uri = FileSystem.getDefaultUri(cfg);
 
         final FileSystem fs;
+
         try {
             fs = FileSystem.get(uri, cfg, user);
-        } catch (InterruptedException ie) {
+        }
+        catch (InterruptedException ie) {
             throw new IOException(ie);
         }
 
@@ -163,6 +163,7 @@ public class HadoopV2JobResourceManager {
                 stagingDir = new Path(new URI(mrDir));
 
                 if (download) {
+                    // TODO: Out of bounds.
                     try (FileSystem fs = fileSystemForMrUser(stagingDir.toUri(), cfg)) {
                         if (!fs.exists(stagingDir))
                             throw new IgniteCheckedException("Failed to find map-reduce submission directory (does not exist): " +

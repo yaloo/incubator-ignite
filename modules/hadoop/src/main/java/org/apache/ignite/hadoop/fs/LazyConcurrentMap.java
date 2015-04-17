@@ -28,6 +28,8 @@ import java.util.concurrent.*;
  * Maps values by keys.
  * Values are created lazily using {@link ValueFactory}.
  */
+// TODO: Remove from public.
+// TODO: Consistent naming (Hadoop prefix if in Hadoop module).
 public class LazyConcurrentMap<K, V> {
     /** The map storing the actual values. */
     private final ConcurrentMap<K, ValueWrapper> map = new ConcurrentHashMap8<>();
@@ -87,7 +89,8 @@ public class LazyConcurrentMap<K, V> {
 
         try {
             return w.getValue();
-        } catch (InterruptedException ie) {
+        }
+        catch (InterruptedException ie) {
             throw new IgniteException(ie);
         }
     }
@@ -121,7 +124,7 @@ public class LazyConcurrentMap<K, V> {
         private final K key;
 
         /** the value */
-        private volatile V v;
+        private V v;
 
         /**
          * Creates new wrapper.
@@ -150,6 +153,7 @@ public class LazyConcurrentMap<K, V> {
          * @throws InterruptedException
          */
         @Nullable V getValue() throws InterruptedException {
+            // TODO: Use U.await(vlueCrtLatch) instead.
             vlueCrtLatch.await();
 
             return v;

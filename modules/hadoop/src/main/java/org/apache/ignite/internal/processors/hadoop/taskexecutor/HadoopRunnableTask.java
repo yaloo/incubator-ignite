@@ -115,7 +115,8 @@ public abstract class HadoopRunnableTask implements Callable<Void> {
             UserGroupInformation currUser = UserGroupInformation.getCurrentUser();
 
             ugiUser = currUser.getShortUserName();
-        } catch (IOException ioe) {
+        }
+        catch (IOException ioe) {
             throw new IgniteCheckedException(ioe);
         }
 
@@ -131,7 +132,8 @@ public abstract class HadoopRunnableTask implements Callable<Void> {
                     Configuration conf = ((HadoopV2Job)job).jobConf();
 
                     ticketCachePath = conf.get(CommonConfigurationKeys.KERBEROS_TICKET_CACHE_PATH);
-                } else
+                }
+                else
                     ticketCachePath = job.info().property(CommonConfigurationKeys.KERBEROS_TICKET_CACHE_PATH);
 
                 UserGroupInformation ugi = UserGroupInformation.getBestUGI(ticketCachePath, user);

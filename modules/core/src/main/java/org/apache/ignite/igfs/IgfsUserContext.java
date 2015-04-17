@@ -20,6 +20,7 @@ package org.apache.ignite.igfs;
 import org.apache.ignite.*;
 import org.apache.ignite.configuration.*;
 import org.apache.ignite.internal.util.typedef.*;
+import org.apache.ignite.internal.util.typedef.internal.*;
 import org.jetbrains.annotations.*;
 
 import java.util.concurrent.*;
@@ -46,15 +47,17 @@ public abstract class IgfsUserContext {
      * must return exactly the Exception thrown from the callable.
      */
     public static <T> T doAs(String user, final Callable<T> cllbl) {
+        // TODO: Use A.ensure();
         if (F.isEmpty(user))
             throw new IllegalArgumentException("Failed to use null or empty user name.");
 
+        // TODO: Remove.
         user = user.intern();
 
         final String ctxUser = userStackThreadLocal.get();
 
         try {
-            //noinspection StringEquality
+            // TODO: Equals: F.eq
             if (ctxUser == user)
                 return cllbl.call(); // correct context is already there
 
@@ -66,7 +69,8 @@ public abstract class IgfsUserContext {
             finally {
                 userStackThreadLocal.set(ctxUser);
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw new IgniteException(e);
         }
     }
@@ -89,6 +93,7 @@ public abstract class IgfsUserContext {
      * @param user a user name to be fixed.
      * @return non-null interned user name.
      */
+    // TODO: Move to IgfsUtils.
     public static String fixUserName(@Nullable String user) {
         if (F.isEmpty(user))
            user = FileSystemConfiguration.DFLT_USER_NAME;

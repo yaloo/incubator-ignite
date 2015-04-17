@@ -126,6 +126,7 @@ public class HadoopUtils {
                 break;
 
             case PHASE_REDUCE:
+                // TODO: Create ticket: why PHASE_REDUCE could have 0 reducers.
                 setupProgress = 1;
                 mapProgress = 1;
 

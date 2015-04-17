@@ -27,6 +27,7 @@ import org.apache.ignite.internal.processors.hadoop.*;
 import org.apache.ignite.internal.processors.hadoop.igfs.*;
 import org.apache.ignite.internal.processors.igfs.*;
 import org.apache.ignite.internal.util.typedef.*;
+import org.apache.ignite.internal.util.typedef.internal.*;
 import org.jetbrains.annotations.*;
 import org.apache.ignite.hadoop.fs.LazyConcurrentMap.*;
 
@@ -57,7 +58,7 @@ public class IgniteHadoopIgfsSecondaryFileSystem implements IgfsSecondaryFileSys
     private final String dfltUserName;
 
     /** Lazy per-user cache for the file systems. It is cleared and nulled in #close() method. */
-    private volatile LazyConcurrentMap<String, FileSystem> fileSysLazyMap = new LazyConcurrentMap<>(
+    private final LazyConcurrentMap<String, FileSystem> fileSysLazyMap = new LazyConcurrentMap<>(
         new ValueFactory<String, FileSystem>() {
             @Override public FileSystem createValue(String key) {
                 try {
@@ -350,6 +351,7 @@ public class IgniteHadoopIgfsSecondaryFileSystem implements IgfsSecondaryFileSys
             new HadoopIgfsProperties(props != null ? props : Collections.<String, String>emptyMap());
 
         try {
+            // TODO: Out of bounds.
             return fileSysForUser().create(convert(path), props0.permission(), overwrite, bufSize, (short)replication, blockSize,
                 null);
         }

@@ -66,6 +66,7 @@ public class HadoopIgfsWrapper implements HadoopIgfs {
      * @param conf Configuration.
      * @param log Current logger.
      */
+    // TODO: Out of bounds.
     public HadoopIgfsWrapper(String authority, String logDir, Configuration conf, Log log, String user) throws IOException {
         try {
             this.authority = authority;

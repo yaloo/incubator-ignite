@@ -63,6 +63,7 @@ public class IgfsPathControlRequest extends IgfsMessage {
     /** Last modification time. */
     private long modificationTime;
 
+    // TODO: COmments.
     private String userName;
 
     /**
@@ -238,6 +239,7 @@ public class IgfsPathControlRequest extends IgfsMessage {
         return S.toString(IgfsPathControlRequest.class, this, "cmd", command());
     }
 
+    // TODO: COmments.
     public final String userName() {
         assert userName != null;
 

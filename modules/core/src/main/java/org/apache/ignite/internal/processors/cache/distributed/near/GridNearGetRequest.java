@@ -477,6 +477,6 @@ public class GridNearGetRequest extends GridCacheMessage implements GridCacheDep
 
     /** {@inheritDoc} */
     @Override public String toString() {
-        return S.toString(GridNearGetRequest.class, this);
+        return S.toString(GridNearGetRequest.class, this, "cacheId", cacheId, "keys", keys);
     }
 }

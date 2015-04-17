@@ -126,7 +126,8 @@ public class HadoopUtils {
                 break;
 
             case PHASE_REDUCE:
-                // TODO: Create ticket: why PHASE_REDUCE could have 0 reducers.
+                // TODO: temporary fixed, but why PHASE_REDUCE could have 0 reducers?
+                // See https://issues.apache.org/jira/browse/IGNITE-764
                 setupProgress = 1;
                 mapProgress = 1;
 

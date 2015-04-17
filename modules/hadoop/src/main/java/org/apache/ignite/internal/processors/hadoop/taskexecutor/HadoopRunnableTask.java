@@ -126,15 +126,7 @@ public abstract class HadoopRunnableTask implements Callable<Void> {
         else {
             // do the call in the context of 'user':
             try {
-                final String ticketCachePath;
-
-                if (job instanceof HadoopV2Job) {
-                    Configuration conf = ((HadoopV2Job)job).jobConf();
-
-                    ticketCachePath = conf.get(CommonConfigurationKeys.KERBEROS_TICKET_CACHE_PATH);
-                }
-                else
-                    ticketCachePath = job.info().property(CommonConfigurationKeys.KERBEROS_TICKET_CACHE_PATH);
+                final String ticketCachePath = getJobProperty(CommonConfigurationKeys.KERBEROS_TICKET_CACHE_PATH);
 
                 UserGroupInformation ugi = UserGroupInformation.getBestUGI(ticketCachePath, user);
 
@@ -147,6 +139,19 @@ public abstract class HadoopRunnableTask implements Callable<Void> {
                 throw new IgniteCheckedException(e);
             }
         }
+    }
+
+    /**
+     * Gets the job property.
+     */
+    private String getJobProperty(String key) {
+        if (job instanceof HadoopV2Job) {
+            Configuration conf = ((HadoopV2Job)job).jobConf();
+
+            return conf.get(key);
+        }
+        else
+            return job.info().property(key);
     }
 
     /**

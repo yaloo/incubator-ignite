@@ -18,7 +18,6 @@
 package org.apache.ignite.internal.processors.hadoop.v2;
 
 import org.apache.hadoop.fs.*;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.mapred.JobID;
@@ -323,7 +322,7 @@ public class HadoopV2Job implements HadoopJob {
 
     /**
      * Getter for job configuration.
-     * @return
+     * @return the job configuration
      */
     public JobConf jobConf() {
         return jobConf;

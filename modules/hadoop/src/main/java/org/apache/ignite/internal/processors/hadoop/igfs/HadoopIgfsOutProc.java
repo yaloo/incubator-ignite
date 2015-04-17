@@ -141,7 +141,7 @@ public class HadoopIgfsOutProc implements HadoopIgfsEx, HadoopIgfsIpcIoListener 
         this.grid = grid;
         this.igfs = igfs;
         this.log = log;
-        this.userName = IgfsUserContext.fixUserName(user);
+        this.userName = IgfsUtils.fixUserName(user);
 
         io = HadoopIgfsIpcIo.get(log, endpoint);
 

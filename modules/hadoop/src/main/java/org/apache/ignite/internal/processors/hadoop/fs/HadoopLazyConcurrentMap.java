@@ -15,9 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.hadoop.fs;
+package org.apache.ignite.internal.processors.hadoop.fs;
 
 import org.apache.ignite.*;
+import org.apache.ignite.internal.*;
+import org.apache.ignite.internal.util.typedef.internal.*;
 import org.jetbrains.annotations.*;
 import org.jsr166.*;
 
@@ -27,10 +29,11 @@ import java.util.concurrent.*;
 /**
  * Maps values by keys.
  * Values are created lazily using {@link ValueFactory}.
+ * Currently only {@link #clear()} method can remove a value.
+ *
+ * Despite of the name, does not depend on any Hadoop classes.
  */
-// TODO: Remove from public.
-// TODO: Consistent naming (Hadoop prefix if in Hadoop module).
-public class LazyConcurrentMap<K, V> {
+public class HadoopLazyConcurrentMap<K, V> {
     /** The map storing the actual values. */
     private final ConcurrentMap<K, ValueWrapper> map = new ConcurrentHashMap8<>();
 
@@ -41,7 +44,7 @@ public class LazyConcurrentMap<K, V> {
      * Constructor.
      * @param factory the factory to create new values lazily.
      */
-    public LazyConcurrentMap(ValueFactory<K, V> factory) {
+    public HadoopLazyConcurrentMap(ValueFactory<K, V> factory) {
         this.factory = factory;
     }
 
@@ -71,7 +74,7 @@ public class LazyConcurrentMap<K, V> {
 
             return v;
         }
-        catch (InterruptedException ie) {
+        catch (IgniteInterruptedCheckedException ie) {
             throw new IgniteException(ie);
         }
     }
@@ -90,7 +93,7 @@ public class LazyConcurrentMap<K, V> {
         try {
             return w.getValue();
         }
-        catch (InterruptedException ie) {
+        catch (IgniteInterruptedCheckedException ie) {
             throw new IgniteException(ie);
         }
     }
@@ -150,11 +153,10 @@ public class LazyConcurrentMap<K, V> {
         /**
          * Blocks until the value is initialized.
          * @return the value
-         * @throws InterruptedException
+         * @throws IgniteInterruptedCheckedException if interrupted during wait.
          */
-        @Nullable V getValue() throws InterruptedException {
-            // TODO: Use U.await(vlueCrtLatch) instead.
-            vlueCrtLatch.await();
+        @Nullable V getValue() throws IgniteInterruptedCheckedException {
+            U.await(vlueCrtLatch);
 
             return v;
         }

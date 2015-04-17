@@ -39,8 +39,7 @@ public class HadoopStartup {
     public static Configuration configuration() {
         Configuration cfg = new Configuration();
 
-        // TODO: Remove.
-        cfg.set("fs.defaultFS", "igfs://igfs@localhost:10500");
+        cfg.set("fs.defaultFS", "igfs://igfs@localhost");
 
         cfg.set("fs.igfs.impl", org.apache.ignite.hadoop.fs.v1.IgniteHadoopFileSystem.class.getName());
         cfg.set("fs.AbstractFileSystem.igfs.impl", IgniteHadoopFileSystem.class.getName());

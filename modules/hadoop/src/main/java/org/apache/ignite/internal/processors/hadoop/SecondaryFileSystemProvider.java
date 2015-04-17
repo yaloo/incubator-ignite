@@ -20,7 +20,7 @@ package org.apache.ignite.internal.processors.hadoop;
 import org.apache.hadoop.conf.*;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.security.*;
-import org.apache.ignite.igfs.*;
+import org.apache.ignite.internal.processors.igfs.*;
 import org.apache.ignite.internal.util.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 import org.jetbrains.annotations.*;
@@ -54,9 +54,7 @@ public class SecondaryFileSystemProvider {
      * @throws IOException
      */
     public SecondaryFileSystemProvider(final @Nullable String secUri,
-        final @Nullable String secConfPath/*, @Nullable String userName*/) throws IOException {
-        //this.userName = userName;
-
+        final @Nullable String secConfPath) throws IOException {
         if (secConfPath != null) {
             URL url = U.resolveIgniteUrl(secConfPath);
 
@@ -92,7 +90,7 @@ public class SecondaryFileSystemProvider {
      * @throws IOException
      */
     public FileSystem createFileSystem(String userName) throws IOException {
-        userName = IgfsUserContext.fixUserName(userName);
+        userName = IgfsUtils.fixUserName(userName);
 
         final FileSystem fileSys;
 
@@ -117,7 +115,7 @@ public class SecondaryFileSystemProvider {
      * @throws IOException in case of error.
      */
     public AbstractFileSystem createAbstractFileSystem(String userName) throws IOException {
-        userName = IgfsUserContext.fixUserName(userName);
+        userName = IgfsUtils.fixUserName(userName);
 
 //        if (userName == null)
 //            return AbstractFileSystem.get(uri, cfg);

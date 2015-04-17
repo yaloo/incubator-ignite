@@ -24,12 +24,12 @@ import org.apache.ignite.*;
 import org.apache.ignite.igfs.*;
 import org.apache.ignite.igfs.secondary.*;
 import org.apache.ignite.internal.processors.hadoop.*;
+import org.apache.ignite.internal.processors.hadoop.fs.*;
 import org.apache.ignite.internal.processors.hadoop.igfs.*;
 import org.apache.ignite.internal.processors.igfs.*;
 import org.apache.ignite.internal.util.typedef.*;
-import org.apache.ignite.internal.util.typedef.internal.*;
 import org.jetbrains.annotations.*;
-import org.apache.ignite.hadoop.fs.LazyConcurrentMap.*;
+import org.apache.ignite.internal.processors.hadoop.fs.HadoopLazyConcurrentMap.*;
 
 import java.io.*;
 import java.net.*;
@@ -57,8 +57,12 @@ public class IgniteHadoopIgfsSecondaryFileSystem implements IgfsSecondaryFileSys
     /** The default user name. It is used if no user context is set. */
     private final String dfltUserName;
 
+    /** FileSystem instance created for the default user.
+     * Stored outside the fileSysLazyMap due to performance reasons. */
+    private final FileSystem dfltFs;
+
     /** Lazy per-user cache for the file systems. It is cleared and nulled in #close() method. */
-    private final LazyConcurrentMap<String, FileSystem> fileSysLazyMap = new LazyConcurrentMap<>(
+    private final HadoopLazyConcurrentMap<String, FileSystem> fileSysLazyMap = new HadoopLazyConcurrentMap<>(
         new ValueFactory<String, FileSystem>() {
             @Override public FileSystem createValue(String key) {
                 try {
@@ -116,20 +120,20 @@ public class IgniteHadoopIgfsSecondaryFileSystem implements IgfsSecondaryFileSys
         if (F.isEmpty(userName))
             userName = null;
 
-        this.dfltUserName = IgfsUserContext.fixUserName(userName);
+        this.dfltUserName = IgfsUtils.fixUserName(userName);
 
         try {
             this.secProvider = new SecondaryFileSystemProvider(uri, cfgPath);
+
+            // File system creation for the default user name.
+            // The value is *not* stored in the 'fileSysLazyMap' cache, but saved in field:
+            this.dfltFs = secProvider.createFileSystem(dfltUserName);
         }
         catch (IOException e) {
             throw new IgniteCheckedException(e);
         }
 
-        // Test filesystem creation for the default user name.
-        // The value is stored in the 'fileSysLazyMap' cache.
-        FileSystem fileSys = fileSysLazyMap.getOrCreate(dfltUserName);
-
-        assert fileSys != null;
+        assert dfltFs != null;
 
         uri = secProvider.uri().toString();
 
@@ -351,9 +355,8 @@ public class IgniteHadoopIgfsSecondaryFileSystem implements IgfsSecondaryFileSys
             new HadoopIgfsProperties(props != null ? props : Collections.<String, String>emptyMap());
 
         try {
-            // TODO: Out of bounds.
-            return fileSysForUser().create(convert(path), props0.permission(), overwrite, bufSize, (short)replication, blockSize,
-                null);
+            return fileSysForUser().create(convert(path), props0.permission(), overwrite, bufSize,
+                (short)replication, blockSize, null);
         }
         catch (IOException e) {
             throw handleSecondaryFsError(e, "Failed to create file [path=" + path + ", props=" + props +
@@ -465,12 +468,10 @@ public class IgniteHadoopIgfsSecondaryFileSystem implements IgfsSecondaryFileSys
 
     /** {@inheritDoc} */
     @Override public void close() throws IgniteCheckedException {
-        final LazyConcurrentMap<String,FileSystem> map = fileSysLazyMap;
+        final HadoopLazyConcurrentMap<String,FileSystem> map = fileSysLazyMap;
 
         if (map == null)
             return; // already cleared.
-
-        fileSysLazyMap = null; // 'this' will be unusable after #close().
 
         List<IOException> ioExs = new LinkedList<>();
 
@@ -515,6 +516,9 @@ public class IgniteHadoopIgfsSecondaryFileSystem implements IgfsSecondaryFileSys
             user = dfltUserName; // default is never empty.
 
         assert !F.isEmpty(user);
+
+        if (F.eq(user, dfltUserName))
+            return dfltFs; // optimization
 
         return fileSysLazyMap.getOrCreate(user);
     }

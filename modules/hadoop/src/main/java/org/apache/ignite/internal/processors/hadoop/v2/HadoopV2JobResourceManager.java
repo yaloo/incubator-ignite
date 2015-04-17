@@ -166,12 +166,15 @@ public class HadoopV2JobResourceManager {
                     // TODO: Out of bounds.
                     try (FileSystem fs = fileSystemForMrUser(stagingDir.toUri(), cfg)) {
                         if (!fs.exists(stagingDir))
-                            throw new IgniteCheckedException("Failed to find map-reduce submission directory (does not exist): " +
+                            throw new IgniteCheckedException("Failed to find map-reduce " +
+                                "submission directory (does not exist): " +
                                 stagingDir);
 
                         if (!FileUtil.copy(fs, stagingDir, jobLocDir, false, cfg))
-                            throw new IgniteCheckedException("Failed to copy job submission directory contents to local file system " +
-                                "[path=" + stagingDir + ", locDir=" + jobLocDir.getAbsolutePath() + ", jobId=" + jobId + ']');
+                            throw new IgniteCheckedException("Failed to copy job submission " +
+                                "directory contents to local file system " +
+                                "[path=" + stagingDir + ", locDir=" + jobLocDir.getAbsolutePath()
+                                + ", jobId=" + jobId + ']');
                     }
                 }
 

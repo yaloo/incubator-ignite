@@ -18,7 +18,6 @@
 package org.apache.ignite.igfs;
 
 import org.apache.ignite.*;
-import org.apache.ignite.configuration.*;
 import org.apache.ignite.internal.util.typedef.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 import org.jetbrains.annotations.*;
@@ -47,18 +46,12 @@ public abstract class IgfsUserContext {
      * must return exactly the Exception thrown from the callable.
      */
     public static <T> T doAs(String user, final Callable<T> cllbl) {
-        // TODO: Use A.ensure();
-        if (F.isEmpty(user))
-            throw new IllegalArgumentException("Failed to use null or empty user name.");
-
-        // TODO: Remove.
-        user = user.intern();
+        A.ensure(!F.isEmpty(user), "Failed to use null or empty user name.");
 
         final String ctxUser = userStackThreadLocal.get();
 
         try {
-            // TODO: Equals: F.eq
-            if (ctxUser == user)
+            if (F.eq(ctxUser, user))
                 return cllbl.call(); // correct context is already there
 
             userStackThreadLocal.set(user);
@@ -77,27 +70,12 @@ public abstract class IgfsUserContext {
 
     /**
      * Gets the current context user.
-     * If this method is invoked outside of any doAs() on call stack, it will return null.
-     * Note that the returned user name is always interned, so
-     * you may compare the names using '==' reference equality.
-     * @return the current user, never null.
+     * If this method is invoked outside of any {@link #doAs(String, Callable)} on the call stack, it will return null.
+     * Otherwise it will return the user name set in the most lower {@link #doAs(String, Callable)} call
+     * on the call stack.
+     * @return the current user, may be null.
      */
     @Nullable public static String currentUser() {
         return userStackThreadLocal.get();
-    }
-
-    /**
-     * Provides non-null interned user name.
-     * If the user name is null or empty string, defaults to {@link FileSystemConfiguration#DFLT_USER_NAME},
-     * which is the current process owner user.
-     * @param user a user name to be fixed.
-     * @return non-null interned user name.
-     */
-    // TODO: Move to IgfsUtils.
-    public static String fixUserName(@Nullable String user) {
-        if (F.isEmpty(user))
-           user = FileSystemConfiguration.DFLT_USER_NAME;
-
-        return user.intern();
     }
 }

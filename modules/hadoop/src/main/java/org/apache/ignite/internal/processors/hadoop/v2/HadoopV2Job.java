@@ -140,7 +140,7 @@ public class HadoopV2Job implements HadoopJob {
 
             Path jobDir = new Path(jobDirPath);
 
-            try (FileSystem fs = fileSystemForUser(jobDir.toUri(), jobConf)) {
+            try (FileSystem fs = fileSystemForMrUser(jobDir.toUri(), jobConf)) {
                 JobSplit.TaskSplitMetaInfo[] metaInfos = SplitMetaInfoReader.readSplitMetaInfo(hadoopJobID, fs, jobConf,
                     jobDir);
 
@@ -264,8 +264,6 @@ public class HadoopV2Job implements HadoopJob {
                 if (jobLocDir.exists())
                     U.delete(jobLocDir);
             }
-//
-//            disposeFileSystem();
         }
         finally {
             taskCtxClsPool.clear();
@@ -299,25 +297,6 @@ public class HadoopV2Job implements HadoopJob {
                 throw U.cast(err);
         }
     }
-
-//    /**
-//     * Closes the underlying file system.
-//     * @throws IgniteCheckedException on error.
-//     */
-//    private void disposeFileSystem() throws IgniteCheckedException {
-//        FileSystem fs0 = fs;
-//
-//        try {
-//            if (fs0 != null)
-//                fs0.close();
-//        }
-//        catch (IOException ioe) {
-//            throw new IgniteCheckedException(ioe);
-//        }
-//        finally {
-//            fs = null;
-//        }
-//    }
 
     /** {@inheritDoc} */
     @Override public void prepareTaskEnvironment(HadoopTaskInfo info) throws IgniteCheckedException {

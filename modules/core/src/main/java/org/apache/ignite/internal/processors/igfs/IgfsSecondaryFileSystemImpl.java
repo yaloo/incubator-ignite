@@ -118,16 +118,4 @@ class IgfsSecondaryFileSystemImpl implements IgfsSecondaryFileSystem {
     @Override public Map<String, String> properties() {
         return Collections.emptyMap();
     }
-
-    /** {@inheritDoc} */
-    @Override public IgfsSecondaryFileSystem forUser(String userName) throws IgniteCheckedException {
-        IgfsEx forUser = igfs.forUser(userName);
-
-        return new IgfsSecondaryFileSystemImpl(forUser);
-    }
-
-    /** {@inheritDoc} */
-    @Override public String getUser() {
-        return igfs.user();
-    }
 }

@@ -9005,16 +9005,4 @@ public abstract class IgniteUtils {
 
         return hasShmem;
     }
-
-    /**
-     * Provides non-null interned user name
-     * @param user a user name.
-     * @return non-null interned user name
-     */
-    public static String fixUserName(@Nullable String user) {
-        if (user == null)
-           return "";
-
-        return user.intern();
-    }
 }

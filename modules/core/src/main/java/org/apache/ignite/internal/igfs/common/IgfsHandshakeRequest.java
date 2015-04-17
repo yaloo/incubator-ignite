@@ -31,10 +31,6 @@ public class IgfsHandshakeRequest extends IgfsMessage {
     /** Expected IGFS name. */
     private String igfsName;
 
-    // TODO: Remove.
-    /** User name the request is done on behalf of. */
-    private String userName;
-
     /** Logger directory. */
     private String logDir;
 
@@ -93,15 +89,5 @@ public class IgfsHandshakeRequest extends IgfsMessage {
     /** {@inheritDoc} */
     @Override public String toString() {
         return S.toString(IgfsHandshakeRequest.class, this);
-    }
-
-    public final String userName() {
-        assert userName != null;
-
-        return userName;
-    }
-
-    public final void userName(String userName) {
-        this.userName = U.fixUserName(userName);
     }
 }

@@ -141,7 +141,7 @@ public class HadoopIgfsOutProc implements HadoopIgfsEx, HadoopIgfsIpcIoListener 
         this.grid = grid;
         this.igfs = igfs;
         this.log = log;
-        this.userName = user;
+        this.userName = IgfsUserContext.fixUserName(user);
 
         io = HadoopIgfsIpcIo.get(log, endpoint);
 
@@ -152,7 +152,6 @@ public class HadoopIgfsOutProc implements HadoopIgfsEx, HadoopIgfsIpcIoListener 
     @Override public IgfsHandshakeResponse handshake(String logDir) throws IgniteCheckedException {
         final IgfsHandshakeRequest req = new IgfsHandshakeRequest();
 
-        req.userName(userName);
         req.gridName(grid);
         req.igfsName(igfs);
         req.logDirectory(logDir);

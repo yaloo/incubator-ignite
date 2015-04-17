@@ -21,7 +21,6 @@ import org.apache.hadoop.conf.*;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.security.*;
 import org.apache.ignite.*;
-import org.apache.ignite.configuration.*;
 import org.apache.ignite.internal.processors.hadoop.*;
 import org.apache.ignite.internal.processors.hadoop.counter.*;
 import org.apache.ignite.internal.processors.hadoop.shuffle.collections.*;
@@ -111,8 +110,17 @@ public abstract class HadoopRunnableTask implements Callable<Void> {
 
         assert !F.isEmpty(user);
 
-        if (F.eq(user, FileSystemConfiguration.DFLT_USER_NAME))
-            // do direct call:
+        String ugiUser;
+        try {
+            UserGroupInformation currUser = UserGroupInformation.getCurrentUser();
+
+            ugiUser = currUser.getShortUserName();
+        } catch (IOException ioe) {
+            throw new IgniteCheckedException(ioe);
+        }
+
+        if (F.eq(user, ugiUser))
+            // if current UGI context user is the same, do direct call:
             return callImpl();
         else {
             // do the call in the context of 'user':
@@ -141,7 +149,7 @@ public abstract class HadoopRunnableTask implements Callable<Void> {
 
     /**
      * Runnable task call implementation
-     * @return
+     * @return null.
      * @throws IgniteCheckedException
      */
     Void callImpl() throws IgniteCheckedException {

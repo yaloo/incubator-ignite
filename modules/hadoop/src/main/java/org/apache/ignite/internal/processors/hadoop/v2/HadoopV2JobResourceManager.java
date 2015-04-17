@@ -59,8 +59,6 @@ public class HadoopV2JobResourceManager {
 
     /** Staging directory to delivery job jar and config to the work nodes. */
     private Path stagingDir;
-//
-//    private FileSystem fs;
 
     /**
      * Creates new instance.
@@ -72,10 +70,6 @@ public class HadoopV2JobResourceManager {
         this.jobId = jobId;
         this.ctx = ctx;
         this.log = log.getLogger(HadoopV2JobResourceManager.class);
-//
-//        assert fs != null;
-//
-//        this.fs = fs;
     }
 
     /**
@@ -101,6 +95,22 @@ public class HadoopV2JobResourceManager {
     }
 
     /**
+     * Gets non-null and interned user name as per the Hadoop viewpoint.
+     * @param cfg the Hadoop job configuration, may be null.
+     * @return the user name, never null.
+     */
+    private static String getMrHadoopUser(Configuration cfg) throws IOException {
+        String user = cfg.get(MRJobConfig.USER_NAME);
+
+        if (user == null)
+            user = IgniteHadoopFileSystem.getFsHadoopUser(cfg);
+
+        user = user.intern();
+
+        return user;
+    }
+
+    /**
      * Common method to get the V1 file system in MapRed engine.
      * It creates the filesystem for the user specified in the
      * configuration with {@link MRJobConfig#USER_NAME} property.
@@ -108,10 +118,9 @@ public class HadoopV2JobResourceManager {
      * @param cfg the configuration.
      * @return the file system
      * @throws IOException
-     * @throws InterruptedException
      */
-    public static FileSystem fileSystemForUser(@Nullable URI uri, @Nullable Configuration cfg) throws IOException {
-        final String user = IgniteHadoopFileSystem.getHadoopUser(cfg);
+    public static FileSystem fileSystemForMrUser(@Nullable URI uri, Configuration cfg) throws IOException {
+        final String user = getMrHadoopUser(cfg);
 
         assert user != null;
 
@@ -154,7 +163,7 @@ public class HadoopV2JobResourceManager {
                 stagingDir = new Path(new URI(mrDir));
 
                 if (download) {
-                    try (FileSystem fs = fileSystemForUser(stagingDir.toUri(), cfg)) {
+                    try (FileSystem fs = fileSystemForMrUser(stagingDir.toUri(), cfg)) {
                         if (!fs.exists(stagingDir))
                             throw new IgniteCheckedException("Failed to find map-reduce submission directory (does not exist): " +
                                 stagingDir);
@@ -246,7 +255,7 @@ public class HadoopV2JobResourceManager {
 
             FileSystem dstFs = FileSystem.getLocal(cfg);
 
-            try (FileSystem srcFs = fileSystemForUser(srcPath.toUri(), cfg)) {
+            try (FileSystem srcFs = fileSystemForMrUser(srcPath.toUri(), cfg)) {
                 if (extract) {
                     File archivesPath = new File(jobLocDir.getAbsolutePath(), ".cached-archives");
 
@@ -329,7 +338,7 @@ public class HadoopV2JobResourceManager {
     public void cleanupStagingDirectory() {
         try {
             if (stagingDir != null) {
-                try (FileSystem fs = fileSystemForUser(stagingDir.toUri(), ctx.getJobConf())) {
+                try (FileSystem fs = fileSystemForMrUser(stagingDir.toUri(), ctx.getJobConf())) {
                     fs.delete(stagingDir, true);
                 }
             }

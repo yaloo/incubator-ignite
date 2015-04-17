@@ -98,21 +98,7 @@ public class IgniteHadoopFileSystem extends FileSystem {
     /** Grid remote client. */
     private HadoopIgfsWrapper rmtClient;
 
-//    /** User name for each thread. */
-//    private final ThreadLocal<String> userName = new ThreadLocal<String>(){
-//        /** {@inheritDoc} */
-//        @Override protected String initialValue() {
-//            return DFLT_USER_NAME;
-//        }
-//    };
-
-//    /** Working directory for each thread. */
-//    private final ThreadLocal<Path> workingDir = new ThreadLocal<Path>(){
-//        /** {@inheritDoc} */
-//        @Override protected Path initialValue() {
-//            return getHomeDirectory();
-//        }
-//    };
+    /** working directory. */
     private Path workingDir;
 
     /** Default replication factor. */
@@ -187,33 +173,30 @@ public class IgniteHadoopFileSystem extends FileSystem {
     }
 
     /**
-     * Gets non-null and interned user name as per the Hadoop viewpoint.
-     * @param cfg the Hadoop job configuration, may be null.
+     * Gets non-null and interned user name as per the Hadoop file system viewpoint.
      * @return the user name, never null.
      */
-    public static String getHadoopUser(@Nullable Configuration cfg) throws IOException {
+    public static String getFsHadoopUser(Configuration cfg) throws IOException {
         String user = null;
 
-        // TODO: Create ticket to remove these lines.
-        // First, try to get the user from MR Job configuration:
+        // -------------------------------------------
+        // TODO: Temporary workaround.
+        // We have an issue there: sometimes FileSystem created from MR jobs gets incorrect
+        // UserGroupInformation.getCurrentUser() despite of the fact that it is invoked in correct
+        // ugi.doAs() closure.
         if (cfg != null)
             user = cfg.get(MRJobConfig.USER_NAME);
+        // -------------------------------------------
 
-        // 2nd, try to get it from UserGroupInformation (may return any result if we're
-        // inside UserGroupInformation.doAs(...) closure):
         if (user == null) {
-            UserGroupInformation currentUgi = UserGroupInformation.getCurrentUser();
-            if (currentUgi != null)
-                user = currentUgi.getShortUserName();
+            UserGroupInformation currUgi = UserGroupInformation.getCurrentUser();
+            if (currUgi != null)
+                user = currUgi.getShortUserName();
         }
 
-        // 3rd, get the default system (process owner) user name (defaults to "anonymous" in case of null):
-        if (user == null)
-            user = DFLT_USER_NAME;
+        user = IgfsUserContext.fixUserName(user);
 
         assert user != null;
-
-        user = U.fixUserName(user);
 
         return user;
     }
@@ -258,9 +241,7 @@ public class IgniteHadoopFileSystem extends FileSystem {
 
             uriAuthority = uri.getAuthority();
 
-            user = getHadoopUser(cfg);
-
-            //setUser(user);
+            user = getFsHadoopUser(cfg);
 
             // Override sequential reads before prefetch if needed.
             seqReadsBeforePrefetch = parameter(cfg, PARAM_IGFS_SEQ_READS_BEFORE_PREFETCH, uriAuthority, 0);
@@ -330,10 +311,10 @@ public class IgniteHadoopFileSystem extends FileSystem {
                 String secConfPath = props.get(SECONDARY_FS_CONFIG_PATH);
 
                 try {
-                    SecondaryFileSystemProvider secProvider = new SecondaryFileSystemProvider(secUri, secConfPath,
-                        user);
+                    SecondaryFileSystemProvider secProvider = new SecondaryFileSystemProvider(secUri, secConfPath);
 
-                    secondaryFs = secProvider.createFileSystem();
+                    secondaryFs = secProvider.createFileSystem(user);
+
                     secondaryUri = secProvider.uri();
                 }
                 catch (IOException e) {
@@ -345,7 +326,7 @@ public class IgniteHadoopFileSystem extends FileSystem {
                 }
             }
 
-            // set working directory to the hone directory of the current Fs user:
+            // set working directory to the home directory of the current Fs user:
             setWorkingDirectory(null);
         }
         finally {
@@ -890,23 +871,9 @@ public class IgniteHadoopFileSystem extends FileSystem {
 
     /** {@inheritDoc} */
     @Override public Path getHomeDirectory() {
-        Path path = new Path("/user/" + user/*userName.get()*/);
+        Path path = new Path("/user/" + user);
 
         return path.makeQualified(getUri(), null);
-    }
-
-    /**
-     * Set user name and default working directory for current thread.
-     *
-     * @param userName User name.
-     */
-    @Deprecated // TODO: remove this method.
-    public void setUser(String userName) {
-        //System.out.println(this + ": ##### setting user = " + userName + ", thread = " + Thread.currentThread());
-        assert F.eq(user, userName);
-        //this.userName.set(userName);
-
-        //setWorkingDirectory(null);
     }
 
     /** {@inheritDoc} */
@@ -917,7 +884,7 @@ public class IgniteHadoopFileSystem extends FileSystem {
             if (secondaryFs != null)
                 secondaryFs.setWorkingDirectory(toSecondary(homeDir));
 
-            workingDir = homeDir; //.set(homeDir);
+            workingDir = homeDir;
         }
         else {
             Path fixedNewPath = fixRelativePart(newPath);
@@ -930,13 +897,13 @@ public class IgniteHadoopFileSystem extends FileSystem {
             if (secondaryFs != null)
                 secondaryFs.setWorkingDirectory(toSecondary(fixedNewPath));
 
-            workingDir = fixedNewPath; //.set(fixedNewPath);
+            workingDir = fixedNewPath;
         }
     }
 
     /** {@inheritDoc} */
     @Override public Path getWorkingDirectory() {
-        return workingDir; //.get();
+        return workingDir;
     }
 
     /** {@inheritDoc} */
@@ -1305,13 +1272,5 @@ public class IgniteHadoopFileSystem extends FileSystem {
      */
     public String user() {
         return user;
-    }
-
-    /**
-     * Getter for secondaryFs field.
-     * @return the secondary file system, if any.
-     */
-    public FileSystem secondaryFs() {
-        return secondaryFs;
     }
 }

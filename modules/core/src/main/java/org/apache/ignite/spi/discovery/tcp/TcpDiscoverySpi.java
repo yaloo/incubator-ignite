@@ -3492,7 +3492,11 @@ public class TcpDiscoverySpi extends TcpDiscoverySpiAdapter implements TcpDiscov
                 if (msg.verified()) {
                     stats.onRingMessageReceived(msg);
 
-                    processNodeAddFinishedMessage(new TcpDiscoveryNodeAddFinishedMessage(locNodeId, node.id()));
+                    processNodeAddFinishedMessage(new TcpDiscoveryNodeAddFinishedMessage(
+                        locNodeId,
+                        node.id(),
+                        msg.newNodeDiscoveryData(),
+                        msg.oldNodesDiscoveryData()));
 
                     addMessage(new TcpDiscoveryDiscardMessage(locNodeId, msg.id()));
 
@@ -3590,11 +3594,6 @@ public class TcpDiscoverySpi extends TcpDiscoverySpiAdapter implements TcpDiscov
                 if (topChanged) {
                     assert !node.visible() : "Added visible node [node=" + node + ", locNode=" + locNode + ']';
 
-                    Map<Integer, byte[]> data = msg.newNodeDiscoveryData();
-
-                    if (data != null)
-                        onExchange(node.id(), node.id(), node.order(), data, U.gridClassLoader());
-
                     msg.addDiscoveryData(locNodeId, collectExchangeData(node.id()));
                 }
 
@@ -3604,9 +3603,6 @@ public class TcpDiscoverySpi extends TcpDiscoverySpiAdapter implements TcpDiscov
             }
 
             if (msg.verified() && locNodeId.equals(node.id())) {
-                // Discovery data.
-                Map<UUID, Map<Integer, byte[]>> dataMap;
-
                 synchronized (mux) {
                     if (spiState == CONNECTING && locNode.internalOrder() != node.internalOrder()) {
                         // Initialize topology.
@@ -3630,8 +3626,6 @@ public class TcpDiscoverySpi extends TcpDiscoverySpiAdapter implements TcpDiscov
                             if (log.isDebugEnabled())
                                 log.debug("Restored topology from node added message: " + ring);
 
-                            dataMap = msg.oldNodesDiscoveryData();
-
                             topHist.clear();
                             topHist.putAll(msg.topologyHistory());
 
@@ -3642,7 +3636,7 @@ public class TcpDiscoverySpi extends TcpDiscoverySpiAdapter implements TcpDiscov
                             msg.messages(null, null);
                             msg.topology(null);
                             msg.topologyHistory(null);
-                            msg.clearDiscoveryData();
+                            // TODO IGNITE-80 how to clear discovery data? msg.clearDiscoveryData();
                         }
                         else {
                             if (log.isDebugEnabled())
@@ -3659,17 +3653,6 @@ public class TcpDiscoverySpi extends TcpDiscoverySpiAdapter implements TcpDiscov
                                 ", locNode=" + locNode + ']');
 
                         return;
-                    }
-                }
-
-                // Notify outside of synchronized block.
-                if (dataMap != null) {
-                    for (Map.Entry<UUID, Map<Integer, byte[]>> entry : dataMap.entrySet()) {
-                        onExchange(node.id(),
-                            entry.getKey(),
-                            node.order(),
-                            entry.getValue(),
-                            U.gridClassLoader());
                     }
                 }
             }
@@ -3743,6 +3726,30 @@ public class TcpDiscoverySpi extends TcpDiscoverySpiAdapter implements TcpDiscov
                     node.visible(true);
 
                     fireEvt = true;
+                }
+
+                if (!locNodeId.equals(nodeId)) {
+                    msg.addDiscoveryData(locNodeId, collectExchangeData(msg.nodeId()));
+
+                    Map<Integer, byte[]> data = msg.newNodeDiscoveryData();
+
+                    if (data != null)
+                        onExchange(node.id(), node.id(), node.order(), data, U.gridClassLoader());
+                }
+                else {
+                    // Discovery data.
+                    Map<UUID, Map<Integer, byte[]>> dataMap = msg.oldNodesDiscoveryData();
+
+                    // Notify outside of synchronized block.
+                    if (dataMap != null) {
+                        for (Map.Entry<UUID, Map<Integer, byte[]>> entry : dataMap.entrySet()) {
+                            onExchange(node.id(),
+                                entry.getKey(),
+                                node.order(),
+                                entry.getValue(),
+                                U.gridClassLoader());
+                        }
+                    }
                 }
             }
 

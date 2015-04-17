@@ -33,16 +33,29 @@ public class TcpDiscoveryNodeAddFinishedMessage extends TcpDiscoveryAbstractMess
     /** Added node ID. */
     private final UUID nodeId;
 
+    /** Discovery data from new node. */
+    private Map<Integer, byte[]> newNodeDiscoData;
+
+    /** Discovery data from old nodes. */
+    private Map<UUID, Map<Integer, byte[]>> oldNodesDiscoData;
+
     /**
      * Constructor.
      *
      * @param creatorNodeId ID of the creator node (coordinator).
      * @param nodeId Added node ID.
      */
-    public TcpDiscoveryNodeAddFinishedMessage(UUID creatorNodeId, UUID nodeId) {
+    public TcpDiscoveryNodeAddFinishedMessage(
+        UUID creatorNodeId,
+        UUID nodeId,
+        Map<Integer, byte[]> newNodeDiscoData,
+        Map<UUID, Map<Integer, byte[]>> oldNodesDiscoData
+    ) {
         super(creatorNodeId);
 
         this.nodeId = nodeId;
+        this.newNodeDiscoData = newNodeDiscoData;
+        this.oldNodesDiscoData = oldNodesDiscoData;
     }
 
     /**
@@ -52,6 +65,31 @@ public class TcpDiscoveryNodeAddFinishedMessage extends TcpDiscoveryAbstractMess
      */
     public UUID nodeId() {
         return nodeId;
+    }
+
+    /**
+     * @return Discovery data from new node.
+     */
+    public Map<Integer, byte[]> newNodeDiscoveryData() {
+        return newNodeDiscoData;
+    }
+
+    /**
+     * @return Discovery data from old nodes.
+     */
+    public Map<UUID, Map<Integer, byte[]>> oldNodesDiscoveryData() {
+        return oldNodesDiscoData;
+    }
+
+    /**
+     * @param nodeId Node ID.
+     * @param discoData Discovery data to add.
+     */
+    public void addDiscoveryData(UUID nodeId, Map<Integer, byte[]> discoData) {
+        // Old nodes disco data may be null if message
+        // makes more than 1 pass due to stopping of the nodes in topology.
+        if (oldNodesDiscoData != null)
+            oldNodesDiscoData.put(nodeId, discoData);
     }
 
     /** {@inheritDoc} */

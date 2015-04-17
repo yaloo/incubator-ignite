@@ -20,6 +20,7 @@ package org.apache.ignite.igfs;
 import org.apache.ignite.*;
 import org.apache.ignite.internal.util.typedef.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
+import org.apache.ignite.lang.*;
 import org.jetbrains.annotations.*;
 
 import java.util.concurrent.*;
@@ -34,44 +35,87 @@ public abstract class IgfsUserContext {
     /**
      * Executes given callable in the given user context.
      * The main contract of this method is that {@link #currentUser()} method invoked
-     * inside 'cllbl' callable always returns 'user' this callable executed with.
-     * @param user the user name
-     * @param cllbl the callable to execute
-     * @param <T> The type of callable result.
-     * @return the result of
-     * @throws NullPointerException if callable is null
-     * @throws IllegalArgumentException if user name is null or empty String.
-     * @throws IgniteException if any Exception thrown from callable.call().
-     * The contract is that if this method throws IgniteException, this IgniteException getCause() method
-     * must return exactly the Exception thrown from the callable.
+     * inside closure always returns 'user' this callable executed with.
+     * @param user the user name to invoke closure on behalf of.
+     * @param clo the closure to execute
+     * @param <T> The type of closure result.
+     * @return the result of closure execution.
+     * @throws NullPointerException if user name is null or empty String or if the closure is null.
      */
-    public static <T> T doAs(String user, final Callable<T> cllbl) {
-        A.ensure(!F.isEmpty(user), "Failed to use null or empty user name.");
+    public static <T> T doAs(String user, final IgniteOutClosure<T> clo) {
+        if (F.isEmpty(user))
+            // use NPE to ensure that #doAs() caller will not treat this exception
+            // as the one thrown from the closure:
+            throw new NullPointerException("Failed to use null or empty user name.");
 
         final String ctxUser = userStackThreadLocal.get();
 
+        if (F.eq(ctxUser, user))
+            return clo.apply(); // correct context is already there
+
+        userStackThreadLocal.set(user);
+
         try {
-            if (F.eq(ctxUser, user))
-                return cllbl.call(); // correct context is already there
-
-            userStackThreadLocal.set(user);
-
-            try {
-                return cllbl.call();
-            }
-            finally {
-                userStackThreadLocal.set(ctxUser);
-            }
+            return clo.apply();
         }
-        catch (Exception e) {
-            throw new IgniteException(e);
+        finally {
+            userStackThreadLocal.set(ctxUser);
+        }
+    }
+
+    /**
+     * Same contract that {@link #doAs(String, IgniteOutClosure)} has, but accepts
+     * callable that throws checked Exception.
+     * The Exception is not ever wrapped anyhow.
+     * If your Callable throws Some specific checked Exceptions, the recommended usage pattern is:
+     * <pre name="code" class="java">
+     *  public Foo myOperation() throws MyCheckedException1, MyCheckedException2 {
+     *      try {
+     *          return IgfsUserContext.doAs(user, new Callable<Foo>() {
+     *              @Override public Foo call() throws MyCheckedException1, MyCheckedException2 {
+     *                  return makeSomeFoo(); // do the job
+     *              }
+     *          });
+     *      }
+     *      catch (MyCheckedException1 | MyCheckedException2 | RuntimeException | Error e) {
+     *          throw e;
+     *      }
+     *      catch (Exception e) {
+     *          throw new AssertionError("Must never go there.");
+     *      }
+     *  }
+     * </pre>
+     * @param user the user name to invoke closure on behalf of.
+     * @param clbl the Callable to execute
+     * @param <T> The type of callable result.
+     * @return the result of closure execution.
+     * @throws NullPointerException if user name is null or empty String or if the closure is null.
+     */
+    public static <T> T doAs(String user, final Callable<T> clbl) throws Exception {
+        if (F.isEmpty(user))
+            // use NPE to ensure that #doAs() caller will not treat this exception
+            // as the one thrown from the closure:
+            throw new NullPointerException("Failed to use null or empty user name.");
+
+        final String ctxUser = userStackThreadLocal.get();
+
+        if (F.eq(ctxUser, user))
+            return clbl.call(); // correct context is already there
+
+        userStackThreadLocal.set(user);
+
+        try {
+            return clbl.call();
+        }
+        finally {
+            userStackThreadLocal.set(ctxUser);
         }
     }
 
     /**
      * Gets the current context user.
-     * If this method is invoked outside of any {@link #doAs(String, Callable)} on the call stack, it will return null.
-     * Otherwise it will return the user name set in the most lower {@link #doAs(String, Callable)} call
+     * If this method is invoked outside of any {@link #doAs(String, IgniteOutClosure)} on the call stack, it will return null.
+     * Otherwise it will return the user name set in the most lower {@link #doAs(String, IgniteOutClosure)} call
      * on the call stack.
      * @return the current user, may be null.
      */

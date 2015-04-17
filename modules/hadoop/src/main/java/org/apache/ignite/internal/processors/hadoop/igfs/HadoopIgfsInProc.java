@@ -23,6 +23,7 @@ import org.apache.ignite.igfs.*;
 import org.apache.ignite.internal.*;
 import org.apache.ignite.internal.processors.igfs.*;
 import org.apache.ignite.internal.util.future.*;
+import org.apache.ignite.lang.*;
 import org.jetbrains.annotations.*;
 
 import java.io.*;
@@ -67,23 +68,14 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
 
     /** {@inheritDoc} */
     @Override public IgfsHandshakeResponse handshake(final String logDir) {
-        try {
-            return IgfsUserContext.doAs(user, new Callable<IgfsHandshakeResponse>() {
-                @Override public IgfsHandshakeResponse call() throws Exception {
-                    igfs.clientLogDirectory(logDir);
+        return IgfsUserContext.doAs(user, new IgniteOutClosure<IgfsHandshakeResponse>() {
+            @Override public IgfsHandshakeResponse apply() {
+                igfs.clientLogDirectory(logDir);
 
-                    return new IgfsHandshakeResponse(igfs.name(), igfs.proxyPaths(), igfs.groupBlockSize(),
-                        igfs.globalSampling());
+                return new IgfsHandshakeResponse(igfs.name(), igfs.proxyPaths(), igfs.groupBlockSize(),
+                    igfs.globalSampling());
                 }
-            });
-        } catch (IgniteException e) {
-            Throwable t = e.getCause();
-
-            if (t instanceof RuntimeException)
-                throw (RuntimeException)t;
-
-            throw e;
-        }
+         });
     }
 
     /** {@inheritDoc} */
@@ -103,14 +95,14 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
     /** {@inheritDoc} */
     @Override public IgfsFile info(final IgfsPath path) throws IgniteCheckedException {
         try {
-            return IgfsUserContext.doAs(user, new Callable<IgfsFile>() {
-                @Override public IgfsFile call() throws Exception {
+            return IgfsUserContext.doAs(user, new IgniteOutClosure<IgfsFile>() {
+                @Override public IgfsFile apply() {
                     return igfs.info(path);
                 }
             });
         }
         catch (IgniteException e) {
-            throw new IgniteCheckedException(e.getCause());
+            throw new IgniteCheckedException(e);
         }
         catch (IllegalStateException e) {
             throw new HadoopIgfsCommunicationException("Failed to get file info because Grid is stopping: " + path);
@@ -120,14 +112,14 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
     /** {@inheritDoc} */
     @Override public IgfsFile update(final IgfsPath path, final Map<String, String> props) throws IgniteCheckedException {
         try {
-            return IgfsUserContext.doAs(user, new Callable<IgfsFile>() {
-                @Override public IgfsFile call() throws Exception {
+            return IgfsUserContext.doAs(user, new IgniteOutClosure<IgfsFile>() {
+                @Override public IgfsFile apply() {
                     return igfs.update(path, props);
                 }
             });
         }
         catch (IgniteException e) {
-            throw new IgniteCheckedException(e.getCause());
+            throw new IgniteCheckedException(e);
         }
         catch (IllegalStateException e) {
             throw new HadoopIgfsCommunicationException("Failed to update file because Grid is stopping: " + path);
@@ -137,8 +129,8 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
     /** {@inheritDoc} */
     @Override public Boolean setTimes(final IgfsPath path, final long accessTime, final long modificationTime) throws IgniteCheckedException {
         try {
-            IgfsUserContext.doAs(user, new Callable<Void>() {
-                @Override public Void call() throws Exception {
+            IgfsUserContext.doAs(user, new IgniteOutClosure<Void>() {
+                @Override public Void apply() {
                     igfs.setTimes(path, accessTime, modificationTime);
 
                     return null;
@@ -148,7 +140,7 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
             return true;
         }
         catch (IgniteException e) {
-            throw new IgniteCheckedException(e.getCause());
+            throw new IgniteCheckedException(e);
         }
         catch (IllegalStateException e) {
             throw new HadoopIgfsCommunicationException("Failed to set path times because Grid is stopping: " +
@@ -159,8 +151,8 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
     /** {@inheritDoc} */
     @Override public Boolean rename(final IgfsPath src, final IgfsPath dest) throws IgniteCheckedException {
         try {
-            IgfsUserContext.doAs(user, new Callable<Void>() {
-                @Override public Void call() throws Exception {
+            IgfsUserContext.doAs(user, new IgniteOutClosure<Void>() {
+                @Override public Void apply() {
                     igfs.rename(src, dest);
 
                     return null;
@@ -170,7 +162,7 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
             return true;
         }
         catch (IgniteException e) {
-            throw new IgniteCheckedException(e.getCause());
+            throw new IgniteCheckedException(e);
         }
         catch (IllegalStateException e) {
             throw new HadoopIgfsCommunicationException("Failed to rename path because Grid is stopping: " + src);
@@ -180,14 +172,14 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
     /** {@inheritDoc} */
     @Override public Boolean delete(final IgfsPath path, final boolean recursive) throws IgniteCheckedException {
         try {
-            return IgfsUserContext.doAs(user, new Callable<Boolean>() {
-                @Override public Boolean call() throws Exception {
+            return IgfsUserContext.doAs(user, new IgniteOutClosure<Boolean>() {
+                @Override public Boolean apply() {
                     return igfs.delete(path, recursive);
                 }
             });
         }
         catch (IgniteException e) {
-            throw new IgniteCheckedException(e.getCause());
+            throw new IgniteCheckedException(e);
         }
         catch (IllegalStateException e) {
             throw new HadoopIgfsCommunicationException("Failed to delete path because Grid is stopping: " + path);
@@ -198,31 +190,34 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
     @Override public IgfsStatus fsStatus() throws IgniteCheckedException {
         try {
             return IgfsUserContext.doAs(user, new Callable<IgfsStatus>() {
-                @Override public IgfsStatus call() throws Exception {
+                @Override public IgfsStatus call() throws IgniteCheckedException {
                     return igfs.globalSpace();
                 }
             });
         }
-        catch (IgniteException e) {
-            throw new IgniteCheckedException(e.getCause());
-        }
         catch (IllegalStateException e) {
             throw new HadoopIgfsCommunicationException("Failed to get file system status because Grid is " +
                 "stopping.");
+        }
+        catch (IgniteCheckedException | RuntimeException | Error e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw new AssertionError("Must never go there.");
         }
     }
 
     /** {@inheritDoc} */
     @Override public Collection<IgfsPath> listPaths(final IgfsPath path) throws IgniteCheckedException {
         try {
-            return IgfsUserContext.doAs(user, new Callable<Collection<IgfsPath>>() {
-                @Override public Collection<IgfsPath> call() throws Exception {
+            return IgfsUserContext.doAs(user, new IgniteOutClosure<Collection<IgfsPath>>() {
+                @Override public Collection<IgfsPath> apply() {
                     return igfs.listPaths(path);
                 }
             });
         }
         catch (IgniteException e) {
-            throw new IgniteCheckedException(e.getCause());
+            throw new IgniteCheckedException(e);
         }
         catch (IllegalStateException e) {
             throw new HadoopIgfsCommunicationException("Failed to list paths because Grid is stopping: " + path);
@@ -232,14 +227,14 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
     /** {@inheritDoc} */
     @Override public Collection<IgfsFile> listFiles(final IgfsPath path) throws IgniteCheckedException {
         try {
-            return IgfsUserContext.doAs(user, new Callable<Collection<IgfsFile>>() {
-                @Override public Collection<IgfsFile> call() throws Exception {
+            return IgfsUserContext.doAs(user, new IgniteOutClosure<Collection<IgfsFile>>() {
+                @Override public Collection<IgfsFile> apply() {
                     return igfs.listFiles(path);
                 }
             });
         }
         catch (IgniteException e) {
-            throw new IgniteCheckedException(e.getCause());
+            throw new IgniteCheckedException(e);
         }
         catch (IllegalStateException e) {
             throw new HadoopIgfsCommunicationException("Failed to list files because Grid is stopping: " + path);
@@ -249,8 +244,8 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
     /** {@inheritDoc} */
     @Override public Boolean mkdirs(final IgfsPath path, final Map<String, String> props) throws IgniteCheckedException {
         try {
-            IgfsUserContext.doAs(user, new Callable<Void>() {
-                @Override public Void call() throws Exception {
+            IgfsUserContext.doAs(user, new IgniteOutClosure<Void>() {
+                @Override public Void apply() {
                     igfs.mkdirs(path, props);
 
                     return null;
@@ -260,7 +255,7 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
             return true;
         }
         catch (IgniteException e) {
-            throw new IgniteCheckedException(e.getCause());
+            throw new IgniteCheckedException(e);
         }
         catch (IllegalStateException e) {
             throw new HadoopIgfsCommunicationException("Failed to create directory because Grid is stopping: " +
@@ -271,14 +266,14 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
     /** {@inheritDoc} */
     @Override public IgfsPathSummary contentSummary(final IgfsPath path) throws IgniteCheckedException {
         try {
-            return IgfsUserContext.doAs(user, new Callable<IgfsPathSummary>() {
-                @Override public IgfsPathSummary call() throws Exception {
+            return IgfsUserContext.doAs(user, new IgniteOutClosure<IgfsPathSummary>() {
+                @Override public IgfsPathSummary apply() {
                     return igfs.summary(path);
                 }
             });
         }
         catch (IgniteException e) {
-            throw new IgniteCheckedException(e.getCause());
+            throw new IgniteCheckedException(e);
         }
         catch (IllegalStateException e) {
             throw new HadoopIgfsCommunicationException("Failed to get content summary because Grid is stopping: " +
@@ -290,14 +285,14 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
     @Override public Collection<IgfsBlockLocation> affinity(final IgfsPath path, final long start, final long len)
         throws IgniteCheckedException {
         try {
-            return IgfsUserContext.doAs(user, new Callable<Collection<IgfsBlockLocation>>() {
-                @Override public Collection<IgfsBlockLocation> call() throws Exception {
+            return IgfsUserContext.doAs(user, new IgniteOutClosure<Collection<IgfsBlockLocation>>() {
+                @Override public Collection<IgfsBlockLocation> apply() {
                     return igfs.affinity(path, start, len);
                 }
             });
         }
         catch (IgniteException e) {
-            throw new IgniteCheckedException(e.getCause());
+            throw new IgniteCheckedException(e);
         }
         catch (IllegalStateException e) {
             throw new HadoopIgfsCommunicationException("Failed to get affinity because Grid is stopping: " + path);
@@ -307,8 +302,8 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
     /** {@inheritDoc} */
     @Override public HadoopIgfsStreamDelegate open(final IgfsPath path) throws IgniteCheckedException {
         try {
-            return IgfsUserContext.doAs(user, new Callable<HadoopIgfsStreamDelegate>() {
-                @Override public HadoopIgfsStreamDelegate call() throws Exception {
+            return IgfsUserContext.doAs(user, new IgniteOutClosure<HadoopIgfsStreamDelegate>() {
+                @Override public HadoopIgfsStreamDelegate apply() {
                     IgfsInputStreamAdapter stream = igfs.open(path, bufSize);
 
                     return new HadoopIgfsStreamDelegate(HadoopIgfsInProc.this, stream, stream.fileInfo().length());
@@ -316,7 +311,7 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
             });
         }
         catch (IgniteException e) {
-            throw new IgniteCheckedException(e.getCause());
+            throw new IgniteCheckedException(e);
         }
         catch (IllegalStateException e) {
             throw new HadoopIgfsCommunicationException("Failed to open file because Grid is stopping: " + path);
@@ -327,8 +322,8 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
     @Override public HadoopIgfsStreamDelegate open(final IgfsPath path, final int seqReadsBeforePrefetch)
         throws IgniteCheckedException {
         try {
-            return IgfsUserContext.doAs(user, new Callable<HadoopIgfsStreamDelegate>() {
-                @Override public HadoopIgfsStreamDelegate call() throws Exception {
+            return IgfsUserContext.doAs(user, new IgniteOutClosure<HadoopIgfsStreamDelegate>() {
+                @Override public HadoopIgfsStreamDelegate apply() {
                     IgfsInputStreamAdapter stream = igfs.open(path, bufSize, seqReadsBeforePrefetch);
 
                     return new HadoopIgfsStreamDelegate(HadoopIgfsInProc.this, stream, stream.fileInfo().length());
@@ -336,7 +331,7 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
             });
         }
         catch (IgniteException e) {
-            throw new IgniteCheckedException(e.getCause());
+            throw new IgniteCheckedException(e);
         }
         catch (IllegalStateException e) {
             throw new HadoopIgfsCommunicationException("Failed to open file because Grid is stopping: " + path);
@@ -347,8 +342,8 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
     @Override public HadoopIgfsStreamDelegate create(final IgfsPath path, final boolean overwrite, final boolean colocate,
         final int replication, final long blockSize, final @Nullable Map<String, String> props) throws IgniteCheckedException {
         try {
-            return IgfsUserContext.doAs(user, new Callable<HadoopIgfsStreamDelegate>() {
-                @Override public HadoopIgfsStreamDelegate call() throws Exception {
+            return IgfsUserContext.doAs(user, new IgniteOutClosure<HadoopIgfsStreamDelegate>() {
+                @Override public HadoopIgfsStreamDelegate apply() {
                     IgfsOutputStream stream = igfs.create(path, bufSize, overwrite,
                         colocate ? igfs.nextAffinityKey() : null, replication, blockSize, props);
 
@@ -357,7 +352,7 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
             });
         }
         catch (IgniteException e) {
-            throw new IgniteCheckedException(e.getCause());
+            throw new IgniteCheckedException(e);
         }
         catch (IllegalStateException e) {
             throw new HadoopIgfsCommunicationException("Failed to create file because Grid is stopping: " + path);
@@ -368,8 +363,8 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
     @Override public HadoopIgfsStreamDelegate append(final IgfsPath path, final boolean create,
         final @Nullable Map<String, String> props) throws IgniteCheckedException {
         try {
-            return IgfsUserContext.doAs(user, new Callable<HadoopIgfsStreamDelegate>() {
-                @Override public HadoopIgfsStreamDelegate call() throws Exception {
+            return IgfsUserContext.doAs(user, new IgniteOutClosure<HadoopIgfsStreamDelegate>() {
+                @Override public HadoopIgfsStreamDelegate apply() {
                     IgfsOutputStream stream = igfs.append(path, bufSize, create, props);
 
                     return new HadoopIgfsStreamDelegate(HadoopIgfsInProc.this, stream);
@@ -377,7 +372,7 @@ public class HadoopIgfsInProc implements HadoopIgfsEx {
             });
         }
         catch (IgniteException e) {
-            throw new IgniteCheckedException(e.getCause());
+            throw new IgniteCheckedException(e);
         }
         catch (IllegalStateException e) {
             throw new HadoopIgfsCommunicationException("Failed to append file because Grid is stopping: " + path);

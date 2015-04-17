@@ -31,7 +31,6 @@ import org.jetbrains.annotations.*;
 
 import java.io.*;
 import java.util.*;
-import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
 
 /**
@@ -256,8 +255,8 @@ class IgfsIpcHandler implements IgfsServerHandler {
         assert userName != null;
 
         try {
-            IgfsUserContext.doAs(userName, new Callable<Void>() {
-                @Override public Void call() throws Exception {
+            IgfsUserContext.doAs(userName, new IgniteOutClosure<Object>() {
+                @Override public Void apply() {
                     switch (cmd) {
                         case EXISTS:
                             res.response(igfs.exists(req.path()));
@@ -386,7 +385,7 @@ class IgfsIpcHandler implements IgfsServerHandler {
             });
         }
         catch (IgniteException e) {
-            throw new IgniteCheckedException(e.getCause());
+            throw new IgniteCheckedException(e);
         }
 
         if (log.isDebugEnabled())

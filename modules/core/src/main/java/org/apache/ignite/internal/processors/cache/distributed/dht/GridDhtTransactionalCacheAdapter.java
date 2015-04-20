@@ -513,9 +513,6 @@ public abstract class GridDhtTransactionalCacheAdapter<K, V> extends GridDhtCach
             log.debug("Processing near lock request [locNodeId=" + locNodeId + ", nodeId=" + nodeId + ", req=" + req +
                 ']');
 
-        GridDebug.debug(log, "Processing near lock request [locNodeId=" + locNodeId + ", nodeId=" + nodeId + ", req=" + req +
-            ']');
-
         ClusterNode nearNode = ctx.discovery().node(nodeId);
 
         if (nearNode == null) {

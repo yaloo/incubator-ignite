@@ -399,9 +399,6 @@ public final class GridNearTxPrepareFuture<K, V> extends GridCompoundIdentityFut
 
         GridDhtTopologyFuture fut = nonLocCtx.topology().topologyVersionFuture();
 
-        GridDebug.debug("Will use topology version future for prepare [locNodeId=" + cctx.localNodeId() +
-            ", tx=" + tx + ", fut=" + fut + ']');
-
         return fut;
     }
 

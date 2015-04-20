@@ -95,9 +95,6 @@ public class GridCacheIoManager extends GridCacheSharedManagerAdapter {
                 }
             }
             else {
-                GridDebug.debug("Received unordered cache communication message [nodeId=" + nodeId +
-                    ", locId=" + cctx.localNodeId() + ", msg=" + msg + ']');
-
                 AffinityTopologyVersion locAffVer = cctx.exchange().readyAffinityVersion();
                 AffinityTopologyVersion rmtAffVer = cacheMsg.topologyVersion();
 
@@ -107,9 +104,6 @@ public class GridCacheIoManager extends GridCacheSharedManagerAdapter {
                             ", locTopVer=" + locAffVer + ", rmtTopVer=" + rmtAffVer + ']');
 
                     fut = cctx.exchange().affinityReadyFuture(rmtAffVer);
-
-                    GridDebug.debug("Received message has higher affinity topology version [msg=" + msg +
-                        ", locTopVer=" + locAffVer + ", rmtTopVer=" + rmtAffVer + ", waitFut=" + fut + ']');
                 }
             }
 
@@ -148,12 +142,7 @@ public class GridCacheIoManager extends GridCacheSharedManagerAdapter {
             c = clsHandlers.get(new ListenerKey(cacheMsg.cacheId(), cacheMsg.getClass()));
 
         if (c == null) {
-            if (log.isDebugEnabled())
-                log.debug("Received message without registered handler (will ignore) [msg=" + cacheMsg +
-                    ", nodeId=" + nodeId + ']');
             U.warn(log, "Received message without registered handler (will ignore) [msg=" + cacheMsg +
-                ", nodeId=" + nodeId + ']');
-            GridDebug.debug("Received message without registered handler (will ignore) [msg=" + cacheMsg +
                 ", nodeId=" + nodeId + ']');
 
             return;

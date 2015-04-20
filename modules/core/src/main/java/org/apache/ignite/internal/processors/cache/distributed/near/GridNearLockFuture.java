@@ -536,9 +536,6 @@ public final class GridNearLockFuture<K, V> extends GridCompoundIdentityFuture<B
                                 log.debug("Lock is still not acquired for entry (will keep waiting) [entry=" +
                                     cached + ", fut=" + this + ']');
 
-                            GridDebug.debug("Lock is still not acquired for entry (will keep waiting) [entry=" +
-                                cached + ", lockVer=" + lockVer + ']');
-
                             return false;
                         }
 
@@ -609,8 +606,6 @@ public final class GridNearLockFuture<K, V> extends GridCompoundIdentityFuture<B
 
         if (tx != null)
             cctx.tm().txContext(tx);
-
-        GridDebug.debug("Completing near lock future: " + this);
 
         if (super.onDone(success, err.get())) {
             if (log.isDebugEnabled())

@@ -527,7 +527,6 @@ public final class GridDhtLockFuture<K, V> extends GridCompoundIdentityFuture<Bo
     private void readyLocks() {
         if (log.isDebugEnabled())
             log.debug("Marking local locks as ready for DHT lock future: " + this);
-        GridDebug.debug("Marking local locks as ready for DHT lock future: " + lockVer + ", near=" + nearLockVer);
 
         for (int i = 0; i < entries.size(); i++) {
             while (true) {
@@ -636,9 +635,6 @@ public final class GridDhtLockFuture<K, V> extends GridCompoundIdentityFuture<Bo
      * @return {@code True} if locks have been acquired.
      */
     private boolean checkLocks() {
-        if (!pendingLocks.isEmpty())
-            GridDebug.debug("Pending locks for DHT lock future [lockVer=" + lockVer + ", pending=" + pendingLocks + ']');
-
         return pendingLocks.isEmpty();
     }
 
@@ -693,8 +689,6 @@ public final class GridDhtLockFuture<K, V> extends GridCompoundIdentityFuture<Bo
 
         if (err.get() == null)
             loadMissingFromStore();
-
-        GridDebug.debug("Completing DHT lock future: " + this);
 
         if (super.onDone(success, err.get())) {
             if (log.isDebugEnabled())
@@ -897,12 +891,8 @@ public final class GridDhtLockFuture<K, V> extends GridCompoundIdentityFuture<Bo
                             if (log.isDebugEnabled())
                                 log.debug("Sending DHT lock request to DHT node [node=" + n.id() + ", req=" + req + ']');
 
-                            GridDebug.debug("Sending DHT lock request to DHT node [node=" + n.id() + ", req=" + req + ']');
-
                             cctx.io().send(n, req, cctx.ioPolicy());
                         }
-                        else
-                            GridDebug.debug("Will not send lock request to DHT node: " + tx.xidVersion());
                     }
                     catch (IgniteCheckedException e) {
                         // Fail the whole thing.

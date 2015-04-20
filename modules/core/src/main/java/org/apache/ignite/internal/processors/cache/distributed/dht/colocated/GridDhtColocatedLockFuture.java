@@ -475,8 +475,6 @@ public final class GridDhtColocatedLockFuture<K, V> extends GridCompoundIdentity
         if (tx != null)
             cctx.tm().txContext(tx);
 
-        GridDebug.debug("Completing colocated lock future: " + this);
-
         if (super.onDone(success, err.get())) {
             if (log.isDebugEnabled())
                 log.debug("Completing future: " + this);

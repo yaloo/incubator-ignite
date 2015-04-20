@@ -907,8 +907,6 @@ public class GridCacheProcessor extends GridProcessorAdapter {
 
         cacheCtx.onStarted();
 
-        GridDebug.debug("Started cache [locNodeId=" + cacheCtx.localNodeId() + ", cacheId=" + cacheCtx.cacheId() + ']');
-
         if (log.isInfoEnabled())
             log.info("Started cache [name=" + U.maskName(cfg.getName()) + ", mode=" + cfg.getCacheMode() + ']');
     }

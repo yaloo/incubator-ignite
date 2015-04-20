@@ -575,8 +575,6 @@ public class GridDhtPartitionsExchangeFuture extends GridFutureAdapter<AffinityT
                         break;
                     }
                     catch (IgniteFutureTimeoutCheckedException ignored) {
-                        U.debug(log, "Release future: " + partReleaseFut);
-
                         // Print pending transactions and locks that might have led to hang.
                         dumpPendingObjects();
                     }
@@ -837,8 +835,6 @@ public class GridDhtPartitionsExchangeFuture extends GridFutureAdapter<AffinityT
     /** {@inheritDoc} */
     @Override public boolean onDone(AffinityTopologyVersion res, Throwable err) {
         cctx.cache().onExchangeDone(exchId.topologyVersion(), reqs, err);
-
-        GridDebug.debug("Completing exchange [locNodeId=" + cctx.localNodeId() + ", exchId=" + exchId + ']');
 
         cctx.exchange().onExchangeDone(this, err);
 
@@ -1245,10 +1241,6 @@ public class GridDhtPartitionsExchangeFuture extends GridFutureAdapter<AffinityT
                         return;
 
                     try {
-                        U.debug(log, "Dumping last messages...");
-
-                        GridDebug.dumpWithReset(log);
-
                         dumpPendingObjects();
 
                         U.warn(log,

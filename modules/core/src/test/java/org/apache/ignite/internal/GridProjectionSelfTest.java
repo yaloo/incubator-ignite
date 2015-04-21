@@ -24,6 +24,7 @@ import org.apache.ignite.lang.*;
 import org.apache.ignite.marshaller.*;
 import org.apache.ignite.testframework.junits.common.*;
 
+import java.nio.*;
 import java.util.*;
 
 /**
@@ -206,7 +207,7 @@ public class GridProjectionSelfTest extends GridProjectionAbstractTest {
         ClusterGroup grp = ignite.cluster().forYoungest();
         ClusterNode node = grp.node();
 
-        byte[] arr = marshaller.marshal(grp);
+        ByteBuffer arr = marshaller.marshal(grp);
 
         ClusterGroup obj = marshaller.unmarshal(arr, null);
 

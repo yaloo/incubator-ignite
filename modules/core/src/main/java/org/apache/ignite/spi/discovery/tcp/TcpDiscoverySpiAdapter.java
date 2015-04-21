@@ -38,6 +38,7 @@ import org.jetbrains.annotations.*;
 
 import java.io.*;
 import java.net.*;
+import java.nio.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
@@ -758,7 +759,7 @@ abstract class TcpDiscoverySpiAdapter extends IgniteSpiAdapter implements Discov
 
         for (Map.Entry<Integer, byte[]> entry : data.entrySet()) {
             try {
-                Serializable compData = marsh.unmarshal(entry.getValue(), clsLdr);
+                Serializable compData = marsh.unmarshal(ByteBuffer.wrap(entry.getValue()), clsLdr);
 
                 data0.put(entry.getKey(), compData);
             }

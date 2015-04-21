@@ -1252,9 +1252,7 @@ public class TcpDiscoverySpi extends TcpDiscoverySpiAdapter implements TcpDiscov
     /** {@inheritDoc} */
     @Override public void sendCustomEvent(Serializable evt) {
         try {
-            byte[] msgBytes;
-
-            msgBytes = marsh.marshal(evt);
+            byte[] msgBytes = U.toArray(marsh.marshal(evt));
 
             msgWorker.addMessage(new TcpDiscoveryCustomEventMessage(getLocalNodeId(), evt, msgBytes));
         }
@@ -2233,7 +2231,7 @@ public class TcpDiscoverySpi extends TcpDiscoverySpiAdapter implements TcpDiscov
 
             for (Map.Entry<Integer, Serializable> entry : data.entrySet()) {
                 try {
-                    byte[] bytes = marsh.marshal(entry.getValue());
+                    byte[] bytes = U.toArray(marsh.marshal(entry.getValue()));
 
                     data0.put(entry.getKey(), bytes);
                 }
@@ -4496,7 +4494,7 @@ public class TcpDiscoverySpi extends TcpDiscoverySpiAdapter implements TcpDiscov
 
                     try {
                         if (msgObj == null)
-                            msgObj = marsh.unmarshal(msg.messageBytes(), U.gridClassLoader());
+                            msgObj = marsh.unmarshal(ByteBuffer.wrap(msg.messageBytes()), U.gridClassLoader());
 
                         lsnr.onDiscovery(DiscoveryCustomEvent.EVT_DISCOVERY_CUSTOM_EVT,
                             msg.topologyVersion(),

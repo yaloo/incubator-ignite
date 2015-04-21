@@ -101,12 +101,9 @@ public interface IgniteCacheObjectProcessor extends GridProcessor {
     public boolean hasField(Object obj, String fieldName);
 
     /**
-     * @param node Node.
-     * @param cacheName Cache name.
      * @return Cache object context.
      */
-    public CacheObjectContext contextForCache(ClusterNode node, @Nullable String cacheName,
-        @Nullable CacheConfiguration ccfg);
+    public CacheObjectContext contextForCache(CacheConfiguration ccfg);
 
     /**
      * @param ctx Cache context.

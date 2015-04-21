@@ -82,7 +82,7 @@ public class GridServiceProcessor extends GridProcessorAdapter {
     private ThreadLocal<String> svcName = new ThreadLocal<>();
 
     /** Service cache. */
-    private GridCacheProjectionEx<Object, Object> cache;
+    private IgniteInternalCache<Object, Object> cache;
 
     /** Topology listener. */
     private GridLocalEventListener topLsnr = new TopologyListener();
@@ -334,7 +334,7 @@ public class GridServiceProcessor extends GridProcessorAdapter {
                     ctx.cache().context().deploy().ignoreOwnership(true);
 
                 try {
-                    GridServiceDeployment dep = (GridServiceDeployment)cache.putIfAbsent(key,
+                    GridServiceDeployment dep = (GridServiceDeployment)cache.getAndPutIfAbsent(key,
                         new GridServiceDeployment(ctx.localNodeId(), cfg));
 
                     if (dep != null) {
@@ -409,7 +409,7 @@ public class GridServiceProcessor extends GridProcessorAdapter {
                 else {
                     GridServiceDeploymentKey key = new GridServiceDeploymentKey(name);
 
-                    if (cache.remove(key) == null) {
+                    if (cache.getAndRemove(key) == null) {
                         // Remove future from local map if service was not deployed.
                         undepFuts.remove(name);
 
@@ -714,7 +714,7 @@ public class GridServiceProcessor extends GridProcessorAdapter {
 
                 assigns.assigns(cnts);
 
-                cache.put(key, assigns);
+                cache.getAndPut(key, assigns);
 
                 tx.commit();
 
@@ -958,7 +958,7 @@ public class GridServiceProcessor extends GridProcessorAdapter {
                             // Remove assignment on primary node in case of undeploy.
                             if (cache.cache().affinity().isPrimary(ctx.discovery().localNode(), key)) {
                                 try {
-                                    cache.remove(key);
+                                    cache.getAndRemove(key);
                                 }
                                 catch (IgniteCheckedException ex) {
                                     log.error("Failed to remove assignments for undeployed service: " + name, ex);
@@ -1084,7 +1084,8 @@ public class GridServiceProcessor extends GridProcessorAdapter {
                         }
 
                         // Clean up zombie assignments.
-                        for (Cache.Entry<Object, Object> e : cache.primaryEntrySetx()) {
+                        for (Cache.Entry<Object, Object> e :
+                            cache.entrySetx(CU.cachePrimary(ctx.grid().affinity(cache.name()), ctx.grid().localNode()))) {
                             if (!(e.getKey() instanceof GridServiceAssignmentsKey))
                                 continue;
 
@@ -1095,7 +1096,7 @@ public class GridServiceProcessor extends GridProcessorAdapter {
                                     if (log.isDebugEnabled())
                                         log.debug("Removed zombie assignments: " + e.getValue());
 
-                                    cache.remove(e.getKey());
+                                    cache.getAndRemove(e.getKey());
                                 }
                             }
                             catch (IgniteCheckedException ex) {

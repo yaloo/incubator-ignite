@@ -19,13 +19,17 @@ package org.apache.ignite.internal.processors.query.h2.sql;
 
 import org.apache.ignite.cache.*;
 import org.apache.ignite.cache.affinity.*;
+import org.apache.ignite.cache.query.*;
 import org.apache.ignite.cache.query.annotations.*;
 import org.apache.ignite.configuration.*;
+import org.apache.ignite.testframework.*;
 
+import javax.cache.*;
 import java.io.*;
 import java.sql.*;
 import java.sql.Date;
 import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * Base set of queries to compare query results from h2 database instance and mixed ignite caches (replicated and partitioned)
@@ -160,9 +164,25 @@ public class BaseH2CompareQueryTest extends AbstractH2CompareQueryTest {
     }
 
     /**
-     * *
+     *
+     */
+    public void testSelectStar() {
+        assertEquals(1, pCache.query(new SqlQuery<AffinityKey<?>,Person>(
+            Person.class, "\t\r\n  select  \n*\t from Person limit 1")).getAll().size());
+
+        GridTestUtils.assertThrows(log, new Callable<Object>() {
+            @Override public Object call() throws Exception {
+                pCache.query(new SqlQuery(Person.class, "SELECT firstName from PERSON"));
+
+                return null;
+            }
+        }, CacheException.class, null);
+    }
+
+    /**
      * @throws Exception
      */
+    // TODO: IGNITE-705
     public void testAllExamples() throws Exception {
 //        compareQueryRes0("select ? limit ? offset ?");
 
@@ -280,6 +300,18 @@ public class BaseH2CompareQueryTest extends AbstractH2CompareQueryTest {
 
         compareQueryRes0("select 'foo' as bar union select 'foo' as bar");
         compareQueryRes0("select 'foo' as bar union all select 'foo' as bar");
+
+//        compareQueryRes0("select count(*) as a from Person union select count(*) as a from Address");
+//        compareQueryRes0("select old, count(*) as a from Person group by old union select 1, count(*) as a from Address");
+//        compareQueryRes0("select name from Person MINUS select street from Address");
+//        compareQueryRes0("select name from Person EXCEPT select street from Address");
+//        compareQueryRes0("select name from Person INTERSECT select street from Address");
+//        compareQueryRes0("select name from Person UNION select street from Address limit 5");
+//        compareQueryRes0("select name from Person UNION select street from Address limit ?");
+//        compareQueryRes0("select name from Person UNION select street from Address limit ? offset ?");
+//        compareQueryRes0("(select name from Person limit 4) UNION (select street from Address limit 1) limit ? offset ?");
+//        compareQueryRes0("(select 2 a) union all (select 1) order by 1");
+//        compareQueryRes0("(select 2 a) union all (select 1) order by a desc nulls first limit ? offset ?");
     }
 
     /**
@@ -293,17 +325,19 @@ public class BaseH2CompareQueryTest extends AbstractH2CompareQueryTest {
      * @throws SQLException If failed.
      */
     public void testAggregateOrderBy() throws SQLException {
-        compareOrderedQueryRes0("select firstName name, count(*) cnt from \"part\".Person group by name order by cnt desc");
+        compareOrderedQueryRes0(
+            "select firstName name, count(*) cnt from \"part\".Person " +
+            "group by name order by cnt, name desc");
     }
 
     /**
      * @throws Exception If failed.
      */
     public void testNullParamSubstitution() throws Exception {
-        List<List<?>> rs1 = compareQueryRes0("select id from \"part\".Person where lastname is ?", null);
+        List<List<?>> rs1 = compareQueryRes0("select ? from \"part\".Person", null);
 
         // Ensure we find something.
-        assertNotSame(0, rs1.size());
+        assertFalse(rs1.isEmpty());
     }
 
     /**
@@ -317,8 +351,8 @@ public class BaseH2CompareQueryTest extends AbstractH2CompareQueryTest {
 
         base = "select firstName||lastName name, salary from \"part\".Person";
 
-        assertEquals(10, compareOrderedQueryRes0(base + " union all " + base + " order by salary desc").size());
-        assertEquals(5, compareOrderedQueryRes0(base + " union " + base + " order by salary desc").size());
+        assertEquals(PERS_CNT * 2, compareOrderedQueryRes0(base + " union all " + base + " order by salary desc").size());
+        assertEquals(PERS_CNT, compareOrderedQueryRes0(base + " union " + base + " order by salary desc").size());
     }
 
     /**
@@ -407,12 +441,9 @@ public class BaseH2CompareQueryTest extends AbstractH2CompareQueryTest {
     }
 
     /** {@inheritDoc} */
-    @Override protected void initializeH2Schema() throws SQLException {
-        Statement st = conn.createStatement();
-
-        st.execute("CREATE SCHEMA \"part\"");
-        st.execute("CREATE SCHEMA \"repl\"");
-
+    @Override protected Statement initializeH2Schema() throws SQLException {
+        Statement st = super.initializeH2Schema();
+        
         st.execute("create table \"part\".ORGANIZATION" +
             "  (_key int not null," +
             "  _val other not null," +
@@ -453,6 +484,8 @@ public class BaseH2CompareQueryTest extends AbstractH2CompareQueryTest {
             "  street varchar(255))");
 
         conn.commit();
+        
+        return st;
     }
     
     /**

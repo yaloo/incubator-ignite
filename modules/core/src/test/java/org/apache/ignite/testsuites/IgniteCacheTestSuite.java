@@ -19,6 +19,7 @@ package org.apache.ignite.testsuites;
 
 import junit.framework.*;
 import org.apache.ignite.*;
+import org.apache.ignite.cache.*;
 import org.apache.ignite.cache.affinity.fair.*;
 import org.apache.ignite.cache.store.*;
 import org.apache.ignite.cache.store.jdbc.*;
@@ -81,8 +82,13 @@ public class IgniteCacheTestSuite extends TestSuite {
         suite.addTestSuite(IgniteCachePrivateExecutionContextTest.class);
         suite.addTestSuite(IgniteCacheSharedExecutionContextTest.class);
 
+        // Warmup closure tests.
+        suite.addTestSuite(IgniteWarmupClosureSelfTest.class);
+
         // Affinity tests.
         suite.addTestSuite(GridFairAffinityFunctionNodesSelfTest.class);
+        suite.addTestSuite(GridFairAffinityFunctionSelfTest.class);
+        suite.addTestSuite(IgniteFairAffinityDynamicCacheSelfTest.class);
         suite.addTestSuite(GridCacheAffinityBackupsSelfTest.class);
         suite.addTestSuite(IgniteCacheAffinitySelfTest.class);
 
@@ -132,7 +138,8 @@ public class IgniteCacheTestSuite extends TestSuite {
         suite.addTestSuite(GridCacheMissingCommitVersionSelfTest.class);
         suite.addTestSuite(GridCacheEntrySetIterationPreloadingSelfTest.class);
         suite.addTestSuite(GridCacheMixedPartitionExchangeSelfTest.class);
-        suite.addTestSuite(GridCacheAtomicTimeoutSelfTest.class);
+        suite.addTestSuite(IgniteCacheAtomicMessageRecoveryTest.class);
+        suite.addTestSuite(IgniteCacheTxMessageRecoveryTest.class);
         suite.addTestSuite(GridCacheOffHeapTieredEvictionAtomicSelfTest.class);
         suite.addTestSuite(GridCacheOffHeapTieredEvictionSelfTest.class);
         suite.addTestSuite(GridCacheOffHeapTieredAtomicSelfTest.class);
@@ -411,7 +418,7 @@ public class IgniteCacheTestSuite extends TestSuite {
         suite.addTestSuite(IgniteDynamicCacheStartSelfTest.class);
         suite.addTestSuite(IgniteCacheDynamicStopSelfTest.class);
         suite.addTestSuite(IgniteCacheConfigurationTemplateTest.class);
-        suite.addTestSuite(IgniteCacheConfigurationTemplateNotFoundTest.class);
+        suite.addTestSuite(IgniteCacheConfigurationDefaultTemplateTest.class);
 
         suite.addTestSuite(GridCacheTxLoadFromStoreOnLockSelfTest.class);
 
@@ -427,6 +434,9 @@ public class IgniteCacheTestSuite extends TestSuite {
         suite.addTestSuite(IgniteCacheTxLocalStoreValueTest.class);
         suite.addTestSuite(IgniteCacheTxStoreValueTest.class);
         suite.addTestSuite(IgniteCacheTxNearEnabledStoreValueTest.class);
+
+        suite.addTestSuite(IgniteCacheLockFailoverSelfTest.class);
+        suite.addTestSuite(IgniteCacheMultiTxLockSelfTest.class);
 
         suite.addTestSuite(IgniteInternalCacheTypesTest.class);
 

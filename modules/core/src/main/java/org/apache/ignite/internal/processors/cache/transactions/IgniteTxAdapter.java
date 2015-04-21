@@ -1118,8 +1118,6 @@ public abstract class IgniteTxAdapter extends GridMetadataAwareAdapter
             // Seal transactions maps.
             if (state != ACTIVE)
                 seal();
-
-            cctx.tm().onTxStateChange(prev, state, this);
         }
 
         return valid;
@@ -1164,7 +1162,8 @@ public abstract class IgniteTxAdapter extends GridMetadataAwareAdapter
 
     /** {@inheritDoc} */
     @Override public void onTimeout() {
-        state(MARKED_ROLLBACK, true);
+        if (local() && !dht())
+            state(MARKED_ROLLBACK, true);
     }
 
     /** {@inheritDoc} */

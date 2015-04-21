@@ -490,7 +490,7 @@ public abstract class GridManagerAdapter<T extends IgniteSpi> implements GridMan
                         return null;
                     }
 
-                    @Override public Collection<GridSecuritySubject> authenticatedSubjects() {
+                    @Override public Collection<SecuritySubject> authenticatedSubjects() {
                         try {
                             return ctx.security().authenticatedSubjects();
                         }
@@ -499,7 +499,7 @@ public abstract class GridManagerAdapter<T extends IgniteSpi> implements GridMan
                         }
                     }
 
-                    @Override public GridSecuritySubject authenticatedSubject(UUID subjId) {
+                    @Override public SecuritySubject authenticatedSubject(UUID subjId) {
                         try {
                             return ctx.security().authenticatedSubject(subjId);
                         }
@@ -512,9 +512,9 @@ public abstract class GridManagerAdapter<T extends IgniteSpi> implements GridMan
                     @Nullable @Override public <V> V readValueFromOffheapAndSwap(@Nullable String spaceName,
                         Object key, @Nullable ClassLoader ldr) {
                         try {
-                            GridCache<Object, V> cache = ctx.cache().cache(spaceName);
+                            IgniteInternalCache<Object, V> cache = ctx.cache().cache(spaceName);
 
-                            GridCacheContext cctx = ((GridCacheProxyImpl)cache).context();
+                            GridCacheContext cctx = cache.context();
 
                             if (cctx.isNear())
                                 cctx = cctx.near().dht().context();
@@ -534,6 +534,10 @@ public abstract class GridManagerAdapter<T extends IgniteSpi> implements GridMan
 
                     @Override public MessageFactory messageFactory() {
                         return ctx.io().messageFactory();
+                    }
+
+                    @Override public boolean tryFailNode(UUID nodeId) {
+                        return ctx.discovery().tryFailNode(nodeId);
                     }
 
                     /**
@@ -571,12 +575,12 @@ public abstract class GridManagerAdapter<T extends IgniteSpi> implements GridMan
     }
 
     /** {@inheritDoc} */
-    @Override @Nullable public Object collectDiscoveryData(UUID nodeId) {
+    @Override @Nullable public Serializable collectDiscoveryData(UUID nodeId) {
         return null;
     }
 
     /** {@inheritDoc} */
-    @Override public void onDiscoveryDataReceived(UUID joiningNodeId, UUID rmtNodeId, Object data) {
+    @Override public void onDiscoveryDataReceived(UUID joiningNodeId, UUID rmtNodeId, Serializable data) {
         // No-op.
     }
 

@@ -2620,7 +2620,7 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
 
         ttlAndExpireTimeExtras(ttl, expireTime);
 
-        if (expireTime != 0 && expireTime != oldExpireTime && cctx.config().isEagerTtl())
+        if (expireTime != 0 && (expireTime != oldExpireTime || isStartVersion()) && cctx.config().isEagerTtl())
             cctx.ttl().addTrackedEntry(this);
 
         this.ver = ver;
@@ -3295,7 +3295,7 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
 
         try {
             synchronized (this) {
-                CacheObject expiredVal = val;
+                CacheObject expiredVal = saveValueForIndexUnlocked();
 
                 boolean hasOldBytes = valPtr != 0;
 
@@ -3318,7 +3318,7 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
                         }
                     }
 
-                    clearIndex(saveValueForIndexUnlocked());
+                    clearIndex(expiredVal);
 
                     releaseSwap();
 

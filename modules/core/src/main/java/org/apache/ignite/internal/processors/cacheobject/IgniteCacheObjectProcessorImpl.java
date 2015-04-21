@@ -19,7 +19,6 @@ package org.apache.ignite.internal.processors.cacheobject;
 
 import org.apache.ignite.*;
 import org.apache.ignite.cache.*;
-import org.apache.ignite.cluster.*;
 import org.apache.ignite.configuration.*;
 import org.apache.ignite.internal.*;
 import org.apache.ignite.internal.processors.*;
@@ -85,7 +84,7 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
     }
 
     /** {@inheritDoc} */
-    @Nullable public KeyCacheObject toCacheKeyObject(CacheObjectContext ctx, Object obj, boolean userObj) {
+    @Override @Nullable public KeyCacheObject toCacheKeyObject(CacheObjectContext ctx, Object obj, boolean userObj) {
         if (obj instanceof KeyCacheObject)
             return (KeyCacheObject)obj;
 
@@ -205,21 +204,16 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
         if (ccfg != null) {
             CacheMemoryMode memMode = ccfg.getMemoryMode();
 
-            boolean storeVal = ctx.config().isPeerClassLoadingEnabled() ||
-                GridQueryProcessor.isEnabled(ccfg) ||
-                !ccfg.isCopyOnRead();
+        CacheMemoryMode memMode = ccfg.getMemoryMode();
 
-            return new CacheObjectContext(ctx,
-                new GridCacheDefaultAffinityKeyMapper(),
-                ccfg.isCopyOnRead() && memMode == ONHEAP_TIERED,
-                storeVal);
-        }
-        else
-            return new CacheObjectContext(
-                ctx,
-                new GridCacheDefaultAffinityKeyMapper(),
-                false,
-                ctx.config().isPeerClassLoadingEnabled());
+        boolean storeVal = ctx.config().isPeerClassLoadingEnabled() ||
+            GridQueryProcessor.isEnabled(ccfg) ||
+            !ccfg.isCopyOnRead();
+
+        return new CacheObjectContext(ctx,
+            ccfg.getAffinityMapper() != null ? ccfg.getAffinityMapper() : new GridCacheDefaultAffinityKeyMapper(),
+            ccfg.isCopyOnRead() && memMode == ONHEAP_TIERED,
+            storeVal);
     }
 
     /** {@inheritDoc} */

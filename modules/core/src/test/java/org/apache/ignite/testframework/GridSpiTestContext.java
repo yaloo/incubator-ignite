@@ -474,12 +474,12 @@ public class GridSpiTestContext implements IgniteSpiContext {
     }
 
     /** {@inheritDoc} */
-    @Override public Collection<GridSecuritySubject> authenticatedSubjects() {
+    @Override public Collection<SecuritySubject> authenticatedSubjects() {
         return Collections.emptyList();
     }
 
     /** {@inheritDoc} */
-    @Override public GridSecuritySubject authenticatedSubject(UUID subjId) {
+    @Override public SecuritySubject authenticatedSubject(UUID subjId) {
         return null;
     }
 
@@ -516,6 +516,11 @@ public class GridSpiTestContext implements IgniteSpiContext {
 
     /** {@inheritDoc} */
     @Override public boolean isStopping() {
+        return false;
+    }
+
+    /** {@inheritDoc} */
+    @Override public boolean tryFailNode(UUID nodeId) {
         return false;
     }
 

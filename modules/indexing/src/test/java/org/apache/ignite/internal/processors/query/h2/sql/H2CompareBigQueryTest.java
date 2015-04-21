@@ -225,47 +225,15 @@ public class H2CompareBigQueryTest extends AbstractH2CompareQueryTest {
     /**
      * @throws Exception If failed.
      */
-    public void testUnionAllOrders() throws Exception {
-        compareQueryRes0(
-            "   select  date, orderId, rootOrderId " +
-                "   from \"part\".CustOrder where alias='CUSTOM'");
-                
-        compareQueryRes0(
-                "   select  date, orderId, rootOrderId " +
-                "   from \"part\".ReplaceOrder where alias='CUSTOM'");
-        
-        compareQueryRes0(
-            "   select 10" +
-
-                "   union all" +
-
-                "   select  20");
-        
-        compareQueryRes0(
-            "   select  date, orderId, rootOrderId " +
-                "   from \"part\".CustOrder where alias='CUSTOM'" +
-
-                "   union all" +
-
-                "   select  date, orderId, rootOrderId " +
-                "   from \"part\".ReplaceOrder where alias='CUSTOM'");
-    }
-
-    /**
-     * @throws Exception If failed.
-     */
     public void testBigQuery() throws Exception {
         List<List<?>> res = compareQueryRes0(bigQry);
         
         assertTrue(!res.isEmpty()); // Ensure we set good testing data at database.
     }
-    
-    /** {@inheritDoc} */
-    @Override protected void initializeH2Schema() throws SQLException {
-        Statement st = conn.createStatement();
 
-        st.execute("CREATE SCHEMA \"part\"");
-        st.execute("CREATE SCHEMA \"repl\"");
+    /** {@inheritDoc} */
+    @Override protected Statement initializeH2Schema() throws SQLException {
+        Statement st = super.initializeH2Schema();
 
         st.execute("create table \"part\".CustOrder" +
             "  (" +
@@ -323,6 +291,8 @@ public class H2CompareBigQueryTest extends AbstractH2CompareQueryTest {
             "  )");
         
         conn.commit();
+        
+        return st;
     }
 
     /**

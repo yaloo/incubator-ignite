@@ -319,7 +319,7 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
     }
 
     /** {@inheritDoc} */
-    @Override @Nullable public Object collectDiscoveryData(UUID nodeId) {
+    @Override @Nullable public Serializable collectDiscoveryData(UUID nodeId) {
         if (!nodeId.equals(ctx.localNodeId())) {
             pendingLock.lock();
 
@@ -350,7 +350,7 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
     }
 
     /** {@inheritDoc} */
-    @Override public void onDiscoveryDataReceived(UUID nodeId, UUID rmtNodeId, Object obj) {
+    @Override public void onDiscoveryDataReceived(UUID nodeId, UUID rmtNodeId, Serializable obj) {
         DiscoveryData data = (DiscoveryData)obj;
 
         if (!ctx.isDaemon() && data != null) {

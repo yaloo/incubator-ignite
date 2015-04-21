@@ -15,13 +15,22 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.internal.processors.cache;
+package org.apache.ignite.internal.processors.cache.distributed.near;
 
-import org.apache.ignite.cache.*;
+import org.apache.ignite.cache.affinity.fair.*;
+import org.apache.ignite.configuration.*;
 
 /**
- * Cache proxy marker interface.
+ *
  */
-public interface GridCacheProxy<K, V> extends GridCache<K, V>, GridCacheProjectionEx<K, V> {
-    // No-op.
+public class GridCacheAtomicClientOnlyFairAffinityMultiNodeFullApiSelfTest
+    extends GridCacheAtomicClientOnlyMultiNodeFullApiSelfTest {
+    /** {@inheritDoc} */
+    @Override protected CacheConfiguration cacheConfiguration(String gridName) throws Exception {
+        CacheConfiguration cfg = super.cacheConfiguration(gridName);
+
+        cfg.setAffinity(new FairAffinityFunction());
+
+        return cfg;
+    }
 }

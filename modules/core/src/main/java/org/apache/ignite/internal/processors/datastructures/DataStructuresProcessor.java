@@ -674,6 +674,7 @@ public final class DataStructuresProcessor extends GridProcessorAdapter {
     /**
      * @param cfg Collection configuration.
      * @return Cache name.
+     * @throws IgniteCheckedException If failed.
      */
     private String compatibleConfiguration(CollectionConfiguration cfg) throws IgniteCheckedException {
         List<CacheCollectionInfo> caches = dsCacheInfoView.localPeek(DATA_STRUCTURES_CACHE_KEY, null, null);
@@ -704,7 +705,7 @@ public final class DataStructuresProcessor extends GridProcessorAdapter {
         IgniteClosureX<IgniteInternalTx, GridCacheQueueHeader> rmv =
             new IgniteClosureX<IgniteInternalTx, GridCacheQueueHeader>() {
                 @Override public GridCacheQueueHeader applyx(IgniteInternalTx tx) throws IgniteCheckedException {
-                    return (GridCacheQueueHeader)cctx.cache().remove(new GridCacheQueueHeaderKey(name), null);
+                    return (GridCacheQueueHeader)cctx.cache().getAndRemove(new GridCacheQueueHeaderKey(name));
                 }
             };
 

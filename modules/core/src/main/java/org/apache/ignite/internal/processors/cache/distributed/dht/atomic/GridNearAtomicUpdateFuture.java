@@ -473,6 +473,7 @@ public class GridNearAtomicUpdateFuture extends GridFutureAdapter<Object>
     }
 
     /**
+     * @param topVer Topology version.
      * @param keys Keys to map.
      * @param remap Flag indicating if this is partial remap for this future.
      * @param oldNodeId Old node ID if was remap.
@@ -493,12 +494,9 @@ public class GridNearAtomicUpdateFuture extends GridFutureAdapter<Object>
             return;
         }
 
-        if (futVer == null) {
+        if (futVer == null)
             // Assign future version in topology read lock before first exception may be thrown.
             futVer = cctx.versions().next(topVer);
-
-            mapTime = U.currentTimeMillis();
-        }
 
         if (!remap && (cctx.config().getAtomicWriteOrderMode() == CLOCK || syncMode != FULL_ASYNC))
             cctx.mvcc().addAtomicFuture(version(), this);

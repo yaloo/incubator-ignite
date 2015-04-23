@@ -651,7 +651,7 @@ public class IgniteDynamicCacheStartSelfTest extends GridCommonAbstractTest {
                     ((IgniteKernal)ig).internalCache(DYNAMIC_CACHE_NAME);
 
                 assertNotNull(cacheAdapter);
-                assertFalse(cacheAdapter.affinityNode());
+                assertFalse(cacheAdapter.context().affinityNode());
                 assertTrue(cacheAdapter.context().isNear());
 
                 try {

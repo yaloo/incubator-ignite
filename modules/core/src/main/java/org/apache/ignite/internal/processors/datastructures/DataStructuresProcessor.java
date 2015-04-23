@@ -67,25 +67,25 @@ public final class DataStructuresProcessor extends GridProcessorAdapter {
     private static final long RETRY_DELAY = 1;
 
     /** Cache contains only {@code GridCacheInternal,GridCacheInternal}. */
-    private CacheProjection<GridCacheInternal, GridCacheInternal> dsView;
+    private IgniteInternalCache<GridCacheInternal, GridCacheInternal> dsView;
 
     /** Internal storage of all dataStructures items (sequence, atomic long etc.). */
     private final ConcurrentMap<GridCacheInternal, GridCacheRemovable> dsMap;
 
     /** Cache contains only {@code GridCacheAtomicValue}. */
-    private CacheProjection<GridCacheInternalKey, GridCacheAtomicLongValue> atomicLongView;
+    private IgniteInternalCache<GridCacheInternalKey, GridCacheAtomicLongValue> atomicLongView;
 
     /** Cache contains only {@code GridCacheCountDownLatchValue}. */
-    private CacheProjection<GridCacheInternalKey, GridCacheCountDownLatchValue> cntDownLatchView;
+    private IgniteInternalCache<GridCacheInternalKey, GridCacheCountDownLatchValue> cntDownLatchView;
 
     /** Cache contains only {@code GridCacheAtomicReferenceValue}. */
-    private CacheProjection<GridCacheInternalKey, GridCacheAtomicReferenceValue> atomicRefView;
+    private IgniteInternalCache<GridCacheInternalKey, GridCacheAtomicReferenceValue> atomicRefView;
 
     /** Cache contains only {@code GridCacheAtomicStampedValue}. */
-    private CacheProjection<GridCacheInternalKey, GridCacheAtomicStampedValue> atomicStampedView;
+    private IgniteInternalCache<GridCacheInternalKey, GridCacheAtomicStampedValue> atomicStampedView;
 
     /** Cache contains only entry {@code GridCacheSequenceValue}.  */
-    private CacheProjection<GridCacheInternalKey, GridCacheAtomicSequenceValue> seqView;
+    private IgniteInternalCache<GridCacheInternalKey, GridCacheAtomicSequenceValue> seqView;
 
     /** Cache context for atomic data structures. */
     private GridCacheContext dsCacheCtx;
@@ -94,10 +94,10 @@ public final class DataStructuresProcessor extends GridProcessorAdapter {
     private final AtomicConfiguration atomicCfg;
 
     /** */
-    private GridCacheProjectionEx<CacheDataStructuresConfigurationKey, Map<String, DataStructureInfo>> dsInfoView;
+    private IgniteInternalCache<CacheDataStructuresConfigurationKey, Map<String, DataStructureInfo>> dsInfoView;
 
     /** */
-    private GridCacheProjectionEx<CacheDataStructuresCacheKey, List<CacheCollectionInfo>> dsCacheInfoView;
+    private IgniteInternalCache<CacheDataStructuresCacheKey, List<CacheCollectionInfo>> dsCacheInfoView;
 
     /**
      * @param ctx Context.
@@ -116,13 +116,13 @@ public final class DataStructuresProcessor extends GridProcessorAdapter {
         if (ctx.config().isDaemon())
             return;
 
-        GridCache atomicsCache = ctx.cache().atomicsCache();
+        IgniteInternalCache atomicsCache = ctx.cache().atomicsCache();
 
         assert atomicsCache != null;
 
-        dsInfoView = (GridCacheProjectionEx)atomicsCache;
+        dsInfoView = (IgniteInternalCache)atomicsCache;
 
-        dsCacheInfoView = (GridCacheProjectionEx)atomicsCache;
+        dsCacheInfoView = (IgniteInternalCache)atomicsCache;
 
         dsView = atomicsCache;
 
@@ -201,7 +201,7 @@ public final class DataStructuresProcessor extends GridProcessorAdapter {
                     }
 
                     // Update global counter.
-                    dsView.putx(key, seqVal);
+                    dsView.put(key, seqVal);
 
                     // Only one thread can be in the transaction scope and create sequence.
                     seq = new GridCacheAtomicSequenceImpl(name,
@@ -288,7 +288,7 @@ public final class DataStructuresProcessor extends GridProcessorAdapter {
                     if (val == null) {
                         val = new GridCacheAtomicLongValue(initVal);
 
-                        dsView.putx(key, val);
+                        dsView.put(key, val);
                     }
 
                     a = new GridCacheAtomicLongImpl(name, key, atomicLongView, dsCacheCtx);
@@ -485,7 +485,7 @@ public final class DataStructuresProcessor extends GridProcessorAdapter {
                     if (val == null) {
                         val = new GridCacheAtomicReferenceValue(initVal);
 
-                        dsView.putx(key, val);
+                        dsView.put(key, val);
                     }
 
                     ref = new GridCacheAtomicReferenceImpl(name, key, atomicRefView, dsCacheCtx);
@@ -568,7 +568,7 @@ public final class DataStructuresProcessor extends GridProcessorAdapter {
                     if (val == null) {
                         val = new GridCacheAtomicStampedValue(initVal, initStamp);
 
-                        dsView.putx(key, val);
+                        dsView.put(key, val);
                     }
 
                     stmp = new GridCacheAtomicStampedImpl(name, key, atomicStampedView, dsCacheCtx);
@@ -865,7 +865,7 @@ public final class DataStructuresProcessor extends GridProcessorAdapter {
                     if (val == null) {
                         val = new GridCacheCountDownLatchValue(cnt, autoDel);
 
-                        dsView.putx(key, val);
+                        dsView.put(key, val);
                     }
 
                     latch = new GridCacheCountDownLatchImpl(name, val.get(), val.initialCount(),
@@ -909,7 +909,7 @@ public final class DataStructuresProcessor extends GridProcessorAdapter {
                         throw new IgniteCheckedException("Failed to remove count down latch " +
                             "with non-zero count: " + val.get());
 
-                    dsView.removex(key);
+                    dsView.remove(key);
                 }
                 else
                     tx.setRollbackOnly();
@@ -938,7 +938,7 @@ public final class DataStructuresProcessor extends GridProcessorAdapter {
         R val = cast(dsView.get(key), cls);
 
         if (val != null)
-            dsView.removex(key);
+            dsView.remove(key);
         else
             tx.setRollbackOnly();
 
@@ -1052,7 +1052,7 @@ public final class DataStructuresProcessor extends GridProcessorAdapter {
         IgniteClosureX<IgniteInternalTx, GridCacheSetHeader> rmv =
             new IgniteClosureX<IgniteInternalTx, GridCacheSetHeader>() {
                 @Override public GridCacheSetHeader applyx(IgniteInternalTx tx) throws IgniteCheckedException {
-                    return (GridCacheSetHeader)cctx.cache().remove(new GridCacheSetHeaderKey(name), null);
+                    return (GridCacheSetHeader)cctx.cache().getAndRemove(new GridCacheSetHeaderKey(name));
                 }
             };
 

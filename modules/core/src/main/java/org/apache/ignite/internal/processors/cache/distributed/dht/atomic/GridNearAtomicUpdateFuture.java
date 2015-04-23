@@ -137,9 +137,6 @@ public class GridNearAtomicUpdateFuture extends GridFutureAdapter<Object>
     /** Task name hash. */
     private final int taskNameHash;
 
-    /** Map time. */
-    private volatile long mapTime;
-
     /** Topology locked flag. Set if atomic update is performed inside a TX or explicit lock. */
     private boolean topLocked;
 
@@ -272,15 +269,6 @@ public class GridNearAtomicUpdateFuture extends GridFutureAdapter<Object>
         }
 
         return false;
-    }
-
-    /** {@inheritDoc} */
-    @Override public void checkTimeout(long timeout) {
-        long mapTime0 = mapTime;
-
-        if (mapTime0 > 0 && U.currentTimeMillis() > mapTime0 + timeout)
-            onDone(new CacheAtomicUpdateTimeoutCheckedException("Cache update timeout out " +
-                "(consider increasing networkTimeout configuration property)."));
     }
 
     /** {@inheritDoc} */

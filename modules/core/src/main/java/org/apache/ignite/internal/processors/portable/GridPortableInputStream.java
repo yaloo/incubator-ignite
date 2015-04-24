@@ -149,6 +149,8 @@ public interface GridPortableInputStream extends GridPortableStream {
      */
     public double[] readDoubleArray(int cnt);
 
+    public int read(byte[] arr, int off, int len);
+
     /**
      * Gets amount of remaining data in bytes.
      *

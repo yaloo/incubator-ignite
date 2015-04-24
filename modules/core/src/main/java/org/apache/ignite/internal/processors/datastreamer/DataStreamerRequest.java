@@ -324,7 +324,7 @@ public class DataStreamerRequest implements Message {
                 writer.incrementState();
 
             case 12:
-                if (!writer.writeByteArray("updaterBytes", updaterBytes))
+                if (!writer.writeByteBuffer("updaterBytes", updaterBytes))
                     return false;
 
                 writer.incrementState();
@@ -449,7 +449,7 @@ public class DataStreamerRequest implements Message {
                 reader.incrementState();
 
             case 12:
-                updaterBytes = reader.readByteArray("updaterBytes");
+                updaterBytes = reader.readByteBuffer("updaterBytes");
 
                 if (!reader.isLastRead())
                     return false;

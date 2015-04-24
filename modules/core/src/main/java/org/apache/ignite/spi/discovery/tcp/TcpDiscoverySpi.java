@@ -3758,7 +3758,8 @@ public class TcpDiscoverySpi extends TcpDiscoverySpiAdapter implements TcpDiscov
                 }
 
                 if (!locNodeId.equals(nodeId)) {
-                    msg.addDiscoveryData(locNodeId, collectExchangeData(msg.nodeId()));
+                    if (locNode.order() != 0 && locNode.order() < node.order())
+                        msg.addDiscoveryData(locNodeId, collectExchangeData(msg.nodeId()));
 
                     Map<Integer, byte[]> data = msg.newNodeDiscoveryData();
 

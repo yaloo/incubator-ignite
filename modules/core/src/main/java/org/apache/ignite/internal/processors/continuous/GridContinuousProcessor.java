@@ -324,7 +324,8 @@ public class GridContinuousProcessor extends GridProcessorAdapter {
 
             try {
                 // Create empty pending set.
-                pending.put(nodeId, new HashSet<GridContinuousMessage>());
+                if (pending.get(nodeId) == null)
+                    pending.put(nodeId, new HashSet<GridContinuousMessage>());
 
                 DiscoveryData data = new DiscoveryData(ctx.localNodeId());
 

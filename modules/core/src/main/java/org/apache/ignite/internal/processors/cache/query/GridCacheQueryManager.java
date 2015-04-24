@@ -1184,6 +1184,9 @@ public abstract class GridCacheQueryManager<K, V> extends GridCacheManagerAdapte
                 U.error(log, "Failed to run fields query [qry=" + qryInfo + ", node=" + cctx.nodeId() + "]", e);
 
                 onFieldsPageReady(qryInfo.local(), qryInfo, null, null, null, true, e);
+
+                if (e instanceof Error)
+                    throw (Error)e;
             }
             finally {
                 if (rmvRes)
@@ -1294,10 +1297,15 @@ public abstract class GridCacheQueryManager<K, V> extends GridCacheManagerAdapte
 
                     V val = row.getValue();
 
-                    if (log.isDebugEnabled())
-                        log.debug("Record [key=" + key + ", val=" + val + ", incBackups=" +
-                            incBackups + "priNode=" + U.id8(CU.primaryNode(cctx, key).id()) +
+                    if (log.isDebugEnabled()) {
+                        ClusterNode primaryNode = CU.primaryNode(cctx, key);
+
+                        log.debug("Record [key=" + key +
+                            ", val=" + val +
+                            ", incBackups=" + incBackups +
+                            ", priNode=" + (primaryNode != null ? U.id8(primaryNode.id())  : null) +
                             ", node=" + U.id8(cctx.localNode().id()) + ']');
+                    }
 
                     if (val == null) {
                         if (log.isDebugEnabled())
@@ -1436,6 +1444,9 @@ public abstract class GridCacheQueryManager<K, V> extends GridCacheManagerAdapte
                 U.error(log, "Failed to run query [qry=" + qryInfo + ", node=" + cctx.nodeId() + "]", e);
 
                 onPageReady(loc, qryInfo, null, true, e);
+
+                if (e instanceof Error)
+                    throw (Error)e;
             }
             finally {
                 if (rmvIter)
@@ -1527,6 +1538,9 @@ public abstract class GridCacheQueryManager<K, V> extends GridCacheManagerAdapte
             }
             catch (Throwable e) {
                 fut.onDone(e);
+
+                if (e instanceof Error)
+                    throw (Error)e;
             }
         }
 

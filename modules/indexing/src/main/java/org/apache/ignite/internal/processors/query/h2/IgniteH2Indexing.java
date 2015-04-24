@@ -1110,7 +1110,7 @@ public class IgniteH2Indexing implements GridQueryIndexing {
 
     /** {@inheritDoc} */
     @SuppressWarnings("NonThreadSafeLazyInitialization")
-    @Override public void start(GridKernalContext ctx) throws IgniteCheckedException {
+    @Override public void start(GridKernalContext ctx, GridSpinBusyLock busyLock) throws IgniteCheckedException {
         if (log.isDebugEnabled())
             log.debug("Starting cache query index...");
 
@@ -1162,8 +1162,8 @@ public class IgniteH2Indexing implements GridQueryIndexing {
             nodeId = ctx.localNodeId();
             marshaller = ctx.config().getMarshaller();
 
-            mapQryExec = new GridMapQueryExecutor();
-            rdcQryExec = new GridReduceQueryExecutor();
+            mapQryExec = new GridMapQueryExecutor(busyLock);
+            rdcQryExec = new GridReduceQueryExecutor(busyLock);
 
             mapQryExec.start(ctx, this);
             rdcQryExec.start(ctx, this);

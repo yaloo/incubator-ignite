@@ -53,8 +53,7 @@ public class IgniteCacheDataStructuresSelfTestSuite extends TestSuite {
         suite.addTest(new TestSuite(GridCacheReplicatedQueueMultiNodeSelfTest.class));
         suite.addTest(new TestSuite(GridCacheReplicatedQueueRotativeMultiNodeTest.class));
         suite.addTest(new TestSuite(GridCacheReplicatedSetSelfTest.class));
-        // TODO: GG-5306
-        // suite.addTest(new TestSuite(GridCacheReplicatedDataStructuresFailoverSelfTest.class));
+        suite.addTest(new TestSuite(GridCacheReplicatedDataStructuresFailoverSelfTest.class));
         suite.addTest(new TestSuite(IgniteReplicatedCountDownLatchSelfTest.class));
 
         suite.addTest(new TestSuite(GridCachePartitionedSequenceApiSelfTest.class));
@@ -84,14 +83,11 @@ public class IgniteCacheDataStructuresSelfTestSuite extends TestSuite {
         suite.addTest(new TestSuite(GridCachePartitionedAtomicQueueRotativeMultiNodeTest.class));
         suite.addTest(new TestSuite(GridCacheQueueCleanupSelfTest.class));
 
-        // TODO: GG-5620 Uncomment when fix
-        //suite.addTest(new TestSuite(GridCachePartitionedQueueEntryMoveSelfTest.class));
+        suite.addTest(new TestSuite(GridCachePartitionedQueueEntryMoveSelfTest.class));
 
-        // TODO: GG-2699
-        //suite.addTest(new TestSuite(GridCachePartitionedDataStructuresFailoverSelfTest.class));
-        //suite.addTest(new TestSuite(GridCachePartitionedOffheapDataStructuresFailoverSelfTest.class));
-        // TODO: GG-4807 Uncomment when fix
-        // suite.addTest(new TestSuite(GridCacheQueueMultiNodeConsistencySelfTest.class));
+        suite.addTest(new TestSuite(GridCachePartitionedDataStructuresFailoverSelfTest.class));
+        suite.addTest(new TestSuite(GridCachePartitionedOffheapDataStructuresFailoverSelfTest.class));
+        suite.addTest(new TestSuite(GridCacheQueueMultiNodeConsistencySelfTest.class));
 
         suite.addTest(new TestSuite(IgniteLocalAtomicLongApiSelfTest.class));
         suite.addTest(new TestSuite(IgnitePartitionedAtomicLongApiSelfTest.class));

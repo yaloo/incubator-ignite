@@ -210,7 +210,7 @@ public class IgniteCacheTestSuite extends TestSuite {
         suite.addTest(new TestSuite(GridCacheDhtEntrySelfTest.class));
         suite.addTest(new TestSuite(GridCacheDhtInternalEntrySelfTest.class));
         suite.addTest(new TestSuite(GridCacheDhtMappingSelfTest.class));
-//        suite.addTest(new TestSuite(GridCachePartitionedTxMultiThreadedSelfTest.class)); TODO-gg-4066
+        suite.addTest(new TestSuite(GridCachePartitionedTxMultiThreadedSelfTest.class));
         suite.addTest(new TestSuite(GridCacheDhtPreloadSelfTest.class));
         suite.addTest(new TestSuite(GridCacheDhtPreloadOffHeapSelfTest.class));
         suite.addTest(new TestSuite(GridCacheDhtPreloadBigDataSelfTest.class));
@@ -235,7 +235,7 @@ public class IgniteCacheTestSuite extends TestSuite {
         suite.addTest(new TestSuite(GridCacheReplicatedEvictionSelfTest.class));
         suite.addTest(new TestSuite(GridCacheDhtEvictionNearReadersSelfTest.class));
         suite.addTest(new TestSuite(GridCacheDhtAtomicEvictionNearReadersSelfTest.class));
-//        suite.addTest(new TestSuite(GridCachePartitionedTopologyChangeSelfTest.class)); TODO-gg-5489
+        suite.addTest(new TestSuite(GridCachePartitionedTopologyChangeSelfTest.class));
         suite.addTest(new TestSuite(GridCachePartitionedPreloadEventsSelfTest.class));
         suite.addTest(new TestSuite(GridCachePartitionedUnloadEventsSelfTest.class));
         suite.addTest(new TestSuite(GridCachePartitionedAffinityHashIdResolverSelfTest.class));
@@ -249,11 +249,12 @@ public class IgniteCacheTestSuite extends TestSuite {
 
         suite.addTest(new TestSuite(GridCacheOffheapUpdateSelfTest.class));
 
-        // TODO: GG-7242, GG-7243: Enabled when fixed.
-//        suite.addTest(new TestSuite(GridCacheDhtRemoveFailureTest.class));
-//        suite.addTest(new TestSuite(GridCacheNearRemoveFailureTest.class));
-        // TODO: GG-7201: Enable when fixed.
-        //suite.addTest(new TestSuite(GridCacheDhtAtomicRemoveFailureTest.class));
+        // TODO: GG-7242, GG-7243 already fixed. If next tests passed, when comment should be deleted.
+        suite.addTest(new TestSuite(GridCacheDhtRemoveFailureTest.class));
+        // TODO: GG-7242, GG-7243 already fixed. If next tests passed, when comment should be deleted.
+        suite.addTest(new TestSuite(GridCacheNearRemoveFailureTest.class));
+        // TODO: GG-7201 already fixed. If next tests passed, when comment should be deleted.
+        suite.addTest(new TestSuite(GridCacheDhtAtomicRemoveFailureTest.class));
 
         suite.addTest(new TestSuite(GridCacheNearPrimarySyncSelfTest.class));
         suite.addTest(new TestSuite(GridCacheColocatedPrimarySyncSelfTest.class));
@@ -276,12 +277,10 @@ public class IgniteCacheTestSuite extends TestSuite {
         suite.addTestSuite(GridCacheReplicatedEventSelfTest.class);
         suite.addTestSuite(GridCacheReplicatedSynchronousCommitTest.class);
 
-        // TODO: GG-7437.
-        // suite.addTestSuite(GridCacheReplicatedInvalidateSelfTest.class);
+        suite.addTestSuite(GridCacheReplicatedInvalidateSelfTest.class);
         suite.addTestSuite(GridCacheReplicatedLockSelfTest.class);
-        // TODO: enable when GG-7437 is fixed.
-        //suite.addTestSuite(GridCacheReplicatedMultiNodeLockSelfTest.class);
-        //suite.addTestSuite(GridCacheReplicatedMultiNodeSelfTest.class);
+        suite.addTestSuite(GridCacheReplicatedMultiNodeLockSelfTest.class);
+        suite.addTestSuite(GridCacheReplicatedMultiNodeSelfTest.class);
         suite.addTestSuite(GridCacheReplicatedNodeFailureSelfTest.class);
         suite.addTestSuite(GridCacheReplicatedTxSingleThreadedSelfTest.class);
         suite.addTestSuite(GridCacheReplicatedTxTimeoutSelfTest.class);
@@ -296,12 +295,10 @@ public class IgniteCacheTestSuite extends TestSuite {
         suite.addTestSuite(GridCachePutArrayValueSelfTest.class);
         suite.addTestSuite(GridCacheReplicatedUnswapAdvancedSelfTest.class);
         suite.addTestSuite(GridCacheReplicatedEvictionEventSelfTest.class);
-        // TODO: GG-7569.
-        // suite.addTestSuite(GridCacheReplicatedTxMultiThreadedSelfTest.class);
+        suite.addTestSuite(GridCacheReplicatedTxMultiThreadedSelfTest.class);
         suite.addTestSuite(GridCacheReplicatedPreloadEventsSelfTest.class);
         suite.addTestSuite(GridCacheReplicatedPreloadStartStopEventsSelfTest.class);
-        // TODO: GG-7434
-        // suite.addTestSuite(GridReplicatedTxPreloadTest.class);
+        suite.addTestSuite(GridReplicatedTxPreloadTest.class);
 
         suite.addTestSuite(IgniteTxReentryNearSelfTest.class);
         suite.addTestSuite(IgniteTxReentryColocatedSelfTest.class);
@@ -360,9 +357,8 @@ public class IgniteCacheTestSuite extends TestSuite {
 
         // Multi node update.
         suite.addTestSuite(GridCacheMultinodeUpdateSelfTest.class);
-        // TODO: GG-5353.
-        // suite.addTestSuite(GridCacheMultinodeUpdateNearEnabledSelfTest.class);
-        // suite.addTestSuite(GridCacheMultinodeUpdateNearEnabledNoBackupsSelfTest.class);
+        suite.addTestSuite(GridCacheMultinodeUpdateNearEnabledSelfTest.class);
+        suite.addTestSuite(GridCacheMultinodeUpdateNearEnabledNoBackupsSelfTest.class);
         suite.addTestSuite(GridCacheMultinodeUpdateAtomicSelfTest.class);
         suite.addTestSuite(GridCacheMultinodeUpdateAtomicNearEnabledSelfTest.class);
 

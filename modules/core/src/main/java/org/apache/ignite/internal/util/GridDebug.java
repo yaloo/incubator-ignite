@@ -34,9 +34,6 @@ import java.util.concurrent.atomic.*;
  * Utility class for debugging.
  */
 public class GridDebug {
-    /** Max queue size. */
-    public static final int MAX_SIZE = 2_000;
-
     /** */
     private static final AtomicReference<ConcurrentLinkedQueue<Item>> que =
         new AtomicReference<>(new ConcurrentLinkedQueue<Item>());
@@ -128,9 +125,6 @@ public class GridDebug {
 
         if (q != null)
             q.add(new Item(x));
-
-        if (q.size() > MAX_SIZE)
-            q.poll();
     }
 
     /**

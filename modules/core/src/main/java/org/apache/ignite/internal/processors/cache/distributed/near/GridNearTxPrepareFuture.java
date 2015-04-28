@@ -417,9 +417,7 @@ public final class GridNearTxPrepareFuture<K, V> extends GridCompoundIdentityFut
             return null;
         }
 
-        GridDhtTopologyFuture fut = nonLocCtx.topology().topologyVersionFuture();
-
-        return fut;
+        return nonLocCtx.topology().topologyVersionFuture();
     }
 
     /**

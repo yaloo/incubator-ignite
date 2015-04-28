@@ -1199,8 +1199,6 @@ public class IgniteTxManager extends GridCacheSharedManagerAdapter {
 
         if (log.isDebugEnabled())
             log.debug("Committing from TM [locNodeId=" + cctx.localNodeId() + ", tx=" + tx + ']');
-        GridDebug.debug("Committing from TM [locNodeId=" + cctx.localNodeId() + ", xidVer=" + tx.xidVersion() +
-            ", type=" + tx.getClass().getSimpleName() + ']');
 
         if (tx.timeout() > 0) {
             cctx.time().removeTimeoutObject(tx);

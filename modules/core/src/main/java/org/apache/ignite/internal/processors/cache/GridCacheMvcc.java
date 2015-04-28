@@ -690,9 +690,6 @@ public final class GridCacheMvcc {
                     if (c.owner())
                         continue;
 
-                    if (c.ready())
-                        GridDebug.dump(log);
-
                     assert !c.ready() :
                         "Cannot have more then one ready near-local candidate [c=" + c + ", cand=" + cand +
                             ", mvcc=" + this + ']';

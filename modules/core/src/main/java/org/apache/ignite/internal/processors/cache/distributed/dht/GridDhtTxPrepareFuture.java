@@ -493,6 +493,8 @@ public final class GridDhtTxPrepareFuture<K, V> extends GridCompoundIdentityFutu
                 tx.state(PREPARED);
         }
 
+        U.debug(log, "Completing DHT tx prepare future [locNodeId=" + cctx.localNodeId() + ", ver=" + tx.xidVersion() + ", nearVer=" + tx.nearXidVersion() + ']');
+
         if (tx.onePhaseCommit()) {
             assert last;
 

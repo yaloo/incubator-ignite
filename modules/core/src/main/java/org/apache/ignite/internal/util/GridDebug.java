@@ -123,8 +123,12 @@ public class GridDebug {
     public static void debug(Object ... x) {
         ConcurrentLinkedQueue<Item> q = que.get();
 
-        if (q != null)
+        if (q != null) {
             q.add(new Item(x));
+
+            if (q.size() > 2000)
+                q.poll();
+        }
     }
 
     /**

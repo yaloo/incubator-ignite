@@ -1046,6 +1046,16 @@ public class ConcurrentLinkedDeque8<E>
     }
 
     /**
+     * Same as {@link #addLast(Object)}, but returns new node.
+     *
+     * @param e Element to add.
+     * @return New node.
+     */
+    public Node<E> addLastx(E e) {
+        return linkLastx(e);
+    }
+
+    /**
      * Inserts the specified element at the front of this deque.
      * As the deque is unbounded, this method will never return {@code false}.
      *
@@ -1055,6 +1065,16 @@ public class ConcurrentLinkedDeque8<E>
     public boolean offerFirst(E e) {
         linkFirst(e);
         return true;
+    }
+
+    /**
+     * Same as {@link #offerFirst(Object)}, but returns new {@link Node}.
+     *
+     * @param e Element to add.
+     * @return New node.
+     */
+    public Node<E> offerFirstx(E e) {
+        return linkFirstx(e);
     }
 
     /**
@@ -1087,6 +1107,23 @@ public class ConcurrentLinkedDeque8<E>
             if (item != null)
                 return item;
         }
+        return null;
+    }
+
+    /**
+     * Retrieves, but does not remove, the first node of this deque,
+     * or returns {@code null} if this deque is empty.
+     *
+     * @return The header node of this deque, or <tt>null</tt> if this deque is empty
+     */
+    public Node<E> peekFirstx() {
+        for (Node<E> p = first(); p != null; p = succ(p)) {
+            E item = p.item;
+
+            if (item != null)
+                return p;
+        }
+
         return null;
     }
 
@@ -1190,6 +1227,20 @@ public class ConcurrentLinkedDeque8<E>
     public E element()        { return getFirst(); }
     public void push(E e)     { addFirst(e); }
     public E pop()            { return removeFirst(); }
+
+    /**
+     * Retrieves, but does not remove, the header node of the queue represented by
+     * this deque (in other words, the first node of this deque), or
+     * returns {@code null} if this deque is empty.
+     * <p>
+     * This method is equivalent to {@link #peekFirst()}.
+     *
+     * @return The header node of the queue represented by this deque, or
+     *      {@code null} if this deque is empty
+     */
+    public Node<E> peekx() {
+        return peekFirstx();
+    }
 
     /**
      * Removes the first element {@code e} such that

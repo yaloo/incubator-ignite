@@ -272,7 +272,7 @@ public class ConcurrentLinkedDeque8<E>
         return (Node<E>) NEXT_TERMINATOR;
     }
 
-    static final class Node<E> {
+    public static final class Node<E> {
         volatile Node<E> prev;
         volatile E item;
         volatile Node<E> next;

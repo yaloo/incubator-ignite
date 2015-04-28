@@ -872,10 +872,7 @@ public final class GridDhtLockFuture<K, V> extends GridCompoundIdentityFuture<Bo
 
                             boolean invalidateRdr = e.readerId(n.id()) != null;
 
-                            req.addDhtKey(
-                                e.key(),
-                                invalidateRdr,
-                                cctx);
+                            req.addDhtKey(e.key(), invalidateRdr, cctx);
 
                             if (needVal) {
                                 // Mark last added key as needed to be preloaded.
@@ -894,6 +891,9 @@ public final class GridDhtLockFuture<K, V> extends GridCompoundIdentityFuture<Bo
                         }
 
                         if (!F.isEmpty(req.keys())) {
+                            if (tx != null)
+                                tx.addLockTransactionNode(n);
+
                             add(fut); // Append new future.
 
                             if (log.isDebugEnabled())

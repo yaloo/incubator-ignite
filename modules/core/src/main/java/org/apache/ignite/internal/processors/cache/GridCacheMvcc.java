@@ -20,6 +20,7 @@ package org.apache.ignite.internal.processors.cache;
 import org.apache.ignite.*;
 import org.apache.ignite.internal.processors.cache.transactions.*;
 import org.apache.ignite.internal.processors.cache.version.*;
+import org.apache.ignite.internal.util.*;
 import org.apache.ignite.internal.util.tostring.*;
 import org.apache.ignite.internal.util.typedef.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
@@ -688,6 +689,9 @@ public final class GridCacheMvcc {
                 else {
                     if (c.owner())
                         continue;
+
+                    if (c.ready())
+                        GridDebug.dump(log);
 
                     assert !c.ready() :
                         "Cannot have more then one ready near-local candidate [c=" + c + ", cand=" + cand +

@@ -6,16 +6,16 @@
 
 /*
  * The latest version of the file corresponds to the following CVS commit:
- * http://gee.cs.oswego.edu/cgi-bin/viewcvs.cgi/jsr166/src/main/java/util/concurrent/ThreadLocalRandom.java?pathrev=1.17
+ * http://gee.cs.oswego.edu/cgi-bin/viewcvs.cgi/jsr166/src/jdk7/java/util/concurrent/
+ *  ThreadLocalRandom.java.java?pathrev=1.3
  *
- * The later versions use classes from java.util.function package that are unavailable in JDK 7.
- * Thus they can't be imported.
+ * Note, that the repository above is JDK 7 based that is kept up-to-date too.
+ * The main repository (JDK 8 based) uses JDK 8 features significantly that unavailable in JDK 7.
  */
+
 package org.jsr166;
 
 import java.util.*;
-import java.io.*;
-import java.util.concurrent.atomic.*;
 
 /**
  * A random number generator isolated to the current thread.  Like the
@@ -43,104 +43,46 @@ import java.util.concurrent.atomic.*;
  */
 @SuppressWarnings("ALL")
 public class ThreadLocalRandom8 extends Random {
-    /*
-     * This class implements the java.util.Random API (and subclasses
-     * Random) using a single static instance that accesses random
-     * number state held in class Thread (primarily, field
-     * threadLocalRandomSeed). In doing so, it also provides a home
-     * for managing package-private utilities that rely on exactly the
-     * same state as needed to maintain the ThreadLocalRandom
-     * instances. We leverage the need for an initialization flag
-     * field to also use it as a "probe" -- a self-adjusting thread
-     * hash used for contention avoidance, as well as a secondary
-     * simpler (xorShift) random seed that is conservatively used to
-     * avoid otherwise surprising users by hijacking the
-     * ThreadLocalRandom sequence.  The dual use is a marriage of
-     * convenience, but is a simple and efficient way of reducing
-     * application-level overhead and footprint of most concurrent
-     * programs.
-     *
-     * Because this class is in a different package than class Thread,
-     * field access methods use Unsafe to bypass access control rules.
-     * The base functionality of Random methods is conveniently
-     * isolated in method next(bits), that just reads and writes the
-     * Thread field rather than its own field.  However, to conform to
-     * the requirements of the Random superclass constructor, the
-     * common static ThreadLocalRandom maintains an "initialized"
-     * field for the sake of rejecting user calls to setSeed while
-     * still allowing a call from constructor.  Note that
-     * serialization is completely unnecessary because there is only a
-     * static singleton.  But we generate a serial form containing
-     * "rnd" and "initialized" fields to ensure compatibility across
-     * versions.
-     *
-     * Per-thread initialization is similar to that in the no-arg
-     * Random constructor, but we avoid correlation among not only
-     * initial seeds of those created in different threads, but also
-     * those created using class Random itself; while at the same time
-     * not changing any statistical properties.  So we use the same
-     * underlying multiplicative sequence, but start the sequence far
-     * away from the base version, and then merge (xor) current time
-     * and per-thread probe bits to generate initial values.
-     *
-     * The nextLocalGaussian ThreadLocal supports the very rarely used
-     * nextGaussian method by providing a holder for the second of a
-     * pair of them. As is true for the base class version of this
-     * method, this time/space tradeoff is probably never worthwhile,
-     * but we provide identical statistical properties.
-     */
-
     // same constants as Random, but must be redeclared because private
     private static final long multiplier = 0x5DEECE66DL;
     private static final long addend = 0xBL;
     private static final long mask = (1L << 48) - 1;
-    private static final int PROBE_INCREMENT = 0x61c88647;
-
-    /** Generates the basis for per-thread initial seed values */
-    private static final AtomicLong seedGenerator =
-        new AtomicLong(1269533684904616924L);
-
-    /** Generates per-thread initialization/probe field */
-    private static final AtomicInteger probeGenerator =
-        new AtomicInteger(0xe80f8647);
-
-    /** Rarely-used holder for the second of a pair of Gaussians */
-    private static final ThreadLocal<Double> nextLocalGaussian =
-        new ThreadLocal<Double>();
 
     /**
-     * Field used only during singleton initialization.
-     * True when constructor completes.
+     * The random seed. We can't use super.seed.
+     */
+    private long rnd;
+
+    /**
+     * Initialization flag to permit calls to setSeed to succeed only
+     * while executing the Random constructor.  We can't allow others
+     * since it would cause setting seed in one part of a program to
+     * unintentionally impact other usages by the thread.
      */
     boolean initialized;
 
-    /** Constructor used only for static singleton */
-    private ThreadLocalRandom8() {
-        initialized = true; // false during super() call
-    }
-
-    /** The common ThreadLocalRandom */
-    static final ThreadLocalRandom8 instance = new ThreadLocalRandom8();
+    // Padding to help avoid memory contention among seed updates in
+    // different TLRs in the common case that they are located near
+    // each other.
+    private long pad0, pad1, pad2, pad3, pad4, pad5, pad6, pad7;
 
     /**
-     * Initialize Thread fields for the current thread.  Called only
-     * when Thread.threadLocalRandomProbe is zero, indicating that a
-     * thread local seed value needs to be generated. Note that even
-     * though the initialization is purely thread-local, we need to
-     * rely on (static) atomic generators to initialize the values.
+     * The actual ThreadLocal
      */
-    static final void localInit() {
-        int p = probeGenerator.getAndAdd(PROBE_INCREMENT);
-        int probe = (p == 0) ? 1 : p; // skip 0
-        long current, next;
-        do { // same sequence as j.u.Random but different initial value
-            current = seedGenerator.get();
-            next = current * 181783497276652981L;
-        } while (!seedGenerator.compareAndSet(current, next));
-        long r = next ^ ((long)probe << 32) ^ System.nanoTime();
-        Thread t = Thread.currentThread();
-        UNSAFE.putLong(t, SEED, r);
-        UNSAFE.putInt(t, PROBE, probe);
+    private static final ThreadLocal<ThreadLocalRandom8> localRandom =
+        new ThreadLocal<ThreadLocalRandom8>() {
+            protected ThreadLocalRandom8 initialValue() {
+                return new ThreadLocalRandom8();
+            }
+        };
+
+
+    /**
+     * Constructor called only by localRandom.initialValue.
+     */
+    ThreadLocalRandom8() {
+        super();
+        initialized = true;
     }
 
     /**
@@ -149,9 +91,7 @@ public class ThreadLocalRandom8 extends Random {
      * @return the current thread's {@code ThreadLocalRandom}
      */
     public static ThreadLocalRandom8 current() {
-        if (UNSAFE.getInt(Thread.currentThread(), PROBE) == 0)
-            localInit();
-        return instance;
+        return localRandom.get();
     }
 
     /**
@@ -161,18 +101,14 @@ public class ThreadLocalRandom8 extends Random {
      * @throws UnsupportedOperationException always
      */
     public void setSeed(long seed) {
-        // only allow call from super() constructor
         if (initialized)
             throw new UnsupportedOperationException();
+        rnd = (seed ^ multiplier) & mask;
     }
 
     protected int next(int bits) {
-        Thread t; long r; // read and update per-thread seed
-        UNSAFE.putLong
-            (t = Thread.currentThread(), SEED,
-             r = (UNSAFE.getLong(t, SEED) * multiplier + addend) & mask);
-
-        return (int)(r >>> (48 - bits));
+        rnd = (rnd * multiplier + addend) & mask;
+        return (int) (rnd >>> (48-bits));
     }
 
     /**
@@ -183,7 +119,7 @@ public class ThreadLocalRandom8 extends Random {
      * @param bound the upper bound (exclusive)
      * @return the next value
      * @throws IllegalArgumentException if least greater than or equal
-     *                                  to bound
+     * to bound
      */
     public int nextInt(int least, int bound) {
         if (least >= bound)
@@ -196,7 +132,7 @@ public class ThreadLocalRandom8 extends Random {
      * between 0 (inclusive) and the specified value (exclusive).
      *
      * @param n the bound on the random number to be returned.  Must be
-     *          positive.
+     *        positive.
      * @return the next value
      * @throws IllegalArgumentException if n is not positive
      */
@@ -217,7 +153,7 @@ public class ThreadLocalRandom8 extends Random {
                 offset += n - nextn;
             n = nextn;
         }
-        return offset + nextInt((int)n);
+        return offset + nextInt((int) n);
     }
 
     /**
@@ -228,7 +164,7 @@ public class ThreadLocalRandom8 extends Random {
      * @param bound the upper bound (exclusive)
      * @return the next value
      * @throws IllegalArgumentException if least greater than or equal
-     *                                  to bound
+     * to bound
      */
     public long nextLong(long least, long bound) {
         if (least >= bound)
@@ -241,12 +177,12 @@ public class ThreadLocalRandom8 extends Random {
      * between 0 (inclusive) and the specified value (exclusive).
      *
      * @param n the bound on the random number to be returned.  Must be
-     *          positive.
+     *        positive.
      * @return the next value
      * @throws IllegalArgumentException if n is not positive
      */
     public double nextDouble(double n) {
-        if (n <= 0)
+        if (!(n > 0))
             throw new IllegalArgumentException("n must be positive");
         return nextDouble() * n;
     }
@@ -259,7 +195,7 @@ public class ThreadLocalRandom8 extends Random {
      * @param bound the upper bound (exclusive)
      * @return the next value
      * @throws IllegalArgumentException if least greater than or equal
-     *                                  to bound
+     * to bound
      */
     public double nextDouble(double least, double bound) {
         if (least >= bound)
@@ -267,169 +203,5 @@ public class ThreadLocalRandom8 extends Random {
         return nextDouble() * (bound - least) + least;
     }
 
-    public double nextGaussian() {
-        // Use nextLocalGaussian instead of nextGaussian field
-        Double d = nextLocalGaussian.get();
-        if (d != null) {
-            nextLocalGaussian.set(null);
-            return d.doubleValue();
-        }
-        double v1, v2, s;
-        do {
-            v1 = 2 * nextDouble() - 1; // between -1 and 1
-            v2 = 2 * nextDouble() - 1; // between -1 and 1
-            s = v1 * v1 + v2 * v2;
-        } while (s >= 1 || s == 0);
-        double multiplier = StrictMath.sqrt(-2 * StrictMath.log(s) / s);
-        nextLocalGaussian.set(new Double(v2 * multiplier));
-        return v1 * multiplier;
-    }
-
-    // Within-package utilities
-
-    /*
-     * Descriptions of the usages of the methods below can be found in
-     * the classes that use them. Briefly, a thread's "probe" value is
-     * a non-zero hash code that (probably) does not collide with
-     * other existing threads with respect to any power of two
-     * collision space. When it does collide, it is pseudo-randomly
-     * adjusted (using a Marsaglia XorShift). The nextSecondarySeed
-     * method is used in the same contexts as ThreadLocalRandom, but
-     * only for transient usages such as random adaptive spin/block
-     * sequences for which a cheap RNG suffices and for which it could
-     * in principle disrupt user-visible statistical properties of the
-     * main ThreadLocalRandom if we were to use it.
-     *
-     * Note: Because of package-protection issues, versions of some
-     * these methods also appear in some subpackage classes.
-     */
-
-    /**
-     * Returns the probe value for the current thread without forcing
-     * initialization. Note that invoking ThreadLocalRandom.current()
-     * can be used to force initialization on zero return.
-     */
-    static final int getProbe() {
-        return UNSAFE.getInt(Thread.currentThread(), PROBE);
-    }
-
-    /**
-     * Pseudo-randomly advances and records the given probe value for the
-     * given thread.
-     */
-    static final int advanceProbe(int probe) {
-        probe ^= probe << 13;   // xorshift
-        probe ^= probe >>> 17;
-        probe ^= probe << 5;
-        UNSAFE.putInt(Thread.currentThread(), PROBE, probe);
-        return probe;
-    }
-
-    /**
-     * Returns the pseudo-randomly initialized or updated secondary seed.
-     */
-    static final int nextSecondarySeed() {
-        int r;
-        Thread t = Thread.currentThread();
-        if ((r = UNSAFE.getInt(t, SECONDARY)) != 0) {
-            r ^= r << 13;   // xorshift
-            r ^= r >>> 17;
-            r ^= r << 5;
-        } else {
-            localInit();
-            if ((r = (int)UNSAFE.getLong(t, SEED)) == 0)
-                r = 1; // avoid zero
-        }
-        UNSAFE.putInt(t, SECONDARY, r);
-        return r;
-    }
-
-    // Serialization support
-
     private static final long serialVersionUID = -5851777807851030925L;
-
-    /**
-     * @serialField rnd long
-     * seed for random computations
-     * @serialField initialized boolean
-     * always true
-     */
-    private static final ObjectStreamField[] serialPersistentFields = {
-        new ObjectStreamField("rnd", long.class),
-        new ObjectStreamField("initialized",
-                              boolean.class),
-    };
-
-    /**
-     * Saves the {@code ThreadLocalRandom} to a stream (that is, serializes it).
-     *
-     * @param s the stream
-     * @throws java.io.IOException if an I/O error occurs
-     */
-    private void writeObject(java.io.ObjectOutputStream s)
-        throws java.io.IOException {
-
-        java.io.ObjectOutputStream.PutField fields = s.putFields();
-        fields.put("rnd", UNSAFE.getLong(Thread.currentThread(), SEED));
-        fields.put("initialized", true);
-        s.writeFields();
-    }
-
-    /**
-     * Returns the {@link #current() current} thread's {@code ThreadLocalRandom}.
-     *
-     * @return the {@link #current() current} thread's {@code ThreadLocalRandom}
-     */
-    private Object readResolve() {
-        return current();
-    }
-
-    // Unsafe mechanics
-    private static final sun.misc.Unsafe UNSAFE;
-    private static final long SEED;
-    private static final long PROBE;
-    private static final long SECONDARY;
-
-    static {
-        try {
-            UNSAFE = getUnsafe();
-            Class<?> tk = Thread.class;
-            SEED = UNSAFE.objectFieldOffset
-                (tk.getDeclaredField("threadLocalRandomSeed"));
-            PROBE = UNSAFE.objectFieldOffset
-                (tk.getDeclaredField("threadLocalRandomProbe"));
-            SECONDARY = UNSAFE.objectFieldOffset
-                (tk.getDeclaredField("threadLocalRandomSecondarySeed"));
-        } catch (Exception e) {
-            throw new Error(e);
-        }
-    }
-
-    /**
-     * Returns a sun.misc.Unsafe.  Suitable for use in a 3rd party package.
-     * Replace with a simple call to Unsafe.getUnsafe when integrating
-     * into a jdk.
-     *
-     * @return a sun.misc.Unsafe
-     */
-    private static sun.misc.Unsafe getUnsafe() {
-        try {
-            return sun.misc.Unsafe.getUnsafe();
-        } catch (SecurityException se) {
-            try {
-                return java.security.AccessController.doPrivileged
-                    (new java.security
-                        .PrivilegedExceptionAction<sun.misc.Unsafe>() {
-                        public sun.misc.Unsafe run() throws Exception {
-                            java.lang.reflect.Field f = sun.misc
-                                .Unsafe.class.getDeclaredField("theUnsafe");
-                            f.setAccessible(true);
-                            return (sun.misc.Unsafe) f.get(null);
-                        }});
-            } catch (java.security.PrivilegedActionException e) {
-                throw new RuntimeException("Could not initialize intrinsics",
-                                           e.getCause());
-            }
-        }
-    }
 }

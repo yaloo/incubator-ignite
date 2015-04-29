@@ -709,6 +709,8 @@ public class GridCacheProcessor extends GridProcessorAdapter {
             }
         }
 
+        Collection<GridCacheAdapter> startCaches = new ArrayList<>(initCaches.size());
+
         // Start dynamic caches received from collect discovery data.
         for (DynamicCacheDescriptor desc : initCaches) {
             boolean started = desc.onStart();
@@ -743,6 +745,8 @@ public class GridCacheProcessor extends GridProcessorAdapter {
                 startCache(cache);
 
                 jCacheProxies.put(maskNull(name), new IgniteCacheProxy(ctx, cache, null, false));
+
+                startCaches.add(cache);
             }
         }
 
@@ -758,9 +762,7 @@ public class GridCacheProcessor extends GridProcessorAdapter {
         for (GridCacheSharedManager<?, ?> mgr : sharedCtx.managers())
             mgr.onKernalStart();
 
-        for (Map.Entry<String, GridCacheAdapter<?, ?>> e : caches.entrySet()) {
-            GridCacheAdapter cache = e.getValue();
-
+        for (GridCacheAdapter cache : startCaches) {
             if (maxRebalanceOrder > 0) {
                 CacheConfiguration cfg = cache.configuration();
 
@@ -784,11 +786,11 @@ public class GridCacheProcessor extends GridProcessorAdapter {
         for (IgniteInternalFuture<?> fut : preloadFuts.values())
             ((GridCompoundFuture<Object, Object>)fut).markInitialized();
 
-        for (GridCacheAdapter<?, ?> cache : caches.values())
+        for (GridCacheAdapter<?, ?> cache : startCaches)
             onKernalStart(cache);
 
         // Wait for caches in SYNC preload mode.
-        for (GridCacheAdapter<?, ?> cache : caches.values()) {
+        for (GridCacheAdapter<?, ?> cache : startCaches) {
             CacheConfiguration cfg = cache.configuration();
 
             if (cfg.getRebalanceMode() == SYNC) {

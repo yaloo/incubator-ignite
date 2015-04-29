@@ -28,7 +28,7 @@ import static org.apache.ignite.cache.CacheMode.*;
 public class GridCacheReplicatedFailoverSelfTest extends GridCacheAbstractFailoverTxSelfTest {
     /** {@inheritDoc} */
     @Override protected void beforeTest() throws Exception {
-        fail("https://issues.apache.org/jira/browse/IGNITE-631");
+        fail("https://issues.apache.org/jira/browse/IGNITE-631 or IGNITE-157");
     }
 
     /** {@inheritDoc} */

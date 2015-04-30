@@ -609,7 +609,7 @@ public abstract class GridSwapSpaceSpiAbstractSelfTest extends GridCommonAbstrac
     /**
      * Key.
      */
-    private static class Key {
+    private static class Key implements Serializable {
         /** Index. */
         private final int i;
 

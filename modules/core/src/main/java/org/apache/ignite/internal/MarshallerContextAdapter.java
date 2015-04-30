@@ -80,6 +80,7 @@ public abstract class MarshallerContextAdapter implements MarshallerContext {
         }
     }
 
+
     /** {@inheritDoc} */
     @Override public boolean registerClass(int id, Class cls) throws IgniteCheckedException {
         boolean registered = true;

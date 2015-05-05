@@ -37,7 +37,7 @@ import static org.apache.ignite.cache.CacheMode.*;
 /**
  * Tests for cache data loading during simultaneous grids start.
  */
-public class GridCacheLoadingConcurrentGridStartTest extends GridCommonAbstractTest {
+public class CacheLoadingConcurrentGridStartSelfTest extends GridCommonAbstractTest {
     /** {@inheritDoc} */
     @Override protected void beforeTest() throws Exception {
         fail("https://issues.apache.org/jira/browse/IGNITE-500");

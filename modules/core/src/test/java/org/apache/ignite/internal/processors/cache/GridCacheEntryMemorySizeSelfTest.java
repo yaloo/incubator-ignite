@@ -91,6 +91,10 @@ public class GridCacheEntryMemorySizeSelfTest extends GridCommonAbstractTest {
                 @Override public Class getClass(int id, ClassLoader ldr) {
                     throw new UnsupportedOperationException();
                 }
+
+                @Override public void setIdMapper(MarshallerIdMapper idMapper) {
+                    throw new UnsupportedOperationException();
+                }
             });
 
             KEY_SIZE = U.toArray(marsh.marshal(1)).length;

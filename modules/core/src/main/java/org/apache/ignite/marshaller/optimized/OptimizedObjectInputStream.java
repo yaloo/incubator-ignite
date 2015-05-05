@@ -55,7 +55,7 @@ class OptimizedObjectInputStream extends ObjectInputStream {
     private MarshallerContext ctx;
 
     /** */
-    private OptimizedMarshallerIdMapper mapper;
+    private MarshallerIdMapper mapper;
 
     /** */
     private ClassLoader clsLdr;
@@ -92,7 +92,7 @@ class OptimizedObjectInputStream extends ObjectInputStream {
     void context(
         ConcurrentMap<Class, OptimizedClassDescriptor> clsMap,
         MarshallerContext ctx,
-        OptimizedMarshallerIdMapper mapper,
+        MarshallerIdMapper mapper,
         ClassLoader clsLdr)
     {
         this.clsMap = clsMap;

@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.marshaller.optimized;
+package org.apache.ignite.marshaller;
 
 /**
  * ID mapper.
  */
-public interface OptimizedMarshallerIdMapper {
+public interface MarshallerIdMapper {
     /**
      * Gets type ID for provided class name.
      * <p>

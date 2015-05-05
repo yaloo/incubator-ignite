@@ -178,7 +178,7 @@ class OptimizedMarshallerUtils {
         ConcurrentMap<Class, OptimizedClassDescriptor> clsMap,
         Class cls,
         MarshallerContext ctx,
-        OptimizedMarshallerIdMapper mapper)
+        MarshallerIdMapper mapper)
         throws IOException
     {
         OptimizedClassDescriptor desc = clsMap.get(cls);
@@ -213,7 +213,7 @@ class OptimizedMarshallerUtils {
      * @param mapper Mapper.
      * @return Type ID.
      */
-    private static int resolveTypeId(String clsName, OptimizedMarshallerIdMapper mapper) {
+    private static int resolveTypeId(String clsName, MarshallerIdMapper mapper) {
         int typeId;
 
         if (mapper != null) {
@@ -245,7 +245,7 @@ class OptimizedMarshallerUtils {
         int id,
         ClassLoader ldr,
         MarshallerContext ctx,
-        OptimizedMarshallerIdMapper mapper) throws IOException, ClassNotFoundException {
+        MarshallerIdMapper mapper) throws IOException, ClassNotFoundException {
         Class cls;
 
         try {

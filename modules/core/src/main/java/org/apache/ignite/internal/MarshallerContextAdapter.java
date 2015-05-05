@@ -40,10 +40,20 @@ public abstract class MarshallerContextAdapter implements MarshallerContext {
     /** */
     private final ConcurrentMap<Integer, String> map = new ConcurrentHashMap8<>();
 
+    /** */
+    private volatile MarshallerIdMapper idMapper = new ClassNamesDefaultIdMapper();
+
     /**
      * Initializes context.
      */
     public MarshallerContextAdapter() {
+        initMapping();
+    }
+
+    /**
+     * Initializes mapping
+     */
+    private void initMapping() {
         try {
             ClassLoader ldr = U.gridClassLoader();
 
@@ -66,6 +76,7 @@ public abstract class MarshallerContextAdapter implements MarshallerContext {
     private void processResource(URL url) throws IOException {
         try (InputStream in = url.openStream()) {
             BufferedReader rdr = new BufferedReader(new InputStreamReader(in));
+            MarshallerIdMapper idMapper0 = idMapper;
 
             String line;
 
@@ -75,7 +86,7 @@ public abstract class MarshallerContextAdapter implements MarshallerContext {
 
                 String clsName = line.trim();
 
-                map.put(clsName.hashCode(), clsName);
+                map.put(idMapper0.typeId(clsName), clsName);
             }
         }
     }
@@ -113,6 +124,14 @@ public abstract class MarshallerContextAdapter implements MarshallerContext {
         return U.forName(clsName, ldr);
     }
 
+    /** {@inheritDoc} */
+    @Override public void setIdMapper(MarshallerIdMapper idMapper) {
+        this.idMapper = idMapper;
+
+        map.clear();
+        initMapping();
+    }
+
     /**
      * Registers class name.
      *
@@ -131,4 +150,14 @@ public abstract class MarshallerContextAdapter implements MarshallerContext {
      * @throws IgniteCheckedException In case of error.
      */
     protected abstract String className(int id) throws IgniteCheckedException;
+
+    /**
+     * Default ID mapper.
+     */
+    private class ClassNamesDefaultIdMapper implements MarshallerIdMapper {
+
+        @Override public int typeId(String clsName) {
+            return clsName.hashCode();
+        }
+    }
 }

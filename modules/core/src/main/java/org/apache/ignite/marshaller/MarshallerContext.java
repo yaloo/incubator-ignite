@@ -43,4 +43,14 @@ public interface MarshallerContext {
      * @throws IgniteCheckedException In case of any other error.
      */
     public Class getClass(int id, ClassLoader ldr) throws ClassNotFoundException, IgniteCheckedException;
+
+    /**
+     * Sets class names ID mapper.
+     *
+     * If the method is called after {@link #registerClass(int, Class)} or {@link #getClass(int, ClassLoader)} it will
+     * lead to unpredictable behavior.
+     *
+     * @param idMapper ID mapper.
+     */
+    public void setIdMapper(MarshallerIdMapper idMapper);
 }

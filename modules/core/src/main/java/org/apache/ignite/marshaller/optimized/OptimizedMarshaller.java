@@ -91,7 +91,7 @@ public class OptimizedMarshaller extends AbstractMarshaller {
     private int initBufSize = DFLT_INIT_BUF_SIZE;
 
     /** ID mapper. */
-    private OptimizedMarshallerIdMapper mapper;
+    private MarshallerIdMapper mapper;
 
     /** Class descriptors by class. */
     private final ConcurrentMap<Class, OptimizedClassDescriptor> clsMap = new ConcurrentHashMap8<>();
@@ -142,7 +142,7 @@ public class OptimizedMarshaller extends AbstractMarshaller {
      *
      * @param mapper ID mapper.
      */
-    public void setIdMapper(OptimizedMarshallerIdMapper mapper) {
+    public void setIdMapper(MarshallerIdMapper mapper) {
         this.mapper = mapper;
     }
 

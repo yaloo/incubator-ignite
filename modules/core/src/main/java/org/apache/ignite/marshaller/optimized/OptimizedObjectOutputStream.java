@@ -59,7 +59,7 @@ class OptimizedObjectOutputStream extends ObjectOutputStream {
     private MarshallerContext ctx;
 
     /** */
-    private OptimizedMarshallerIdMapper mapper;
+    private MarshallerIdMapper mapper;
 
     /** */
     private boolean requireSer;
@@ -92,7 +92,7 @@ class OptimizedObjectOutputStream extends ObjectOutputStream {
      */
     void context(ConcurrentMap<Class, OptimizedClassDescriptor> clsMap,
         MarshallerContext ctx,
-        OptimizedMarshallerIdMapper mapper,
+        MarshallerIdMapper mapper,
         boolean requireSer) {
         this.clsMap = clsMap;
         this.ctx = ctx;

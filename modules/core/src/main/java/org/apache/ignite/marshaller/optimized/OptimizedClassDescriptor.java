@@ -48,7 +48,7 @@ class OptimizedClassDescriptor {
     private ConcurrentMap<Class, OptimizedClassDescriptor> clsMap;
 
     /** ID mapper. */
-    private final OptimizedMarshallerIdMapper mapper;
+    private final MarshallerIdMapper mapper;
 
     /** Class name. */
     private final String name;
@@ -122,7 +122,7 @@ class OptimizedClassDescriptor {
         int typeId,
         ConcurrentMap<Class, OptimizedClassDescriptor> clsMap,
         MarshallerContext ctx,
-        OptimizedMarshallerIdMapper mapper)
+        MarshallerIdMapper mapper)
         throws IOException {
         this.cls = cls;
         this.typeId = typeId;

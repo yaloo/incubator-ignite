@@ -38,7 +38,7 @@ import org.apache.ignite.internal.util.typedef.internal.*;
 import org.apache.ignite.internal.util.worker.*;
 import org.apache.ignite.lang.*;
 import org.apache.ignite.plugin.security.*;
-import org.apache.ignite.plugin.security.SecurityException;
+import org.apache.ignite.plugin.security.IgniteSecurityException;
 import org.jsr166.*;
 
 import java.lang.reflect.*;
@@ -179,7 +179,7 @@ public class GridRestProcessor extends GridProcessorAdapter {
 
                 authorize(req, subjCtx);
             }
-            catch (SecurityException e) {
+            catch (IgniteSecurityException e) {
                 assert subjCtx != null;
 
                 GridRestResponse res = new GridRestResponse(STATUS_SECURITY_CHECK_FAILED, e.getMessage());
@@ -517,9 +517,9 @@ public class GridRestProcessor extends GridProcessorAdapter {
     /**
      * @param req REST request.
      * @param sCtx Security context.
-     * @throws SecurityException If authorization failed.
+     * @throws IgniteSecurityException If authorization failed.
      */
-    private void authorize(GridRestRequest req, SecurityContext sCtx) throws SecurityException {
+    private void authorize(GridRestRequest req, SecurityContext sCtx) throws IgniteSecurityException {
         SecurityPermission perm = null;
         String name = null;
 

@@ -55,7 +55,7 @@ import org.apache.ignite.internal.util.typedef.internal.*;
 import org.apache.ignite.lang.*;
 import org.apache.ignite.marshaller.*;
 import org.apache.ignite.plugin.security.*;
-import org.apache.ignite.plugin.security.SecurityException;
+import org.apache.ignite.plugin.security.IgniteSecurityException;
 import org.jetbrains.annotations.*;
 
 import javax.cache.*;
@@ -671,9 +671,9 @@ public class GridCacheContext<K, V> implements Externalizable {
 
     /**
      * @param op Operation to check.
-     * @throws SecurityException If security check failed.
+     * @throws IgniteSecurityException If security check failed.
      */
-    public void checkSecurity(SecurityPermission op) throws SecurityException {
+    public void checkSecurity(SecurityPermission op) throws IgniteSecurityException {
         if (CU.isSystemCache(name()))
             return;
 

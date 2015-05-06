@@ -15,47 +15,43 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.plugin.security;
+package org.apache.ignite.marshaller;
 
 import org.apache.ignite.*;
 import org.jetbrains.annotations.*;
 
 /**
- * Common security exception for the grid.
+ * Exception indicating marshalling or unmarshalling error.
  */
-public class SecurityException extends IgniteException {
+public class MarshallerException extends IgniteException {
     /** */
     private static final long serialVersionUID = 0L;
 
     /**
-     * Constructs security grid exception with given message and cause.
+     * Creates marshaller's exception with error message.
      *
-     * @param msg Exception message.
-     * @param cause Exception cause.
+     * @param msg Error message.
      */
-    public SecurityException(
-        String msg,
-        @Nullable Throwable cause
-    ) {
-        super(msg, cause);
-    }
-
-    /**
-     * Creates new security grid exception given throwable as a cause and
-     * source of error message.
-     *
-     * @param cause Non-null throwable cause.
-     */
-    public SecurityException(Throwable cause) {
-        this(cause.getMessage(), cause);
-    }
-
-    /**
-     * Constructs security grid exception with given message.
-     *
-     * @param msg Exception message.
-     */
-    public SecurityException(String msg) {
+    public MarshallerException(String msg) {
         super(msg);
+    }
+
+    /**
+     * Creates marshaller's exception with {@link Throwable} as a cause.
+     *
+     * @param cause Cause.
+     */
+    public MarshallerException(Throwable cause) {
+        super(cause);
+    }
+
+    /**
+     * Creates marshaller's exception with error message and {@link Throwable} as a cause.
+     *
+     * @param msg Error message.
+     * @param cause Cause.
+     */
+    public MarshallerException(String msg, @Nullable Throwable cause) {
+        super(msg, cause);
     }
 }

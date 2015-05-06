@@ -21,7 +21,7 @@ import org.apache.ignite.*;
 import org.apache.ignite.cluster.*;
 import org.apache.ignite.internal.processors.*;
 import org.apache.ignite.plugin.security.*;
-import org.apache.ignite.plugin.security.SecurityException;
+import org.apache.ignite.plugin.security.IgniteSecurityException;
 import org.jetbrains.annotations.*;
 
 import java.util.*;
@@ -79,10 +79,10 @@ public interface GridSecurityProcessor extends GridProcessor {
      * @param name Cache name or task class name.
      * @param perm Permission to authorize.
      * @param securityCtx Optional security context.
-     * @throws SecurityException If security check failed.
+     * @throws IgniteSecurityException If security check failed.
      */
     public void authorize(String name, SecurityPermission perm, @Nullable SecurityContext securityCtx)
-        throws SecurityException;
+        throws IgniteSecurityException;
 
     /**
      * Callback invoked when subject session got expired.

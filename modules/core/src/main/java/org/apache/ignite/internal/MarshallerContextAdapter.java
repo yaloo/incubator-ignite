@@ -86,7 +86,13 @@ public abstract class MarshallerContextAdapter implements MarshallerContext {
 
                 String clsName = line.trim();
 
-                map.put(idMapper0.typeId(clsName), clsName);
+                int typeId = idMapper0.typeId(clsName);
+
+                String oldClsName;
+
+                if ((oldClsName = map.put(typeId, clsName)) != null)
+                    throw new MarshallerException("Duplicate type ID [id=" + typeId + ", clsName=" + clsName +
+                        ", oldClsName=" + oldClsName + ']');
             }
         }
     }

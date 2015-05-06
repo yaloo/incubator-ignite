@@ -302,7 +302,7 @@ final class GridUriDeploymentJarVerifier {
         byte[] buffer = new byte[BUF_SIZE];
 
         while (in.read(buffer, 0, buffer.length) != -1) {
-            // Just read the entry. Will throw a SecurityException if signature
+            // Just read the entry. Will throw a IgniteSecurityException if signature
             // or digest check fails. Since we instantiated JarFile with parameter
             // true, that tells it to verify that the files match the digests
             // and haven't been changed.

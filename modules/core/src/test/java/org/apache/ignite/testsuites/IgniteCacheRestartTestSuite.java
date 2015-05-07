@@ -36,9 +36,7 @@ public class IgniteCacheRestartTestSuite extends TestSuite {
 
         suite.addTestSuite(GridCachePartitionedTxSalvageSelfTest.class);
 
-        // TODO: Tests were enabled, bacause GG-7419 already fixed. Need to remove this todo.
         suite.addTestSuite(GridCachePartitionedNodeRestartTest.class);
-        // TODO: Tests were enabled, bacause GG-7419 already fixed. Need to remove this todo.
         suite.addTestSuite(GridCachePartitionedOptimisticTxNodeRestartTest.class);
         // TODO: Tests were enabled, bacause GG-1969 already fixed. Need to remove this todo.
         suite.addTestSuite(GridCacheReplicatedNodeRestartSelfTest.class);

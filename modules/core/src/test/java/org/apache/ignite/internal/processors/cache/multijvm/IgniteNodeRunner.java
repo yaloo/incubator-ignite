@@ -39,8 +39,8 @@ public class IgniteNodeRunner {
     public static final TcpDiscoveryIpFinder ipFinder = new TcpDiscoveryMulticastIpFinder();
 
     /** */
-    private static final String CACHE_CONFIGURATION_TMP_FILE = System.getProperty("java.io.tmpdir") +
-        File.separator + "cacheConfiguration.tmp";
+    public static final String CONFIGURATION_TMP_FILE = System.getProperty("java.io.tmpdir") +
+        File.separator + "igniteConfiguration.tmp";
 
     /**
      * Starts {@link Ignite} instance accorging to given arguments.
@@ -51,10 +51,18 @@ public class IgniteNodeRunner {
     public static void main(String[] args) throws Exception {
         try {
             X.println(GridJavaProcess.PID_MSG_PREFIX + U.jvmPid());
-
             X.println("Starting Ignite Node... Args" + Arrays.toString(args));
 
-            IgniteConfiguration cfg = configuration(args);
+            TcpDiscoverySpi disco = new TcpDiscoverySpi();
+            disco.setIpFinder(ipFinder);
+
+            Ignite tmpNode = Ignition.start(configuration("fake-grid", null));
+
+            X.println(">>>> tmpNode started");
+
+            IgniteConfiguration cfg = FileMarshaller.fromFile(tmpNode);
+
+            X.println(">>>> Cfg was gotten");
 
             Ignition.start(cfg);
         }
@@ -86,32 +94,27 @@ public class IgniteNodeRunner {
         final UUID nodeId = UUID.fromString(args[0]);
         final String gridName = args[1];
 
+        return configuration(gridName, nodeId);
+    }
+
+    /**
+     * @param gridName
+     * @param nodeId
+     * @return Ignite configuration.
+     * @throws Exception If failed.
+     */
+    private static IgniteConfiguration configuration(String gridName, UUID nodeId) throws Exception {
         // Configuration.
         IgniteConfiguration cfg = GridAbstractTest.getConfiguration0(gridName, new IgniteTestResources(),
             GridCachePartitionedMultiJvmFullApiSelfTest.class, false);
 
         TcpDiscoverySpi disco = new TcpDiscoverySpi();
-
-//        disco.setMaxMissedHeartbeats(Integer.MAX_VALUE);
-
         disco.setIpFinder(ipFinder);
-
-//        if (isDebug())
-//            disco.setAckTimeout(Integer.MAX_VALUE);
-
         cfg.setDiscoverySpi(disco);
 
-        cfg.setCacheConfiguration(cacheConfiguration());
-
         cfg.setMarshaller(new OptimizedMarshaller(false));
-////        ----------------
-////        if (offHeapValues())
-////            cfg.setSwapSpaceSpi(new GridTestSwapSpaceSpi());
-////        ----------------
-//        cfg.getTransactionConfiguration().setTxSerializableEnabled(true);
-//
-////        ---------------
-//        Special.
+
+//      Special.
         cfg.setLocalHost("127.0.0.1");
 
         cfg.setIncludeProperties();
@@ -128,7 +131,7 @@ public class IgniteNodeRunner {
      * @throws IOException If exception.
      */
     public static void storeToFile(CacheConfiguration cc) throws IOException {
-        File ccfgTmpFile = new File(CACHE_CONFIGURATION_TMP_FILE);
+        File ccfgTmpFile = new File(CONFIGURATION_TMP_FILE);
 
         // TODO: add file created check (and delete the file after tests).
         boolean created = ccfgTmpFile.createNewFile();
@@ -145,7 +148,7 @@ public class IgniteNodeRunner {
      * @throws Exception If exception.
      */
     private static CacheConfiguration cacheConfiguration() throws Exception {
-        File ccfgTmpFile = new File(CACHE_CONFIGURATION_TMP_FILE);
+        File ccfgTmpFile = new File(CONFIGURATION_TMP_FILE);
 
         try(ObjectInputStream in = new ObjectInputStream(new FileInputStream(ccfgTmpFile))) {
             return (CacheConfiguration)in.readObject();

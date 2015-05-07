@@ -17,24 +17,23 @@
 
 package org.apache.ignite.internal.processors.cache.multijvm;
 
-import org.apache.ignite.internal.processors.cache.distributed.near.*;
+import org.apache.ignite.*;
+import org.apache.ignite.configuration.*;
+
+import java.io.*;
 
 /**
- * Multy Jvm tests.
+ * TODO: Add class description.
  */
-public class GridCachePartitionedMultiJvmFullApiSelfTest extends GridCachePartitionedMultiNodeFullApiSelfTest {
-    /** {@inheritDoc} */
-    protected boolean isMultiJvm() {
-        return true;
+public class FileMarshaller {
+    public static void toFile(Ignite grid, Object cfg) throws FileNotFoundException, IgniteCheckedException {
+        grid.configuration().getMarshaller().marshal(cfg,
+            new BufferedOutputStream(new FileOutputStream(IgniteNodeRunner.CONFIGURATION_TMP_FILE)));
     }
 
-    @Override protected int gridCount() {
-        return 2;
-    }
-
-    @Override protected void beforeTest() throws Exception {
-        super.beforeTest();
-
-        IgniteExProcessProxy.killAll();
+    public static IgniteConfiguration fromFile(Ignite grid) throws FileNotFoundException, IgniteCheckedException {
+        return grid.configuration().getMarshaller().unmarshal(
+            new BufferedInputStream(new FileInputStream(IgniteNodeRunner.CONFIGURATION_TMP_FILE)),
+            null);
     }
 }

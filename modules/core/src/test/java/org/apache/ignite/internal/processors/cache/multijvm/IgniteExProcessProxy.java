@@ -71,6 +71,8 @@ public class IgniteExProcessProxy implements IgniteEx {
         this.locJvmGrid = locJvmGrid;
         this.log = log.getLogger("jvm-" + id);
 
+        FileMarshaller.toFile(locJvmGrid, cfg);
+
         IgniteNodeRunner.storeToFile(cfg.getCacheConfiguration()[0]);
 
         List<String> jvmArgs = U.jvmArgs();

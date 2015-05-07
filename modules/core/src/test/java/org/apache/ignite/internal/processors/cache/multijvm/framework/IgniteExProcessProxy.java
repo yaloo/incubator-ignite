@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.internal.processors.cache.multijvm;
+package org.apache.ignite.internal.processors.cache.multijvm.framework;
 
 import org.apache.ignite.*;
 import org.apache.ignite.cache.affinity.*;
@@ -71,7 +71,7 @@ public class IgniteExProcessProxy implements IgniteEx {
         this.locJvmGrid = locJvmGrid;
         this.log = log.getLogger("jvm-" + id);
 
-        IgniteNodeRunner.storeToFile(cfg.getCacheConfiguration()[0]);
+        IgniteNodeRunner.storeToFile(IgniteNodeRunner.IGNITE_CONFIGURATION_TMP_FILE, cfg);
 
         List<String> jvmArgs = U.jvmArgs();
 

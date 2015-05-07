@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.ignite.internal.processors.cache.multijvm;
+package org.apache.ignite.internal.processors.cache.multijvm.framework;
 
 import org.apache.ignite.*;
 import org.apache.ignite.configuration.*;
@@ -23,10 +23,9 @@ import org.apache.ignite.internal.util.*;
 import org.apache.ignite.internal.util.typedef.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 import org.apache.ignite.marshaller.optimized.*;
-import org.apache.ignite.spi.discovery.tcp.*;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.*;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.*;
-import org.apache.ignite.testframework.junits.*;
+import org.jetbrains.annotations.*;
 
 import java.io.*;
 import java.util.*;
@@ -39,8 +38,8 @@ public class IgniteNodeRunner {
     public static final TcpDiscoveryIpFinder ipFinder = new TcpDiscoveryMulticastIpFinder();
 
     /** */
-    private static final String CACHE_CONFIGURATION_TMP_FILE = System.getProperty("java.io.tmpdir") +
-        File.separator + "cacheConfiguration.tmp";
+    public static final String IGNITE_CONFIGURATION_TMP_FILE = System.getProperty("java.io.tmpdir") +
+        File.separator + "igniteConfiguration.tmp";
 
     /**
      * Starts {@link Ignite} instance accorging to given arguments.
@@ -54,7 +53,7 @@ public class IgniteNodeRunner {
 
             X.println("Starting Ignite Node... Args" + Arrays.toString(args));
 
-            IgniteConfiguration cfg = configuration(args);
+            IgniteConfiguration cfg = configuration(IGNITE_CONFIGURATION_TMP_FILE);
 
             Ignition.start(cfg);
         }
@@ -75,80 +74,57 @@ public class IgniteNodeRunner {
     }
 
     /**
-     * @param args Command line args.
+     * @param fileName File name of file with serialized configuration.
      * @return Ignite configuration.
      * @throws Exception If failed.
      */
-    private static IgniteConfiguration configuration(String[] args) throws Exception {
-        // Parse args.
-        assert args != null && args.length >= 1;
+    private static IgniteConfiguration configuration(String fileName) throws Exception {
+        try(ObjectInputStream in = new ObjectInputStream(new FileInputStream(new File(fileName)))) {
+            OptimizedMarshaller marshaller = new OptimizedMarshaller(false);
 
-        final UUID nodeId = UUID.fromString(args[0]);
-        final String gridName = args[1];
+            FileMarshallerContext ctx = FileMarshallerContext.fromFile(fileName + "_ctx");
 
-        // Configuration.
-        IgniteConfiguration cfg = GridAbstractTest.getConfiguration0(gridName, new IgniteTestResources(),
-            GridCachePartitionedMultiJvmFullApiSelfTest.class, false);
+            X.println("Map 2=" + ctx.getMap().toString());
 
-        TcpDiscoverySpi disco = new TcpDiscoverySpi();
+            marshaller.setContext(ctx);
 
-//        disco.setMaxMissedHeartbeats(Integer.MAX_VALUE);
+            IgniteConfiguration cfg = (IgniteConfiguration)marshaller.unmarshal(in, U.gridClassLoader());
 
-        disco.setIpFinder(ipFinder);
+            X.println(">>>>> Cfg=" + cfg);
 
-//        if (isDebug())
-//            disco.setAckTimeout(Integer.MAX_VALUE);
-
-        cfg.setDiscoverySpi(disco);
-
-        cfg.setCacheConfiguration(cacheConfiguration());
-
-        cfg.setMarshaller(new OptimizedMarshaller(false));
-////        ----------------
-////        if (offHeapValues())
-////            cfg.setSwapSpaceSpi(new GridTestSwapSpaceSpi());
-////        ----------------
-//        cfg.getTransactionConfiguration().setTxSerializableEnabled(true);
-//
-////        ---------------
-//        Special.
-        cfg.setLocalHost("127.0.0.1");
-
-        cfg.setIncludeProperties();
-
-        cfg.setNodeId(nodeId);
-
-        return cfg;
+            return cfg;
+        }
     }
 
     /**
-     * Stors given cache configuration to the file.
+     * Stors configuration to file.
      *
-     * @param cc Cache configuration.
-     * @throws IOException If exception.
+     * @param fileName File name to store.
+     * @param cfg Configuration.
      */
-    public static void storeToFile(CacheConfiguration cc) throws IOException {
-        File ccfgTmpFile = new File(CACHE_CONFIGURATION_TMP_FILE);
+    public static void storeToFile(final String fileName, IgniteConfiguration cfg) throws Exception {
+        File ccfgTmpFile = new File(fileName);
 
         // TODO: add file created check (and delete the file after tests).
         boolean created = ccfgTmpFile.createNewFile();
 
         try(ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(ccfgTmpFile))) {
-            out.writeObject(cc);
-        }
-    }
+            OptimizedMarshaller marshaller = new OptimizedMarshaller(false) {
+                @Override public void marshal(@Nullable Object obj, OutputStream out) throws IgniteCheckedException {
+                    try {
+                        super.marshal(obj, out);
 
-    /**
-     * Reads cache configuration from the file.
-     *
-     * @return Cache configuration.
-     * @throws Exception If exception.
-     */
-    private static CacheConfiguration cacheConfiguration() throws Exception {
-        File ccfgTmpFile = new File(CACHE_CONFIGURATION_TMP_FILE);
+                        ((FileMarshallerContext)ctx).storeToFile(fileName + "_ctx");
+                    }
+                    catch (IOException e) {
+                        throw new IgniteCheckedException(e);
+                    }
+                }
+            };
 
-        try(ObjectInputStream in = new ObjectInputStream(new FileInputStream(ccfgTmpFile))) {
-            return (CacheConfiguration)in.readObject();
+            marshaller.setContext(new FileMarshallerContext());
+
+            marshaller.marshal(cfg, out);
         }
     }
 }

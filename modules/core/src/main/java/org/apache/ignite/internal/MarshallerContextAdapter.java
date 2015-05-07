@@ -119,7 +119,8 @@ public abstract class MarshallerContextAdapter implements MarshallerContext {
         if (clsName == null) {
             clsName = className(id);
 
-            assert clsName != null : id;
+            if (clsName == null)
+                throw new ClassNotFoundException("Unknown type ID: " + id);
 
             String old = map.putIfAbsent(id, clsName);
 

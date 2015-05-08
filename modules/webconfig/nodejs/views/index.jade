@@ -1,0 +1,62 @@
+extends layout
+
+block content
+    div.wrapper
+        include includes/header
+        aside.main-sidebar
+            section.sidebar
+                ul.sidebar-menu
+                    li.header HEADER
+                    li.acitve
+                        a(href="/cluster") Cluster
+                    li.treeview
+                        a(href="#")
+                            span Caches
+                            i(class=['fa', 'fa-angle-right', 'pull-left'])
+                        ul.treeview-menu
+                            li
+                                a(href="/caches") Caches level 2
+                            li
+                                a(href="/caches") Caches level 2
+                    li
+                        a(href="/persistence") Persistence
+                    li
+                        a(href="/sql") SQL
+                    li
+                        a(href="/clients") Clients
+
+                        //li
+                        //    div.dropdown
+                        //        button(class=['btn', 'btn-default', 'dropdown-toggle'] type='button' data-toggle='dropdown' aria-expanded='true')
+                        //            span.caret
+                        //        ul.dropdown-menu(role='menu')
+                        //            li(role='presentation')
+                        //                a(role='menuitem' href='#') Action
+                        //            li(role='presentation')
+                        //                a(role='menuitem' href='#') Another action
+                            //
+                            //<div class="dropdown">
+                            //<button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
+                            //Dropdown
+                            //<span class="caret"></span>
+                            //</button>
+                            //<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu1">
+                            //<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Action</a></li>
+                            //<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Another action</a></li>
+                            //<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Something else here</a></li>
+                            //<li role="presentation"><a role="menuitem" tabindex="-1" href="#">Separated link</a></li>
+                            //</ul>
+                            //</div>
+                //aside.col-md-3
+                //    div.list-group
+                //        a.list-group-item(href='#')
+                //            h4.list-group-item-heading List group item heading
+                //            p.list-group-item-text  Text list group item heading
+                //        a.list-group-item(href='#')
+                //            h4.list-group-item-heading List group item heading 2
+                //            p.list-group-item-text  Text list group item heading 2
+                //        a.list-group-item(href='#')
+                //            h4.list-group-item-heading List group item heading 2
+                //            p.list-group-item-text  Text list group item heading 2
+                //section.col-md-9
+        include includes/footer

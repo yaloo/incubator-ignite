@@ -1,0 +1,27 @@
+doctype html
+html(ng-app='ignite-web-configurator')
+    head
+        title= title
+        //add bootstrap dependencies from CDNjs. Using a CDN to distribute these files puts less pressure
+        //on our web server and will be delivered faster to the client than our own server.
+
+
+        link(rel='stylesheet', href='//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/css/bootstrap.css')
+        //link(rel='stylesheet', href='//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/css/bootstrap-theme.css')
+
+        // Font Awesome Icons
+        link(rel='stylesheet', href='//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css')
+
+        link(rel='stylesheet', href='/stylesheets/AdminLTE.css')
+        link(rel='stylesheet', href='/stylesheets/_all-skins.css')
+
+        script(src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.js')
+        script(src='//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/js/bootstrap.js')
+        script(src='/javascripts/AdminLTE.js')
+
+        link(rel='stylesheet', href='/stylesheets/style.css')
+
+        block head
+
+    body.skin-blue
+        block content

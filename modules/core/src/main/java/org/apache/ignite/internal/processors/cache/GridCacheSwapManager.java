@@ -554,11 +554,8 @@ public class GridCacheSwapManager extends GridCacheManagerAdapter {
 
                 GridCacheQueryManager qryMgr = cctx.queries();
 
-                if (qryMgr != null) {
-                    qryMgr.onUnswap(key.value(cctx.cacheObjectContext(), false),
-                            entry.value().value(cctx.cacheObjectContext(), false),
-                            entry.valueBytes());
-                }
+                if (qryMgr != null)
+                    qryMgr.onUnswap(key, entry.value());
 
                 return entry;
             }
@@ -622,11 +619,8 @@ public class GridCacheSwapManager extends GridCacheManagerAdapter {
 
                         GridCacheQueryManager qryMgr = cctx.queries();
 
-                        if (qryMgr != null) {
-                            qryMgr.onUnswap(key.value(cctx.cacheObjectContext(), false),
-                                v.value(cctx.cacheObjectContext(), false),
-                                valBytes);
-                        }
+                        if (qryMgr != null)
+                            qryMgr.onUnswap(key, v);
                     }
                     catch (IgniteCheckedException e) {
                         err.set(e);
@@ -761,9 +755,7 @@ public class GridCacheSwapManager extends GridCacheManagerAdapter {
                                 EVT_CACHE_OBJECT_FROM_OFFHEAP, null, false, null, true, null, null, null);
 
                         if (qryMgr != null)
-                            qryMgr.onUnswap(key.value(cctx.cacheObjectContext(), false),
-                                    entry.value().value(cctx.cacheObjectContext(), false),
-                                    entry.valueBytes());
+                            qryMgr.onUnswap(key, entry.value());
 
                         GridCacheBatchSwapEntry unswapped = new GridCacheBatchSwapEntry(key,
                             part,
@@ -862,11 +854,8 @@ public class GridCacheSwapManager extends GridCacheManagerAdapter {
                             // Always fire this event, since preloading depends on it.
                             onUnswapped(swapKey.partition(), key, entry);
 
-                            if (qryMgr != null) {
-                                qryMgr.onUnswap(key.value(cctx.cacheObjectContext(), false),
-                                        entry.value().value(cctx.cacheObjectContext(), false),
-                                        entry.valueBytes());
-                            }
+                            if (qryMgr != null)
+                                qryMgr.onUnswap(key, entry.value());
                         }
                         catch (IgniteCheckedException e) {
                             err.set(e);
@@ -944,9 +933,7 @@ public class GridCacheSwapManager extends GridCacheManagerAdapter {
                     if (entry == null)
                         return;
 
-                    qryMgr.onUnswap(key.value(cctx.cacheObjectContext(), false),
-                            entry.value().value(cctx.cacheObjectContext(), false),
-                            entry.valueBytes());
+                    qryMgr.onUnswap(key, entry.value());
                 }
                 catch (IgniteCheckedException e) {
                     throw new IgniteException(e);
@@ -1033,7 +1020,7 @@ public class GridCacheSwapManager extends GridCacheManagerAdapter {
         GridCacheQueryManager qryMgr = cctx.queries();
 
         if (qryMgr != null)
-            qryMgr.onSwap(spaceName, key.value(cctx.cacheObjectContext(), false));
+            qryMgr.onSwap(key);
     }
 
     /**
@@ -1062,7 +1049,7 @@ public class GridCacheSwapManager extends GridCacheManagerAdapter {
                         (IgniteUuid)null, null, EVT_CACHE_OBJECT_TO_OFFHEAP, null, false, null, true, null, null, null);
 
                 if (qryMgr != null)
-                    qryMgr.onSwap(spaceName, swapEntry.key().value(cctx.cacheObjectContext(), false));
+                    qryMgr.onSwap(swapEntry.key());
             }
         }
         else {
@@ -1084,7 +1071,7 @@ public class GridCacheSwapManager extends GridCacheManagerAdapter {
                         (IgniteUuid)null, null, EVT_CACHE_OBJECT_SWAPPED, null, false, null, true, null, null, null);
 
                     if (qryMgr != null)
-                        qryMgr.onSwap(spaceName, batchSwapEntry.key().value(cctx.cacheObjectContext(), false));
+                        qryMgr.onSwap(batchSwapEntry.key());
                 }
             }
         }

@@ -224,7 +224,7 @@ public class IgniteCacheTestSuite extends TestSuite {
         suite.addTest(new TestSuite(GridCacheDhtPreloadUnloadSelfTest.class));
         suite.addTest(new TestSuite(GridCachePartitionedAffinityFilterSelfTest.class));
         suite.addTest(new TestSuite(GridCachePartitionedPreloadLifecycleSelfTest.class));
-//        suite.addTest(new TestSuite(GridCacheLoadingConcurrentGridStartTest.class));  TODO-ignite-500
+        suite.addTest(new TestSuite(CacheLoadingConcurrentGridStartSelfTest.class));
         suite.addTest(new TestSuite(GridCacheDhtPreloadDelayedSelfTest.class));
         suite.addTest(new TestSuite(GridPartitionedBackupLoadSelfTest.class));
         suite.addTest(new TestSuite(GridCachePartitionedLoadCacheSelfTest.class));
@@ -352,9 +352,6 @@ public class IgniteCacheTestSuite extends TestSuite {
 
         // Iterators.
         suite.addTest(IgniteCacheIteratorsSelfTestSuite.suite());
-
-        // Add tx recovery test suite.
-        suite.addTest(IgniteCacheTxRecoverySelfTestSuite.suite());
 
         // Cache interceptor tests.
         suite.addTest(IgniteCacheInterceptorSelfTestSuite.suite());

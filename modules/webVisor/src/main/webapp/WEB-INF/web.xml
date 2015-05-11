@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.4"
+         xmlns="http://java.sun.com/xml/ns/j2ee">
+    <welcome-file-list>
+        <welcome-file>nodeInfo.jsp</welcome-file>
+    </welcome-file-list>
+
+    <filter>
+        <filter-name>sitemesh</filter-name>
+        <filter-class>org.sitemesh.config.ConfigurableSiteMeshFilter</filter-class>
+    </filter>
+
+    <filter>
+        <filter-name>nodeSwitch</filter-name>
+        <filter-class>org.apache.ignite.webVisor.NodeSwitchFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>sitemesh</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter-mapping>
+        <filter-name>nodeSwitch</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    
+</web-app>

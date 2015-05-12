@@ -92,8 +92,8 @@ public class GridCacheEntryMemorySizeSelfTest extends GridCommonAbstractTest {
                     throw new UnsupportedOperationException();
                 }
 
-                @Override public void setIdMapper(MarshallerIdMapper idMapper) {
-                    throw new UnsupportedOperationException();
+                @Override public boolean isSystemType(String typeName) {
+                    return false;
                 }
             });
 

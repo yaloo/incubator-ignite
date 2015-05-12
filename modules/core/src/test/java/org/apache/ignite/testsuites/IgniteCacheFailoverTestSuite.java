@@ -36,10 +36,10 @@ public class IgniteCacheFailoverTestSuite extends TestSuite {
     public static TestSuite suite() throws Exception {
         TestSuite suite = new TestSuite("Cache Failover Test Suite");
 
-        suite.addTestSuite(GridCacheAtomicInvalidPartitionHandlingSelfTest.class);
+        //suite.addTestSuite(GridCacheAtomicInvalidPartitionHandlingSelfTest.class);
 
         suite.addTestSuite(GridCacheIncrementTransformTest.class);
-
+/*
         // Failure consistency tests.
         suite.addTestSuite(GridCacheAtomicRemoveFailureTest.class);
         suite.addTestSuite(GridCacheAtomicPrimaryWriteOrderRemoveFailureTest.class);
@@ -65,7 +65,7 @@ public class IgniteCacheFailoverTestSuite extends TestSuite {
 
         suite.addTestSuite(IgniteCacheTxNearDisabledPutGetRestartTest.class);
         suite.addTestSuite(IgniteCacheTxNearDisabledFairAffinityPutGetRestartTest.class);
-
+*/
         return suite;
     }
 }

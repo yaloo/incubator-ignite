@@ -45,12 +45,10 @@ public interface MarshallerContext {
     public Class getClass(int id, ClassLoader ldr) throws ClassNotFoundException, IgniteCheckedException;
 
     /**
-     * Sets class names ID mapper.
+     * Checks whether the given type is a system one - JDK class or Ignite class.
      *
-     * If the method is called after {@link #registerClass(int, Class)} or {@link #getClass(int, ClassLoader)} it will
-     * lead to unpredictable behavior.
-     *
-     * @param idMapper ID mapper.
+     * @param typeName Type name.
+     * @return {@code true} if the type is a system one, {@code false} otherwise.
      */
-    public void setIdMapper(MarshallerIdMapper idMapper);
+    public boolean isSystemType(String typeName);
 }

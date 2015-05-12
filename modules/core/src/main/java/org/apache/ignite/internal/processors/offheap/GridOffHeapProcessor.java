@@ -210,6 +210,7 @@ public class GridOffHeapProcessor extends GridProcessorAdapter {
             return null;
 
         // TODO: IGNITE-471 - Migrate to buffers.
+        // Create a subtask
         return marsh.unmarshal(ByteBuffer.wrap(valBytes), ldr == null ? U.gridClassLoader() : ldr);
     }
 

@@ -67,6 +67,7 @@ public class HadoopMarshallerFilter extends GridNioFilterAdapter {
 
         // Always unmarshal with system classloader.
         // TODO: IGNITE-471 - Is this correct?
+        // Check with tests, just wrap into ByteBuffer
         proceedMessageReceived(ses, marshaller.unmarshal((ByteBuffer)msg, null));
     }
 

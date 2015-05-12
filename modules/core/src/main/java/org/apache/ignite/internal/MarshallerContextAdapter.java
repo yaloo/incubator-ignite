@@ -41,19 +41,12 @@ public abstract class MarshallerContextAdapter implements MarshallerContext {
     private final ConcurrentMap<Integer, String> map = new ConcurrentHashMap8<>();
 
     /** */
-    private volatile MarshallerIdMapper idMapper = new ClassNamesDefaultIdMapper();
+    private final Set<String> registeredTypes = new HashSet<>();
 
     /**
      * Initializes context.
      */
     public MarshallerContextAdapter() {
-        initMapping();
-    }
-
-    /**
-     * Initializes mapping
-     */
-    private void initMapping() {
         try {
             ClassLoader ldr = U.gridClassLoader();
 
@@ -76,7 +69,6 @@ public abstract class MarshallerContextAdapter implements MarshallerContext {
     private void processResource(URL url) throws IOException {
         try (InputStream in = url.openStream()) {
             BufferedReader rdr = new BufferedReader(new InputStreamReader(in));
-            MarshallerIdMapper idMapper0 = idMapper;
 
             String line;
 
@@ -86,13 +78,15 @@ public abstract class MarshallerContextAdapter implements MarshallerContext {
 
                 String clsName = line.trim();
 
-                int typeId = idMapper0.typeId(clsName);
+                int typeId = clsName.hashCode();
 
                 String oldClsName;
 
                 if ((oldClsName = map.put(typeId, clsName)) != null)
                     throw new MarshallerException("Duplicate type ID [id=" + typeId + ", clsName=" + clsName +
                         ", oldClsName=" + oldClsName + ']');
+
+                registeredTypes.add(clsName);
             }
         }
     }
@@ -132,11 +126,8 @@ public abstract class MarshallerContextAdapter implements MarshallerContext {
     }
 
     /** {@inheritDoc} */
-    @Override public void setIdMapper(MarshallerIdMapper idMapper) {
-        this.idMapper = idMapper;
-
-        map.clear();
-        initMapping();
+    @Override public boolean isSystemType(String typeName) {
+        return registeredTypes.contains(typeName);
     }
 
     /**
@@ -157,14 +148,4 @@ public abstract class MarshallerContextAdapter implements MarshallerContext {
      * @throws IgniteCheckedException In case of error.
      */
     protected abstract String className(int id) throws IgniteCheckedException;
-
-    /**
-     * Default ID mapper.
-     */
-    private class ClassNamesDefaultIdMapper implements MarshallerIdMapper {
-
-        @Override public int typeId(String clsName) {
-            return clsName.hashCode();
-        }
-    }
 }

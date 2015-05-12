@@ -28,6 +28,8 @@ import org.apache.ignite.internal.processors.cache.context.*;
 import org.apache.ignite.internal.processors.cache.distributed.*;
 import org.apache.ignite.internal.processors.cache.distributed.dht.*;
 import org.apache.ignite.internal.processors.cache.distributed.near.*;
+import org.apache.ignite.internal.processors.cache.distributed.replicated.*;
+import org.apache.ignite.internal.processors.cache.local.*;
 import org.apache.ignite.internal.processors.datastreamer.*;
 
 /**
@@ -152,7 +154,7 @@ public class IgniteCacheTestSuite extends TestSuite {
         suite.addTestSuite(GridCacheLocalTxExceptionSelfTest.class);
         suite.addTestSuite(GridCacheNearTxExceptionSelfTest.class);
         suite.addTestSuite(GridCacheStopSelfTest.class);
-        
+
         return suite;
     }
 }

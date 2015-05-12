@@ -21,7 +21,6 @@ import junit.framework.*;
 import org.apache.ignite.internal.processors.cache.*;
 import org.apache.ignite.internal.processors.cache.distributed.*;
 import org.apache.ignite.internal.processors.cache.distributed.near.*;
-import org.apache.ignite.internal.processors.cache.distributed.replicated.*;
 
 /**
  * In-Memory Data Grid stability test suite on changing topology.
@@ -46,6 +45,7 @@ public class IgniteCacheRestartTestSuite extends TestSuite {
         suite.addTestSuite(IgniteCacheAtomicPutAllFailoverSelfTest.class);
         suite.addTestSuite(IgniteCachePutAllRestartTest.class);
         suite.addTestSuite(GridCachePutAllFailoverSelfTest.class);
+        suite.addTestSuite(CacheGetFromJobTest.class);
 
         return suite;
     }

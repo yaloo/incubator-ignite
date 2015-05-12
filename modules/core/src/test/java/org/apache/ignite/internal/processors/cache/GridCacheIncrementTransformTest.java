@@ -179,7 +179,6 @@ public class GridCacheIncrementTransformTest extends GridCommonAbstractTest {
 
             while (true) {
                 try {
-                    // TODO: IGNITE-471
                     cache.invoke("key", new Processor());
 
                     break;

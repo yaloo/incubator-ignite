@@ -66,9 +66,7 @@ public class HadoopMarshallerFilter extends GridNioFilterAdapter {
         assert msg instanceof byte[];
 
         // Always unmarshal with system classloader.
-        // TODO: IGNITE-471 - Is this correct?
-        // Check with tests, just wrap into ByteBuffer
-        proceedMessageReceived(ses, marshaller.unmarshal((ByteBuffer)msg, null));
+        proceedMessageReceived(ses, marshaller.unmarshal(ByteBuffer.wrap((byte[])msg), null));
     }
 
     /** {@inheritDoc} */

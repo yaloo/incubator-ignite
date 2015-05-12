@@ -153,7 +153,7 @@ public class OptimizedMarshaller extends AbstractMarshaller {
         OptimizedObjectOutputStream objOut = null;
 
         try {
-            // TODO: IGNITE-471 - Need adaptive initial size.
+            // TODO: https://issues.apache.org/jira/browse/IGNITE-893
             objOut = new OptimizedObjectOutputStream(new GridUnsafeDataOutput(initBufSize));
 
             objOut.context(clsMap, ctx, mapper, requireSer);
@@ -175,7 +175,7 @@ public class OptimizedMarshaller extends AbstractMarshaller {
         OptimizedObjectOutputStream objOut = null;
 
         try {
-            // TODO: IGNITE-471 - Need adaptive initial size.
+            // TODO: https://issues.apache.org/jira/browse/IGNITE-893
             objOut = new OptimizedObjectOutputStream(new GridUnsafeDataOutput(initBufSize));
 
             objOut.context(clsMap, ctx, mapper, requireSer);

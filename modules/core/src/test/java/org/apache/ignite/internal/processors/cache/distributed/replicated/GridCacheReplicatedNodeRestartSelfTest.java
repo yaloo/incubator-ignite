@@ -30,7 +30,7 @@ import static org.apache.ignite.cache.CacheWriteSynchronizationMode.*;
 public class GridCacheReplicatedNodeRestartSelfTest extends GridCacheAbstractNodeRestartSelfTest {
     /** {@inheritDoc} */
     @Override protected void beforeTest() throws Exception {
-        fail("TODO file ticket ionstead this message");
+        fail("https://issues.apache.org/jira/browse/IGNITE-874");
     }
 
     /** {@inheritDoc} */

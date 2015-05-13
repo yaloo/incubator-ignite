@@ -1620,7 +1620,7 @@ public class GridCacheSwapManager extends GridCacheManagerAdapter {
 
                     int part = cctx.affinity().partition(key);
 
-                    offheap.removex(spaceName, part, key, key.valueBytes(cctx.cacheObjectContext()));
+                    offheap.removex(spaceName, part, key, key.valueBytes(cctx.cacheObjectContext()).array());
                 }
 
                 @Override protected void onClose() throws IgniteCheckedException {

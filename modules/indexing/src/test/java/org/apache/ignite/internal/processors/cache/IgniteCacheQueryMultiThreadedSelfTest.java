@@ -85,6 +85,17 @@ public class IgniteCacheQueryMultiThreadedSelfTest extends GridCommonAbstractTes
 
         cfg.setSwapSpaceSpi(new FileSwapSpaceSpi());
 
+        cfg.setCacheConfiguration(cacheConfiguration());
+
+        GridQueryProcessor.idxCls = FakeIndexing.class;
+
+        return cfg;
+    }
+
+    /**
+     * @return Cache configuration.
+     */
+    protected CacheConfiguration cacheConfiguration() {
         CacheConfiguration<?,?> cacheCfg = defaultCacheConfiguration();
 
         cacheCfg.setCacheMode(PARTITIONED);
@@ -105,11 +116,7 @@ public class IgniteCacheQueryMultiThreadedSelfTest extends GridCommonAbstractTes
         if (offheapEnabled())
             cacheCfg.setOffHeapMaxMemory(evictsEnabled() ? 1000 : 0); // Small offheap for evictions.
 
-        cfg.setCacheConfiguration(cacheCfg);
-
-        GridQueryProcessor.idxCls = FakeIndexing.class;
-
-        return cfg;
+        return cacheCfg;
     }
 
     /**
@@ -234,6 +241,9 @@ public class IgniteCacheQueryMultiThreadedSelfTest extends GridCommonAbstractTes
         final IgniteCache<Integer, String> c = g.cache(null);
         final IgniteCache<Integer, Long> cl = g.cache(null);
 
+        if (c.getConfiguration(CacheConfiguration.class).getMemoryMode() == CacheMemoryMode.OFFHEAP_TIERED)
+            return;
+
         assertEquals(0, g.cache(null).localSize());
         assertEquals(0, c.query(new SqlQuery(String.class, "1 = 1")).getAll().size());
         assertEquals(0, cl.query(new SqlQuery(Long.class, "1 = 1")).getAll().size());
@@ -305,6 +315,9 @@ public class IgniteCacheQueryMultiThreadedSelfTest extends GridCommonAbstractTes
         // Put test values into cache.
         final IgniteCache<Integer, Long> c = g.cache(null);
         final IgniteCache<Integer, String> c1 = g.cache(null);
+
+        if (c.getConfiguration(CacheConfiguration.class).getMemoryMode() == CacheMemoryMode.OFFHEAP_TIERED)
+            return;
 
         assertEquals(0, g.cache(null).localSize());
         assertEquals(0, c1.query(new SqlQuery(String.class, "1 = 1")).getAll().size());
@@ -378,6 +391,9 @@ public class IgniteCacheQueryMultiThreadedSelfTest extends GridCommonAbstractTes
         // Put test values into cache.
         final IgniteCache<Integer, Object> c = g.cache(null);
 
+        if (c.getConfiguration(CacheConfiguration.class).getMemoryMode() == CacheMemoryMode.OFFHEAP_TIERED)
+            return;
+
         assertEquals(0, g.cache(null).size());
         assertEquals(0, c.query(new SqlQuery(Object.class, "1 = 1")).getAll().size());
 
@@ -448,6 +464,9 @@ public class IgniteCacheQueryMultiThreadedSelfTest extends GridCommonAbstractTes
 
         // Put test values into cache.
         final IgniteCache<Integer, TestValue> c = g.cache(null);
+
+        if (c.getConfiguration(CacheConfiguration.class).getMemoryMode() == CacheMemoryMode.OFFHEAP_TIERED)
+            return;
 
         assertEquals(0, g.cache(null).localSize());
         assertEquals(0, c.query(new SqlQuery(TestValue.class, "1 = 1")).getAll().size());

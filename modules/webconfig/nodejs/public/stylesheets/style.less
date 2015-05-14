@@ -1,31 +1,71 @@
 body {
-  padding: 60px;
+  //padding: 60px;
 
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  font-size: 18px;
+  //font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  //font-size: 18px;
 }
 
-.navbar-style {
-  background: rgba(54, 54, 54, 0.95);
-}
-
-.navbar-default .navbar-text {
-  color: white;
-}
-
-.navbar-default .navbar-nav > li > a {
-    color: white;
-
-    &:hover,
-    &:focus {
-      color: red;
-    }
-}
+//.navbar-style {
+//  background: rgba(54, 54, 54, 0.95);
+//}
+//
+//.navbar-default .navbar-text {
+//  color: white;
+//}
+//
+//.navbar-default .navbar-nav > li > a {
+//    color: white;
+//
+//    &:hover,
+//    &:focus {
+//      color: red;
+//    }
+//}
+//
 
 .navbar-default .navbar-brand, .navbar-default .navbar-brand:hover {
-  color: white;
   position: absolute;
   width: 100%;
   left: 0;
   text-align: center;
 }
+
+.modal-backdrop.am-fade {
+  opacity: .5;
+  transition: opacity .15s linear;
+  &.ng-enter {
+    opacity: 0;
+    &.ng-enter-active {
+      opacity: .5;
+    }
+  }
+  &.ng-leave {
+    opacity: .5;
+    &.ng-leave-active {
+      opacity: 0;
+    }
+  }
+}
+
+.modal.center .modal-dialog {
+  position: fixed;
+  top: 40%;
+  left: 50%;
+  min-width: 320px;
+  max-width: 630px;
+  width: 50%;
+  -webkit-transform: translateX(-50%) translateY(-50%);
+  transform: translateX(-50%) translateY(-50%);
+}
+
+.ng-table th.text-right {
+  text-align: right;
+}
+.ng-table th.text-left {
+  text-align: left;
+}
+
+.ng-table th.text-center {
+  text-align: center;
+}
+

@@ -1310,7 +1310,7 @@ public class TcpDiscoverySpi extends TcpDiscoverySpiAdapter implements TcpDiscov
                         Map<String, Object> attrs = new HashMap<>(locNode.attributes());
 
                         attrs.put(IgniteNodeAttributes.ATTR_SECURITY_SUBJECT,
-                            ignite.configuration().getMarshaller().marshal(subj));
+                            U.toArray(ignite.configuration().getMarshaller().marshal(subj)));
                         attrs.remove(IgniteNodeAttributes.ATTR_SECURITY_CREDENTIALS);
 
                         locNode.setAttributes(attrs);
@@ -3270,7 +3270,7 @@ public class TcpDiscoverySpi extends TcpDiscoverySpiAdapter implements TcpDiscov
                             Map<String, Object> attrs = new HashMap<>(node.getAttributes());
 
                             attrs.put(IgniteNodeAttributes.ATTR_SECURITY_SUBJECT,
-                                ignite.configuration().getMarshaller().marshal(subj));
+                                U.toArray(ignite.configuration().getMarshaller().marshal(subj)));
 
                             node.setAttributes(attrs);
                         }
@@ -3570,7 +3570,7 @@ public class TcpDiscoverySpi extends TcpDiscoverySpiAdapter implements TcpDiscov
                             SecurityContext subj = nodeAuth.authenticateNode(node, cred);
 
                             SecurityContext coordSubj = ignite.configuration().getMarshaller().unmarshal(
-                                node.<ByteBuffer>attribute(IgniteNodeAttributes.ATTR_SECURITY_SUBJECT),
+                                ByteBuffer.wrap(node.<byte[]>attribute(IgniteNodeAttributes.ATTR_SECURITY_SUBJECT)),
                                 U.gridClassLoader());
 
                             if (!permissionsEqual(coordSubj.subject().permissions(), subj.subject().permissions())) {

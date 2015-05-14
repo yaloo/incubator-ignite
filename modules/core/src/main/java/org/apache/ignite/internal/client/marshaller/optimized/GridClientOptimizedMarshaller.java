@@ -67,7 +67,7 @@ public class GridClientOptimizedMarshaller implements GridClientMarshaller {
                 throw new IOException("Message serialization of given type is not supported: " +
                     obj.getClass().getName());
 
-            return opMarsh.marshal(obj);
+            return opMarsh.marshal(obj, off);
         }
         catch (IgniteCheckedException e) {
             throw new IOException(e);

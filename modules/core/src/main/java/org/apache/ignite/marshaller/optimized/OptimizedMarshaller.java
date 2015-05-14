@@ -172,6 +172,18 @@ public class OptimizedMarshaller extends AbstractMarshaller {
 
     /** {@inheritDoc} */
     @Override public ByteBuffer marshal(@Nullable Object obj) throws IgniteCheckedException {
+        return marshal(obj, 0);
+    }
+
+    /**
+     * Marshals object to bytes.
+     *
+     * @param obj Object to marshal.
+     * @param offset Position where to start marshalling the object.
+     * @return Byte buffer.
+     * @throws IgniteCheckedException If marshalling failed.
+     */
+    public ByteBuffer marshal(@Nullable Object obj, int offset) throws IgniteCheckedException {
         OptimizedObjectOutputStream objOut = null;
 
         try {
@@ -182,7 +194,15 @@ public class OptimizedMarshaller extends AbstractMarshaller {
 
             objOut.writeObject(obj);
 
-            return ByteBuffer.wrap(objOut.out().internalArray(), 0, objOut.out().offset());
+            ByteBuffer buffer = ByteBuffer.allocate(objOut.out().offset() + offset);
+
+            buffer.position(offset);
+
+            buffer.put(objOut.out().internalArray(), 0, objOut.out().offset());
+
+            buffer.flip();
+
+            return buffer;
         }
         catch (IOException e) {
             throw new IgniteCheckedException("Failed to serialize object: " + obj, e);

@@ -1,0 +1,21 @@
+div(class=['modal', 'center'] tabindex='-1' role='dialog')
+   div.modal-dialog
+      div.modal-content
+         form(class=['form-horizontal'] ng-submit='submit()')
+            div.modal-header(ng-show='title')
+            div.modal-body
+               div.row
+                  div.form-group
+                     label(class=['col-sm-3', 'control-label']) Cluster name:
+                     div.col-sm-9
+                        input.form-control(type='text' ng-model='cluster.name')
+               div.row
+                  div.form-group
+                     label(class=['col-sm-3', 'control-label']) Discovery:
+                     div(class=['selectContainer', 'col-sm-9'])
+                        select.form-control(ng-model='cluster.discovery')
+                           option(ng-value='VM') VM
+                           option(ng-value='Multicast') Multicast
+            div.modal-footer
+               input(type='submit' class=['btn', 'btn-primary'] value='Save changes')
+               button(type="button" class=['btn', 'btn-default'] data-dismiss="modal" ng-click="$hide()") Close

@@ -6,12 +6,12 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var session = require('express-session')
 
-var routes = require('./routes/index');
+var pageRoutes = require('./routes/page');
 var users = require('./routes/users');
-var cluster = require('./routes/cluster');
+var clusterRouter = require('./routes/cluster');
 
-var passport = require('passport')
-var LocalStrategy = require('passport-local').Strategy;
+//var passport = require('passport')
+//var LocalStrategy = require('passport-local').Strategy;
 
 var app = express();
 
@@ -24,16 +24,16 @@ app.use(favicon(__dirname + '/public/favicon.ico'));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
-app.use(cookieParser());
+//app.use(cookieParser());
 app.use(require('less-middleware')(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(passport.initialize());
-app.use(passport.session());
+//app.use(passport.initialize());
+//app.use(passport.session());
 
-app.use('/', routes);
-app.use('/users', users);
-app.use('/rest', cluster);
+app.use('/', pageRoutes);
+//app.use('/users', users);
+app.use('/rest', clusterRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
@@ -66,27 +66,33 @@ app.use(function (err, req, res, next) {
     });
 });
 
-app.use(session({
-    secret: 'keyboard cat',
-    resave: false,
-    saveUninitialized: true
-}))
+//app.use(function(req, res, next) {
+//    res.header("Access-Control-Allow-Origin", "*");
+//    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+//    next();
+//});
 
-passport.use(new LocalStrategy(
-    function (username, password, done) {
-        User.findOne({username: username}, function (err, user) {
-            if (err) {
-                return done(err);
-            }
-            if (!user) {
-                return done(null, false, {message: 'Incorrect username.'});
-            }
-            if (!user.validPassword(password)) {
-                return done(null, false, {message: 'Incorrect password.'});
-            }
-            return done(null, user);
-        });
-    }
-));
+//app.use(session({
+//    secret: 'keyboard cat',
+//    resave: false,
+//    saveUninitialized: true
+//}))
+//
+//passport.use(new LocalStrategy(
+//    function (username, password, done) {
+//        User.findOne({username: username}, function (err, user) {
+//            if (err) {
+//                return done(err);
+//            }
+//            if (!user) {
+//                return done(null, false, {message: 'Incorrect username.'});
+//            }
+//            if (!user.validPassword(password)) {
+//                return done(null, false, {message: 'Incorrect password.'});
+//            }
+//            return done(null, user);
+//        });
+//    }
+//));
 
 module.exports = app;

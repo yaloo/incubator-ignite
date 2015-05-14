@@ -10,18 +10,52 @@ html(ng-app='ignite-web-configurator')
         //link(rel='stylesheet', href='//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/css/bootstrap-theme.css')
 
         // Font Awesome Icons
-        link(rel='stylesheet', href='//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css')
+        link(rel='stylesheet', href='//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.css')
 
         link(rel='stylesheet', href='/stylesheets/AdminLTE.css')
         link(rel='stylesheet', href='/stylesheets/_all-skins.css')
 
         script(src='//cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.js')
-        script(src='//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/js/bootstrap.js')
+        //script(src='//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.4/js/bootstrap.js')
+        //
+        //script(src='//ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular.js')
+        //script(src='//cdnjs.cloudflare.com/ajax/libs/angular-strap/2.1.2/angular-strap.min.js')
+        //script(src='//cdnjs.cloudflare.com/ajax/libs/angular-strap/2.1.2/angular-strap.tpl.min.js')
+
         script(src='/javascripts/AdminLTE.js')
 
         link(rel='stylesheet', href='/stylesheets/style.css')
 
         block head
-
-    body.skin-blue
-        block content
+    body.skin-red
+        div.wrapper
+            include includes/header
+            aside.main-sidebar
+                section.sidebar
+                    ul.sidebar-menu
+                        li.header MAIN NAVIGATION
+                        li.acitve
+                            a(href="/cluster") Cluster
+                        li.treeview
+                            a(href="#")
+                                span Caches
+                                i(class=['fa', 'fa-angle-right', 'pull-left'])
+                            ul.treeview-menu
+                                li
+                                    a(href="/caches") Caches level 2
+                                li
+                                    a(href="/caches") Caches level 2
+                        li
+                            a(href="/persistence") Persistence
+                        li
+                            a(href="/sql") SQL
+                        li
+                            a(href="/clients") Clients
+            div.content-wrapper
+                <!-- Content Header (Page header) -->
+                section.content-header
+                    block content-header
+                section.content
+                    block content
+            //include includes/footer
+        block body

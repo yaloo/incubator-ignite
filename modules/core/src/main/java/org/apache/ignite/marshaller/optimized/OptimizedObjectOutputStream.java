@@ -43,17 +43,10 @@ class OptimizedObjectOutputStream extends ObjectOutputStream {
     );
 
     /** */
-    private static final ThreadLocal<GridHandleTable> HANDLES_TC = new ThreadLocal<GridHandleTable>() {
-        @Override protected GridHandleTable initialValue() {
-            return new GridHandleTable(10, 3.00f);
-        }
-    };
+    private final GridHandleTable handles = new GridHandleTable(10, 3.00f);
 
     /** */
     private final GridDataOutput out;
-
-    /** */
-    private GridHandleTable handles;
 
     /** */
     private MarshallerContext ctx;
@@ -98,8 +91,6 @@ class OptimizedObjectOutputStream extends ObjectOutputStream {
         this.ctx = ctx;
         this.mapper = mapper;
         this.requireSer = requireSer;
-
-        handles = HANDLES_TC.get();
     }
 
     /**
@@ -757,7 +748,12 @@ class OptimizedObjectOutputStream extends ObjectOutputStream {
 
     /** {@inheritDoc} */
     @Override public void reset() throws IOException {
+        out.reset();
         handles.clear();
+
+        curObj = null;
+        curFields = null;
+        curPut = null;
     }
 
     /** {@inheritDoc} */

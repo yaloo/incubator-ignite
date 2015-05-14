@@ -42,14 +42,7 @@ class OptimizedObjectInputStream extends ObjectInputStream {
     private static final Object DUMMY = new Object();
 
     /** */
-    private static final ThreadLocal<HandleTable> HANDLES_TC = new ThreadLocal<HandleTable>() {
-        @Override protected HandleTable initialValue() {
-            return new HandleTable(10);
-        }
-    };
-
-    /** */
-    private HandleTable handles;
+    private final HandleTable handles = new HandleTable(10);
 
     /** */
     private MarshallerContext ctx;
@@ -99,8 +92,6 @@ class OptimizedObjectInputStream extends ObjectInputStream {
         this.ctx = ctx;
         this.mapper = mapper;
         this.clsLdr = clsLdr;
-
-        handles = HANDLES_TC.get();
     }
 
     /**
@@ -130,8 +121,10 @@ class OptimizedObjectInputStream extends ObjectInputStream {
     @SuppressWarnings("NonSynchronizedMethodOverridesSynchronizedMethod")
     @Override public void reset() throws IOException {
         in.reset();
-
         handles.clear();
+
+        curObj = null;
+        curFields = null;
     }
 
     /** {@inheritDoc} */

@@ -52,7 +52,7 @@ public class GridDiscoveryManagerAliveCacheSelfTest extends GridCommonAbstractTe
     private static final int TMP_NODES_CNT = 3;
 
     /** */
-    private static final int ITERATIONS = 20;
+    private static final int ITERATIONS = 15;
 
     /** */
     private int gridCntr;
@@ -73,6 +73,10 @@ public class GridDiscoveryManagerAliveCacheSelfTest extends GridCommonAbstractTe
             return true;
         }
     };
+
+    @Override protected long getTestTimeout() {
+        return 10 * 60 * 1000; //10 minutes
+    }
 
     /** {@inheritDoc} */
     @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {

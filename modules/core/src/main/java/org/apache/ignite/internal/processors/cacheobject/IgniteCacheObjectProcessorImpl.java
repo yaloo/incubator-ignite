@@ -28,12 +28,10 @@ import org.apache.ignite.internal.util.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 import org.apache.ignite.lang.*;
 import org.jetbrains.annotations.*;
-import org.jsr166.*;
 
 import java.math.*;
 import java.nio.*;
 import java.util.*;
-import java.util.concurrent.*;
 
 import static org.apache.ignite.cache.CacheMemoryMode.*;
 
@@ -46,9 +44,6 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
 
     /** Immutable classes. */
     private static final Collection<Class<?>> IMMUTABLE_CLS = new HashSet<>();
-
-    /** */
-    private final ConcurrentMap<String, CacheObjectContext> contexts = new ConcurrentHashMap8<>();
 
     /**
      *
@@ -195,27 +190,6 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
     @Override public CacheObjectContext contextForCache(CacheConfiguration ccfg) {
         assert ccfg != null;
 
-        String cacheName = U.maskName(ccfg.getName());
-
-        CacheObjectContext ctx = contexts.get(cacheName);
-
-        if (ctx == null) {
-            CacheObjectContext old = contexts.putIfAbsent(cacheName, ctx = createContext(ccfg));
-
-            if (old != null)
-                ctx = old;
-        }
-
-        return ctx;
-    }
-
-    /**
-     * @param ccfg Configuration.
-     * @return New cache context.
-     */
-    protected CacheObjectContext createContext(CacheConfiguration ccfg) {
-        assert ccfg != null;
-
         CacheMemoryMode memMode = ccfg.getMemoryMode();
 
         boolean storeVal = ctx.config().isPeerClassLoadingEnabled() ||
@@ -224,7 +198,7 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
 
         return new CacheObjectContext(ctx,
             ccfg.getAffinityMapper() != null ? ccfg.getAffinityMapper() : new GridCacheDefaultAffinityKeyMapper(),
-            ccfg.isCopyOnRead() && memMode == ONHEAP_TIERED,
+            ccfg.isCopyOnRead() && memMode != OFFHEAP_VALUES,
             storeVal);
     }
 

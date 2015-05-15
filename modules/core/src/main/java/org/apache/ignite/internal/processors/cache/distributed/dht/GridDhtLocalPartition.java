@@ -504,7 +504,7 @@ public class GridDhtLocalPartition implements Comparable<GridDhtLocalPartition> 
 
                     byte[] keyBytes = entry.getKey();
 
-                    KeyCacheObject key = cctx.bytesToCacheKeyObject(ByteBuffer.wrap(keyBytes));
+                    KeyCacheObject key = cctx.toCacheKeyObject(ByteBuffer.wrap(keyBytes));
 
                     cctx.swap().remove(key);
 

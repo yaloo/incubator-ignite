@@ -2313,7 +2313,7 @@ public abstract class GridCacheQueryManager<K, V> extends GridCacheManagerAdapte
                 if (key != null)
                     return key;
 
-                key = cctx.bytesToCacheKeyObject(keyBytes()).value(cctx.cacheObjectContext(), false);
+                key = cctx.toCacheKeyObject(keyBytes()).value(cctx.cacheObjectContext(), false);
 
                 return key;
             }

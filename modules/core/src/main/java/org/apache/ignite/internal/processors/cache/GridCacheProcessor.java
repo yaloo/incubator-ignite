@@ -2375,7 +2375,7 @@ public class GridCacheProcessor extends GridProcessorAdapter {
 
             if (qryMgr != null) {
                 try {
-                    KeyCacheObject key = cctx.bytesToCacheKeyObject(ByteBuffer.wrap(keyBytes));
+                    KeyCacheObject key = cctx.toCacheKeyObject(ByteBuffer.wrap(keyBytes));
 
                     GridCacheSwapEntry swapEntry = GridCacheSwapEntryImpl.unmarshal(valBytes);
 

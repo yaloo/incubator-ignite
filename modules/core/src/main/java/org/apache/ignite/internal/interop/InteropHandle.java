@@ -17,9 +17,23 @@
 
 package org.apache.ignite.internal.interop;
 
+import org.apache.ignite.*;
+
 /**
- * Interop processor.
+ * Interop handle passed to platform for further cooperation.
  */
-public interface InteropProcessor {
-    // No-op.
+public interface InteropHandle {
+    /**
+     * Get Ignite instance associated with this handle.
+     *
+     * @return Ignite instance.
+     */
+    public Ignite ignite();
+
+    /**
+     * Get environment pointer associated with this handle.
+     *
+     * @return Environment pointer.
+     */
+    public long environmentPointer();
 }

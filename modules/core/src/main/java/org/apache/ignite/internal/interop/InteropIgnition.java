@@ -43,7 +43,7 @@ public class InteropIgnition {
      * @param envPtr Environment pointer.
      * @return Ignite instance.
      */
-    public static InteropProcessor start(@Nullable String springCfgPath, @Nullable String gridName, int factoryId,
+    public static InteropHandle start(@Nullable String springCfgPath, @Nullable String gridName, int factoryId,
         long envPtr) {
         IgniteConfiguration cfg = configuration(springCfgPath);
 

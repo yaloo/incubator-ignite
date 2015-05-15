@@ -30,5 +30,5 @@ public interface InteropBootstrap {
      * @param envPtr Environment pointer.
      * @return Ignite node.
      */
-    public InteropProcessor start(IgniteConfiguration cfg, long envPtr);
+    public InteropHandle start(IgniteConfiguration cfg, long envPtr);
 }

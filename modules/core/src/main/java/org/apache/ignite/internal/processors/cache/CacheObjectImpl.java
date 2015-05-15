@@ -18,7 +18,6 @@
 package org.apache.ignite.internal.processors.cache;
 
 import org.apache.ignite.*;
-import org.apache.ignite.internal.util.typedef.internal.*;
 import org.jetbrains.annotations.*;
 
 import java.nio.*;
@@ -88,7 +87,7 @@ public class CacheObjectImpl extends CacheObjectAdapter {
         if (valBytes == null)
             valBytes = ctx.marshal(val);
 
-        return valBytes.duplicate();
+        return valBytes;
     }
 
     /** {@inheritDoc} */
@@ -128,11 +127,6 @@ public class CacheObjectImpl extends CacheObjectAdapter {
 
     /** {@inheritDoc} */
     @Override public CacheObject prepareForCache(CacheObjectContext ctx) {
-        ByteBuffer valBytes0 = U.trim(valBytes);
-
-        if (valBytes0 != valBytes)
-            return new CacheObjectImpl(val, valBytes0);
-        else
-            return this;
+        return this;
     }
 }

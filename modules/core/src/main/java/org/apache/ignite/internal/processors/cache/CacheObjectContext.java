@@ -109,34 +109,6 @@ public class CacheObjectContext {
     }
 
     /**
-     * @param obj Object.
-     * @return Bytes.
-     * @throws IgniteCheckedException In case of error.
-     */
-    public ByteBuffer marshal(Object obj) throws IgniteCheckedException {
-        return kernalCtx.config().getMarshaller().marshal(obj);
-    }
-
-    /**
-     * @param buf Bytes.
-     * @return Object.
-     * @throws IgniteCheckedException In case of error.
-     */
-    public <T> T unmarshal(ByteBuffer buf) throws IgniteCheckedException {
-        return kernalCtx.config().getMarshaller().unmarshal(buf, kernalCtx.config().getClassLoader());
-    }
-
-    /**
-     * @param buf Bytes.
-     * @param ldr Class loader.
-     * @return Object.
-     * @throws IgniteCheckedException In case of error.
-     */
-    public <T> T unmarshal(ByteBuffer buf, ClassLoader ldr) throws IgniteCheckedException {
-        return kernalCtx.config().getMarshaller().unmarshal(buf, ldr);
-    }
-
-    /**
      * Unwraps object.
      *
      * @param o Object to unwrap.

@@ -352,7 +352,7 @@ public class GridLuceneIndex implements Closeable {
             if (coctx == null) // For tests.
                 return (Z)Utils.deserialize(bytes, null);
 
-            return (Z)coctx.unmarshal(ByteBuffer.wrap(bytes), ldr);
+            return (Z)coctx.processor().unmarshal(coctx, ByteBuffer.wrap(bytes), ldr);
         }
 
         /**

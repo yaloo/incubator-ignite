@@ -84,6 +84,18 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
     }
 
     /** {@inheritDoc} */
+    @Override public ByteBuffer marshal(CacheObjectContext ctx, Object val) throws IgniteCheckedException {
+        return CU.marshal(ctx.kernalContext().cache().context(), val);
+    }
+
+    /** {@inheritDoc} */
+    @Override public Object unmarshal(CacheObjectContext ctx, ByteBuffer bytes, ClassLoader clsLdr)
+        throws IgniteCheckedException
+    {
+        return ctx.kernalContext().cache().context().marshaller().unmarshal(bytes, clsLdr);
+    }
+
+    /** {@inheritDoc} */
     @Override @Nullable public KeyCacheObject toCacheKeyObject(CacheObjectContext ctx, Object obj, boolean userObj) {
         if (obj instanceof KeyCacheObject)
             return (KeyCacheObject)obj;
@@ -125,8 +137,8 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
             ClassLoader ldr =
                 valClsLdrId != null ? ctx.deploy().getClassLoader(valClsLdrId) : ctx.deploy().localLoader();
 
-            return toCacheObject(ctx.cacheObjectContext(), ctx.marshaller().unmarshal(ByteBuffer.wrap(bytes), ldr),
-                false);
+            return toCacheObject(ctx.cacheObjectContext(), unmarshal(ctx.cacheObjectContext(),
+                ByteBuffer.wrap(bytes), ldr), false);
         }
         else
             return toCacheObject(ctx.cacheObjectContext(), type, ByteBuffer.wrap(bytes));
@@ -290,12 +302,12 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
             try {
                 if (!ctx.processor().immutable(val)) {
                     if (valBytes == null)
-                        valBytes = ctx.marshal(val);
+                        valBytes = ctx.processor().marshal(ctx, val);
 
                     ClassLoader ldr = ctx.p2pEnabled() ?
                         IgniteUtils.detectClassLoader(IgniteUtils.detectClass(this.val)) : U.gridClassLoader();
 
-                        Object val = ctx.unmarshal(valBytes, ldr);
+                     Object val = ctx.processor().unmarshal(ctx, valBytes, ldr);
 
                     return new KeyCacheObjectImpl(val, valBytes);
                 }
@@ -339,14 +351,14 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
         @Override public CacheObject prepareForCache(CacheObjectContext ctx) {
             try {
                 if (valBytes == null)
-                    valBytes = ctx.marshal(val);
+                    valBytes = ctx.processor().marshal(ctx, val);
 
                 if (ctx.storeValue()) {
                     ClassLoader ldr = ctx.p2pEnabled() ?
                         IgniteUtils.detectClass(this.val).getClassLoader() : val.getClass().getClassLoader();
 
                     Object val = this.val != null && ctx.processor().immutable(this.val) ? this.val :
-                        ctx.unmarshal(valBytes, ldr);
+                        ctx.processor().unmarshal(ctx, valBytes, ldr);
 
                     return new CacheObjectImpl(val, valBytes);
                 }

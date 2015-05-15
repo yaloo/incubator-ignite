@@ -57,10 +57,10 @@ public class CacheObjectImpl extends CacheObjectAdapter {
                 if (valBytes == null) {
                     assert val != null;
 
-                    valBytes = ctx.marshal(val);
+                    valBytes = ctx.processor().marshal(ctx, val);
                 }
 
-                return (T)ctx.unmarshal(valBytes,
+                return (T)ctx.processor().unmarshal(ctx, valBytes,
                     val == null ? ctx.kernalContext().config().getClassLoader() : val.getClass().getClassLoader());
             }
 
@@ -69,7 +69,7 @@ public class CacheObjectImpl extends CacheObjectAdapter {
 
             assert valBytes != null;
 
-            Object val = ctx.unmarshal(valBytes, ctx.kernalContext().config().getClassLoader());
+            Object val = ctx.processor().unmarshal(ctx, valBytes, ctx.kernalContext().config().getClassLoader());
 
             if (ctx.storeValue())
                 this.val = val;
@@ -85,7 +85,7 @@ public class CacheObjectImpl extends CacheObjectAdapter {
     /** {@inheritDoc} */
     @Override public ByteBuffer valueBytes(CacheObjectContext ctx) throws IgniteCheckedException {
         if (valBytes == null)
-            valBytes = ctx.marshal(val);
+            valBytes = ctx.processor().marshal(ctx, val);
 
         return valBytes;
     }
@@ -95,7 +95,7 @@ public class CacheObjectImpl extends CacheObjectAdapter {
         assert val != null || valBytes != null;
 
         if (valBytes == null)
-            valBytes = ctx.marshal(val);
+            valBytes = ctx.kernalContext().cacheObjects().marshal(ctx, val);
     }
 
     /** {@inheritDoc} */
@@ -103,7 +103,7 @@ public class CacheObjectImpl extends CacheObjectAdapter {
         assert val != null || valBytes != null;
 
         if (val == null && ctx.storeValue())
-            val = ctx.unmarshal(valBytes, ldr);
+            val = ctx.processor().unmarshal(ctx, valBytes, ldr);
     }
 
     /** {@inheritDoc} */

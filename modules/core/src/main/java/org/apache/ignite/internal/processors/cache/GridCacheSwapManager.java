@@ -1798,7 +1798,8 @@ public class GridCacheSwapManager extends GridCacheManagerAdapter {
                                     swapEntry.value() == null &&
                                     swapEntry.type() != CacheObject.TYPE_BYTE_ARR) {
                                     // We need value here only for classloading purposes.
-                                    Object val =  cctx.marshaller().unmarshal(ByteBuffer.wrap(swapEntry.valueBytes()),
+                                    Object val =  cctx.cacheObjects().unmarshal(cctx.cacheObjectContext(),
+                                        ByteBuffer.wrap(swapEntry.valueBytes()),
                                         cctx.deploy().globalLoader());
 
                                     if (val != null)

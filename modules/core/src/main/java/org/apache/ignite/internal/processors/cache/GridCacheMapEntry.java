@@ -207,8 +207,8 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
                     Object val0 = null;
 
                     if (val != null && val.type() != CacheObject.TYPE_BYTE_ARR) {
-                        val0 = cctx.marshaller().unmarshal(val.valueBytes(cctx.cacheObjectContext()),
-                            cctx.deploy().globalLoader());
+                        val0 = cctx.cacheObjects().unmarshal(cctx.cacheObjectContext(),
+                            val.valueBytes(cctx.cacheObjectContext()), cctx.deploy().globalLoader());
 
                         if (val0 != null)
                             cctx.gridDeploy().deploy(val0.getClass(), val0.getClass().getClassLoader());

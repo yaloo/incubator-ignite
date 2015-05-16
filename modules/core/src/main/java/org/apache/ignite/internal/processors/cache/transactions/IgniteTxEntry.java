@@ -137,6 +137,9 @@ public class IgniteTxEntry implements GridPeerDeployAware, Message {
     @GridDirectTransient
     private boolean locMapped;
 
+    /** Group lock entry flag. */
+    private boolean grpLock;
+
     /** Expiry policy. */
     @GridDirectTransient
     private ExpiryPolicy expiryPlc;
@@ -274,6 +277,22 @@ public class IgniteTxEntry implements GridPeerDeployAware, Message {
     }
 
     /**
+     * @return {@code True} if this entry was added in group lock transaction and
+     *      this is not a group lock entry.
+     */
+    public boolean groupLockEntry() {
+        return grpLock;
+    }
+
+    /**
+     * @param grpLock {@code True} if this entry was added in group lock transaction and
+     *      this is not a group lock entry.
+     */
+    public void groupLockEntry(boolean grpLock) {
+        this.grpLock = grpLock;
+    }
+
+    /**
      * @param ctx Context.
      * @return Clean copy of this entry.
      */
@@ -292,6 +311,7 @@ public class IgniteTxEntry implements GridPeerDeployAware, Message {
         cp.ttl = ttl;
         cp.conflictExpireTime = conflictExpireTime;
         cp.explicitVer = explicitVer;
+        cp.grpLock = grpLock;
         cp.conflictVer = conflictVer;
         cp.expiryPlc = expiryPlc;
         cp.flags = flags;
@@ -831,24 +851,30 @@ public class IgniteTxEntry implements GridPeerDeployAware, Message {
                 writer.incrementState();
 
             case 7:
-                if (!writer.writeMessage("key", key))
+                if (!writer.writeBoolean("grpLock", grpLock))
                     return false;
 
                 writer.incrementState();
 
             case 8:
-                if (!writer.writeByteBuffer("transformClosBytes", transformClosBytes))
+                if (!writer.writeMessage("key", key))
                     return false;
 
                 writer.incrementState();
 
             case 9:
-                if (!writer.writeLong("ttl", ttl))
+                if (!writer.writeByteBuffer("transformClosBytes", transformClosBytes))
                     return false;
 
                 writer.incrementState();
 
             case 10:
+                if (!writer.writeLong("ttl", ttl))
+                    return false;
+
+                writer.incrementState();
+
+            case 11:
                 if (!writer.writeMessage("val", val))
                     return false;
 
@@ -924,7 +950,7 @@ public class IgniteTxEntry implements GridPeerDeployAware, Message {
                 reader.incrementState();
 
             case 7:
-                key = reader.readMessage("key");
+                grpLock = reader.readBoolean("grpLock");
 
                 if (!reader.isLastRead())
                     return false;
@@ -932,7 +958,7 @@ public class IgniteTxEntry implements GridPeerDeployAware, Message {
                 reader.incrementState();
 
             case 8:
-                transformClosBytes = reader.readByteBuffer("transformClosBytes");
+                key = reader.readMessage("key");
 
                 if (!reader.isLastRead())
                     return false;
@@ -940,7 +966,7 @@ public class IgniteTxEntry implements GridPeerDeployAware, Message {
                 reader.incrementState();
 
             case 9:
-                ttl = reader.readLong("ttl");
+                transformClosBytes = reader.readByteBuffer("transformClosBytes");
 
                 if (!reader.isLastRead())
                     return false;
@@ -948,6 +974,14 @@ public class IgniteTxEntry implements GridPeerDeployAware, Message {
                 reader.incrementState();
 
             case 10:
+                ttl = reader.readLong("ttl");
+
+                if (!reader.isLastRead())
+                    return false;
+
+                reader.incrementState();
+
+            case 11:
                 val = reader.readMessage("val");
 
                 if (!reader.isLastRead())
@@ -967,7 +1001,7 @@ public class IgniteTxEntry implements GridPeerDeployAware, Message {
 
     /** {@inheritDoc} */
     @Override public byte fieldsCount() {
-        return 11;
+        return 12;
     }
 
     /** {@inheritDoc} */

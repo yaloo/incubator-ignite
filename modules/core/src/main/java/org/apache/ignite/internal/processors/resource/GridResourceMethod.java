@@ -21,7 +21,6 @@ import org.apache.ignite.internal.util.typedef.internal.*;
 
 import java.lang.annotation.*;
 import java.lang.reflect.*;
-import java.util.*;
 
 /**
  * Wrapper for data where resource should be injected.
@@ -49,8 +48,6 @@ class GridResourceMethod {
 
         this.mtd = mtd;
         this.ann = ann;
-
-        mtd.setAccessible(true);
     }
 
     /**
@@ -69,16 +66,6 @@ class GridResourceMethod {
      */
     public Annotation getAnnotation() {
         return ann;
-    }
-
-    /**
-     * @param c Closure.
-     */
-    public static GridResourceMethod[] toArray(Collection<GridResourceMethod> c) {
-        if (c.isEmpty())
-            return EMPTY_ARRAY;
-
-        return c.toArray(new GridResourceMethod[c.size()]);
     }
 
     /** {@inheritDoc} */

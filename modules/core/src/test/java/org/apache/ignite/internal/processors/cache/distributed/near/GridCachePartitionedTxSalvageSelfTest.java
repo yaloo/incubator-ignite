@@ -18,6 +18,7 @@
 package org.apache.ignite.internal.processors.cache.distributed.near;
 
 import org.apache.ignite.*;
+import org.apache.ignite.cache.*;
 import org.apache.ignite.cache.affinity.rendezvous.*;
 import org.apache.ignite.configuration.*;
 import org.apache.ignite.internal.*;
@@ -34,8 +35,6 @@ import org.apache.ignite.transactions.*;
 import java.util.*;
 
 import static org.apache.ignite.IgniteSystemProperties.*;
-import static org.apache.ignite.cache.CacheMode.*;
-import static org.apache.ignite.cache.CacheRebalanceMode.*;
 import static org.apache.ignite.transactions.TransactionConcurrency.*;
 import static org.apache.ignite.transactions.TransactionIsolation.*;
 
@@ -77,10 +76,10 @@ public class GridCachePartitionedTxSalvageSelfTest extends GridCommonAbstractTes
 
         CacheConfiguration cc = defaultCacheConfiguration();
 
-        cc.setCacheMode(PARTITIONED);
+        cc.setCacheMode(CacheMode.PARTITIONED);
         cc.setAffinity(new RendezvousAffinityFunction(false, 18));
         cc.setBackups(1);
-        cc.setRebalanceMode(SYNC);
+        cc.setRebalanceMode(CacheRebalanceMode.SYNC);
 
         c.setCacheConfiguration(cc);
 
@@ -110,9 +109,8 @@ public class GridCachePartitionedTxSalvageSelfTest extends GridCommonAbstractTes
 
     /** {@inheritDoc} */
     @Override protected void afterTest() throws Exception {
+        // Shutwodn the gird.
         stopAllGrids();
-
-        System.gc();
     }
 
     /**
@@ -147,8 +145,8 @@ public class GridCachePartitionedTxSalvageSelfTest extends GridCommonAbstractTes
      * Check whether caches has no transactions after salvage timeout.
      *
      * @param mode Transaction mode (PESSIMISTIC, OPTIMISTIC).
-     * @param prepare Whether to prepare transaction state
-     *                (i.e. call {@link IgniteInternalTx#prepare()}).
+     * @param prepare Whether to preapre transaction state
+     *                (i.e. call {@link org.apache.ignite.internal.processors.cache.transactions.IgniteInternalTx#prepare()}).
      * @throws Exception If failed.
      */
     private void checkSalvageAfterTimeout(TransactionConcurrency mode, boolean prepare) throws Exception {
@@ -166,8 +164,8 @@ public class GridCachePartitionedTxSalvageSelfTest extends GridCommonAbstractTes
      * Check whether caches still has all transactions before salvage timeout.
      *
      * @param mode Transaction mode (PESSIMISTIC, OPTIMISTIC).
-     * @param prepare Whether to prepare transaction state
-     *                (i.e. call {@link IgniteInternalTx#prepare()}).
+     * @param prepare Whether to preapre transaction state
+     *                (i.e. call {@link org.apache.ignite.internal.processors.cache.transactions.IgniteInternalTx#prepare()}).
      * @throws Exception If failed.
      */
     private void checkSalvageBeforeTimeout(TransactionConcurrency mode, boolean prepare) throws Exception {
@@ -193,8 +191,8 @@ public class GridCachePartitionedTxSalvageSelfTest extends GridCommonAbstractTes
      * Start new transaction on the grid(0) and put some keys to it.
      *
      * @param mode Transaction mode (PESSIMISTIC, OPTIMISTIC).
-     * @param prepare Whether to prepare transaction state
-     *                (i.e. call {@link IgniteInternalTx#prepare()}).
+     * @param prepare Whether to preapre transaction state
+     *                (i.e. call {@link org.apache.ignite.internal.processors.cache.transactions.IgniteInternalTx#prepare()}).
      * @throws Exception If failed.
      */
     private void startTxAndPutKeys(final TransactionConcurrency mode, final boolean prepare) throws Exception {
@@ -212,8 +210,9 @@ public class GridCachePartitionedTxSalvageSelfTest extends GridCommonAbstractTes
                     for (Integer key : keys)
                         c.put(key, "val" + key);
 
+                    // Unproxy.
                     if (prepare)
-                        ((TransactionProxyImpl)tx).tx().prepare();
+                        U.<IgniteInternalTx>field(tx, "tx").prepare();
                 }
                 catch (IgniteCheckedException e) {
                     info("Failed to put keys to cache: " + e.getMessage());

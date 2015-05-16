@@ -16,6 +16,7 @@
  */
 
 /**
+ * <!-- Package description. -->
  * Streaming word count example.
  */
 package org.apache.ignite.examples.streaming.wordcount;

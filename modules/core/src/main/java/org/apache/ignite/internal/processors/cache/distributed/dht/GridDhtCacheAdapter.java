@@ -102,9 +102,6 @@ public abstract class GridDhtCacheAdapter<K, V> extends GridDistributedCacheAdap
                 GridCacheMapEntry next,
                 int hdrId)
             {
-                if (ctx.useOffheapEntry())
-                    return new GridDhtOffHeapCacheEntry(ctx, topVer, key, hash, val, next, hdrId);
-
                 return new GridDhtCacheEntry(ctx, topVer, key, hash, val, next, hdrId);
             }
         });
@@ -346,22 +343,15 @@ public abstract class GridDhtCacheAdapter<K, V> extends GridDistributedCacheAdap
     public GridCacheEntryEx entryExx(KeyCacheObject key, AffinityTopologyVersion topVer, boolean allowDetached, boolean touch) {
         try {
             return allowDetached && !ctx.affinity().localNode(key, topVer) ?
-                createEntry(key) : entryEx(key, touch);
+                new GridDhtDetachedCacheEntry(ctx, key, key.hashCode(), null, null, 0) :
+                entryEx(key, touch);
         }
         catch (GridDhtInvalidPartitionException e) {
             if (!allowDetached)
                 throw e;
 
-            return createEntry(key);
+            return new GridDhtDetachedCacheEntry(ctx, key, key.hashCode(), null, null, 0);
         }
-    }
-
-    /**
-     * @param key Key for which entry should be returned.
-     * @return Cache entry.
-     */
-    protected GridDistributedCacheEntry createEntry(KeyCacheObject key) {
-        return new GridDhtDetachedCacheEntry(ctx, key, key.hashCode(), null, null, 0);
     }
 
     /** {@inheritDoc} */

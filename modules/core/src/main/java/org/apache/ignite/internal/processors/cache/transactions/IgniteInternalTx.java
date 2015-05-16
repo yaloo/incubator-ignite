@@ -284,6 +284,16 @@ public interface IgniteInternalTx extends AutoCloseable, GridTimeoutObject {
     public boolean empty();
 
     /**
+     * @return {@code True} if transaction group-locked.
+     */
+    public boolean groupLock();
+
+    /**
+     * @return Group lock key if {@link #groupLock()} is {@code true}.
+     */
+    @Nullable public IgniteTxKey groupLockKey();
+
+    /**
      * @return {@code True} if preparing flag was set with this call.
      */
     public boolean markPreparing();
@@ -541,7 +551,7 @@ public interface IgniteInternalTx extends AutoCloseable, GridTimeoutObject {
      *
      * @return Future for prepare step.
      */
-    public IgniteInternalFuture<?> prepareAsync();
+    public IgniteInternalFuture<IgniteInternalTx> prepareAsync();
 
     /**
      * @param endVer End version (a.k.a. <tt>'tnc'</tt> or <tt>'transaction number counter'</tt>)
@@ -570,7 +580,7 @@ public interface IgniteInternalTx extends AutoCloseable, GridTimeoutObject {
     /**
      * @return Future for transaction prepare if prepare is in progress.
      */
-    @Nullable public IgniteInternalFuture<?> currentPrepareFuture();
+    @Nullable public IgniteInternalFuture<IgniteInternalTx> currentPrepareFuture();
 
     /**
      * @param state Transaction state.

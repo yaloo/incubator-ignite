@@ -86,6 +86,9 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
     /** Base for completed versions. */
     private GridCacheVersion completedBase;
 
+    /** Flag indicating partition lock in group lock transaction. */
+    private boolean partLock;
+
     /** Flag indicating that transformed values should be sent to remote nodes. */
     private boolean sndTransformedVals;
 
@@ -120,6 +123,8 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
      * @param isolation Isolation.
      * @param timeout Timeout.
      * @param txSize Expected transaction size.
+     * @param grpLockKey Group lock key if this is a group-lock transaction.
+     * @param partLock {@code True} if this is a group-lock transaction and lock is acquired for whole partition.
      */
     protected IgniteTxLocalAdapter(
         GridCacheSharedContext cctx,
@@ -134,11 +139,17 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
         boolean invalidate,
         boolean storeEnabled,
         int txSize,
+        @Nullable IgniteTxKey grpLockKey,
+        boolean partLock,
         @Nullable UUID subjId,
         int taskNameHash
     ) {
         super(cctx, xidVer, implicit, implicitSingle, /*local*/true, sys, plc, concurrency, isolation, timeout,
-            invalidate, storeEnabled, txSize, subjId, taskNameHash);
+            invalidate, storeEnabled, txSize, grpLockKey, subjId, taskNameHash);
+
+        assert !partLock || grpLockKey != null;
+
+        this.partLock = partLock;
 
         minVer = xidVer;
     }
@@ -168,6 +179,11 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
     /** {@inheritDoc} */
     @Override public Collection<UUID> masterNodeIds() {
         return Collections.singleton(nodeId);
+    }
+
+    /** {@inheritDoc} */
+    @Override public boolean partitionLock() {
+        return partLock;
     }
 
     /** {@inheritDoc} */
@@ -483,7 +499,7 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
         CacheStoreManager store = store();
 
         if (store != null && store.isWriteThrough() && storeEnabled() &&
-            !internal() && (near() || store.isWriteToStoreFromDht())) {
+            (!internal() || groupLock()) && (near() || store.isWriteToStoreFromDht())) {
             try {
                 if (writeEntries != null) {
                     Map<Object, IgniteBiTuple<Object, GridCacheVersion>> putMap = null;
@@ -662,6 +678,9 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
         // locks on backup nodes.
         if (!empty || colocated())
             cctx.tm().addCommittedTx(this);
+
+        if (groupLock())
+            addGroupTxMapping(writeSet());
 
         if (!empty) {
             batchStoreCommit(writeMap().values());
@@ -890,6 +909,10 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
                                             log.debug("Ignoring READ entry when committing: " + txEntry);
                                     }
                                     else {
+                                        assert !groupLock() || txEntry.groupLockEntry() || ownsLock(txEntry.cached()):
+                                            "Transaction does not own lock for group lock entry during  commit [tx=" +
+                                                this + ", txEntry=" + txEntry + ']';
+
                                         if (conflictCtx == null || !conflictCtx.isUseOld()) {
                                             if (txEntry.ttl() != CU.TTL_NOT_CHANGED)
                                                 cached.updateTtl(null, txEntry.ttl());
@@ -904,7 +927,7 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
                                 // we are not changing obsolete entries.
                                 // (innerSet and innerRemove will throw an exception
                                 // if an entry is obsolete).
-                                if (txEntry.op() != READ)
+                                if (txEntry.op() != READ && !txEntry.groupLockEntry())
                                     checkCommitLocks(cached);
 
                                 // Break out of while loop.
@@ -973,7 +996,7 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
         else {
             CacheStoreManager store = store();
 
-            if (store != null && !internal()) {
+            if (store != null && (!internal() || groupLock())) {
                 try {
                     store.sessionEnd(this, true);
                 }
@@ -1079,7 +1102,7 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
                 CacheStoreManager store = store();
 
                 if (store != null && (near() || store.isWriteToStoreFromDht())) {
-                    if (!internal())
+                    if (!internal() || groupLock())
                         store.sessionEnd(this, false);
                 }
             }
@@ -1129,6 +1152,8 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
 
         cacheCtx.checkSecurity(SecurityPermission.CACHE_READ);
 
+        groupLockSanityCheck(cacheCtx, keys);
+
         boolean single = keysCnt == 1;
 
         Collection<KeyCacheObject> lockKeys = null;
@@ -1160,7 +1185,7 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
                         cacheCtx.addResult(map, key, val, skipVals, keepCacheObjects, deserializePortable, false);
                 }
                 else {
-                    assert txEntry.op() == TRANSFORM;
+                    assert txEntry.op() == TRANSFORM || (groupLock() && !txEntry.groupLockEntry());
 
                     while (true) {
                         try {
@@ -1238,7 +1263,7 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
 
                         CacheObject val = null;
 
-                        if (!pessimistic() || readCommitted() && !skipVals) {
+                        if (!pessimistic() || readCommitted() || groupLock() && !skipVals) {
                             IgniteCacheExpiryPolicy accessPlc =
                                 optimistic() ? accessPolicy(cacheCtx, txKey, expiryPlc) : null;
 
@@ -1286,6 +1311,8 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
                                 null,
                                 skipStore);
 
+                            if (groupLock())
+                                txEntry.groupLockEntry(true);
 
                             // As optimization, mark as checked immediately
                             // for non-pessimistic if value is not null.
@@ -1500,7 +1527,7 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
                             nextVer = cctx.versions().next(topologyVersion());
 
                         while (true) {
-                            assert txEntry != null || readCommitted() || skipVals;
+                            assert txEntry != null || readCommitted() || groupLock() || skipVals;
 
                             GridCacheEntryEx e = txEntry == null ? entryEx(cacheCtx, txKey) : txEntry.cached();
 
@@ -1517,7 +1544,8 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
                                         log.debug("Got removed entry in transaction getAll method " +
                                             "(will try again): " + e);
 
-                                    if (pessimistic() && !readCommitted() && !isRollbackOnly()) {
+                                    if (pessimistic() && !readCommitted() && !isRollbackOnly() &&
+                                        (!groupLock() || F.eq(e.key(), groupLockKey()))) {
                                         U.error(log, "Inconsistent transaction state (entry got removed while " +
                                             "holding lock) [entry=" + e + ", tx=" + IgniteTxLocalAdapter.this + "]");
 
@@ -1535,7 +1563,7 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
                                 // In pessimistic mode, we should always be able to set.
                                 assert set || !pessimistic();
 
-                                if (readCommitted() || skipVals) {
+                                if (readCommitted() || groupLock() || skipVals) {
                                     cacheCtx.evicts().touch(e, topologyVersion());
 
                                     if (visibleVal != null) {
@@ -1626,7 +1654,7 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
                 return new GridFinishedFuture<>(retMap);
 
             // Handle locks.
-            if (pessimistic() && !readCommitted() && !skipVals) {
+            if (pessimistic() && !readCommitted() && !groupLock() && !skipVals) {
                 if (expiryPlc == null)
                     expiryPlc = cacheCtx.expiry();
 
@@ -1732,7 +1760,7 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
                             }
                         }
 
-                        if (!missed.isEmpty() && cacheCtx.isLocal()) {
+                        if (!missed.isEmpty() && (cacheCtx.isReplicated() || cacheCtx.isLocal())) {
                             return checkMissed(cacheCtx,
                                 retMap,
                                 missed,
@@ -1783,7 +1811,7 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
                 }
             }
             else {
-                assert optimistic() || readCommitted() || skipVals;
+                assert optimistic() || readCommitted() || groupLock() || skipVals;
 
                 final Collection<KeyCacheObject> redos = new ArrayList<>();
 
@@ -2008,6 +2036,8 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
             if (invokeMap != null)
                 transform = true;
 
+            groupLockSanityCheck(cacheCtx, keys);
+
             for (Object key : keys) {
                 if (key == null) {
                     rollback();
@@ -2164,9 +2194,12 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
                             if (!implicit() && readCommitted() && !cacheCtx.offheapTiered())
                                 cacheCtx.evicts().touch(entry, topologyVersion());
 
+                            if (groupLock() && !lockOnly)
+                                txEntry.groupLockEntry(true);
+
                             enlisted.add(cacheKey);
 
-                            if (!pessimistic() && !implicit()) {
+                            if ((!pessimistic() && !implicit()) || (groupLock() && !lockOnly)) {
                                 txEntry.markValid();
 
                                 if (old == null) {
@@ -2611,7 +2644,7 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
                 null,
                 opCtx != null && opCtx.skipStore());
 
-            if (pessimistic()) {
+            if (pessimistic() && !groupLock()) {
                 // Loose all skipped.
                 final Set<KeyCacheObject> loaded = loadFut.get();
 
@@ -2834,7 +2867,7 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
             // Acquire locks only after having added operation to the write set.
             // Otherwise, during rollback we will not know whether locks need
             // to be rolled back.
-            if (pessimistic()) {
+            if (pessimistic() && !groupLock()) {
                 // Loose all skipped.
                 final Collection<KeyCacheObject> passedKeys = F.view(enlisted, F0.notIn(loadFut.get()));
 
@@ -2949,6 +2982,108 @@ public abstract class IgniteTxLocalAdapter extends IgniteTxAdapter
         CacheOperationContext opCtx = cacheCtx.operationContextPerCall();
 
         return opCtx == null || !opCtx.isKeepPortable();
+    }
+
+    /**
+     * Adds key mapping to transaction.
+     * @param keys Keys to add.
+     */
+    protected void addGroupTxMapping(Collection<IgniteTxKey> keys) {
+        // No-op. This method is overriden in transactions that store key to remote node mapping
+        // for commit.
+    }
+
+    /**
+     * Checks that affinity keys are enlisted in group transaction on start.
+     *
+     * @param cacheCtx Cache context.
+     * @param keys Keys to check.
+     * @throws IgniteCheckedException If sanity check failed.
+     */
+    private <K> void groupLockSanityCheck(GridCacheContext cacheCtx, Iterable<? extends K> keys)
+        throws IgniteCheckedException
+    {
+        if (groupLock() && cctx.kernalContext().config().isCacheSanityCheckEnabled()) {
+            // Note that affinity is called without mapper on purpose.
+            int affinityPart = cacheCtx.config().getAffinity().partition(grpLockKey.key());
+
+            for (K key : keys) {
+                if (partitionLock()) {
+                    int part = cacheCtx.affinity().partition(key);
+
+                    if (affinityPart != part)
+                        throw new IgniteCheckedException("Failed to enlist key into group-lock transaction (given " +
+                            "key does not belong to locked partition) [key=" + key + ", affinityPart=" + affinityPart +
+                            ", part=" + part + ", groupLockKey=" + grpLockKey + ']');
+                }
+                else {
+                    KeyCacheObject cacheKey =
+                        cacheCtx.toCacheKeyObject(cacheCtx.config().getAffinityMapper().affinityKey(key));
+
+                    IgniteTxKey affinityKey = cacheCtx.txKey(cacheKey);
+
+                    if (!grpLockKey.equals(affinityKey))
+                        throw new IgniteCheckedException("Failed to enlist key into group-lock transaction (affinity key was " +
+                            "not enlisted to transaction on start) [key=" + key + ", affinityKey=" + affinityKey +
+                            ", groupLockKey=" + grpLockKey + ']');
+                }
+            }
+        }
+    }
+
+    /**
+     * Performs keys locking for affinity-based group lock transactions.
+     * @return Lock future.
+     */
+    @Override public <K> IgniteInternalFuture<?> groupLockAsync(GridCacheContext cacheCtx, Collection<K> keys) {
+        assert groupLock();
+
+        try {
+            init();
+
+            GridCacheReturn ret = new GridCacheReturn(localResult(), false);
+
+            Collection<KeyCacheObject> enlisted = new ArrayList<>();
+
+            Set<KeyCacheObject> skipped = enlistWrite(
+                cacheCtx,
+                keys,
+                /** cached entry */null,
+                /** expiry - leave unchanged */null,
+                /** implicit */false,
+                /** lookup map */null,
+                /** invoke map */null,
+                /** invoke arguments */null,
+                /** retval */false,
+                /** lock only */true,
+                CU.empty0(),
+                ret,
+                enlisted,
+                null,
+                null,
+                cacheCtx.skipStore()
+            ).get();
+
+            // No keys should be skipped with empty filter.
+            assert F.isEmpty(skipped);
+
+            // Lock group key in pessimistic mode only.
+            return pessimistic() ?
+                cacheCtx.cache().txLockAsync(enlisted,
+                    lockTimeout(),
+                    this,
+                    false,
+                    false,
+                    isolation,
+                    isInvalidate(),
+                    -1L) :
+                new GridFinishedFuture<>();
+        }
+        catch (IgniteCheckedException e) {
+            setRollbackOnly();
+
+            return new GridFinishedFuture<Object>(e);
+        }
     }
 
     /**

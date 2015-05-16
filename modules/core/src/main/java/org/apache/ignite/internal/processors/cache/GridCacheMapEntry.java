@@ -115,6 +115,9 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
     @GridToStringInclude
     private final int hash;
 
+    /** Off-heap value pointer. */
+    protected long valPtr;
+
     /** Extras */
     @GridToStringInclude
     private GridCacheEntryExtras extras;
@@ -185,7 +188,7 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
         if (cctx.cache().isIgfsDataCache() &&
             cctx.kernalContext().igfsHelper().isIgfsBlockKey(key.value(cctx.cacheObjectContext(), false))) {
             int newSize = valueLength0(val, null);
-            int oldSize = valueLength0(this.val, (this.val == null && hasOffHeapPointer()) ? valueBytes0() : null);
+            int oldSize = valueLength0(this.val, (this.val == null && valPtr != 0) ? valueBytes0() : null);
 
             int delta = newSize - oldSize;
 
@@ -196,7 +199,7 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
         if (!isOffHeapValuesOnly()) {
             this.val = val;
 
-            offHeapPointer(0);
+            valPtr = 0;
         }
         else {
             try {
@@ -224,13 +227,12 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
                 if (val != null) {
                     byte type = val.type();
 
-                    offHeapPointer(mem.putOffHeap(offHeapPointer(), U.toArray(val.valueBytes(cctx.cacheObjectContext())),
-                            type));
+                    valPtr = mem.putOffHeap(valPtr, U.toArray(val.valueBytes(cctx.cacheObjectContext())), type);
                 }
                 else {
-                    mem.removeOffHeap(offHeapPointer());
+                    mem.removeOffHeap(valPtr);
 
-                    offHeapPointer(0);
+                    valPtr = 0;
                 }
             }
             catch (IgniteCheckedException e) {
@@ -268,7 +270,7 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
 
         CacheObject val0 = val;
 
-        if (val0 == null && hasOffHeapPointer()) {
+        if (val0 == null && valPtr != 0) {
             IgniteBiTuple<ByteBuffer, Byte> t = valueBytes0();
 
             return cctx.cacheObjects().toCacheObject(cctx.cacheObjectContext(), t.get2(), t.get1());
@@ -432,16 +434,16 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
 
                     if (e != null) {
                         if (e.offheapPointer() > 0) {
-                            offHeapPointer(e.offheapPointer());
+                            valPtr = e.offheapPointer();
 
                             if (needVal) {
-                                CacheObject val = cctx.fromOffheap(offHeapPointer(), false);
+                                CacheObject val = cctx.fromOffheap(valPtr, false);
 
                                 e.value(val);
                             }
                         }
                         else // Read from swap.
-                            offHeapPointer(0);
+                            valPtr = 0;
                     }
                 }
                 else
@@ -466,7 +468,7 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
 
                         // Must update valPtr again since update() will reset it.
                         if (cctx.offheapTiered() && e.offheapPointer() > 0)
-                            offHeapPointer(e.offheapPointer());
+                            valPtr = e.offheapPointer();
 
                         return val;
                     }
@@ -493,13 +495,13 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
                 if (cctx.offheapTiered()) {
                     cctx.swap().removeOffheap(key);
 
-                    offHeapPointer(0);
+                    valPtr = 0;
                 }
 
                 return;
             }
 
-            if (val == null && cctx.offheapTiered() && hasOffHeapPointer()) {
+            if (val == null && cctx.offheapTiered() && valPtr != 0) {
                 if (log.isDebugEnabled())
                     log.debug("Value did not change, skip write swap entry: " + this);
 
@@ -538,10 +540,10 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
     protected IgniteBiTuple<ByteBuffer, Byte> valueBytes0() {
         assert Thread.holdsLock(this);
 
-        if (hasOffHeapPointer()) {
+        if (valPtr != 0) {
             assert isOffHeapValuesOnly() || cctx.offheapTiered();
 
-            IgniteBiTuple<byte[], Byte> t = cctx.unsafeMemory().get(offHeapPointer());
+            IgniteBiTuple<byte[], Byte> t = cctx.unsafeMemory().get(valPtr);
 
             return F.t(ByteBuffer.wrap(t.get1()), t.get2());
         }
@@ -672,7 +674,7 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
 
             CacheObject val = this.val;
 
-            hasOldBytes = hasOffHeapPointer();
+            hasOldBytes = valPtr != 0;
 
             if ((unmarshal || isOffHeapValuesOnly()) && !expired && val == null && hasOldBytes)
                 val = rawGetOrUnmarshalUnlocked(tmp);
@@ -816,7 +818,7 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
                         // Update indexes before actual write to entry.
                         updateIndex(ret, expTime, nextVer, prevVal);
 
-                    boolean hadValPtr = hasOffHeapPointer();
+                    boolean hadValPtr = valPtr != 0;
 
                     // Don't change version for read-through.
                     update(ret, expTime, ttl, nextVer);
@@ -964,8 +966,13 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
         synchronized (this) {
             checkObsolete();
 
-            assert tx == null || (!tx.local() && tx.onePhaseCommit()) || tx.ownsLock(this) :
-                "Transaction does not own lock for update [entry=" + this + ", tx=" + tx + ']';
+            if (cctx.kernalContext().config().isCacheSanityCheckEnabled()) {
+                if (tx != null && tx.groupLock())
+                    groupLockSanityCheck(tx);
+                else
+                    assert tx == null || (!tx.local() && tx.onePhaseCommit()) || tx.ownsLock(this) :
+                        "Transaction does not own lock for update [entry=" + this + ", tx=" + tx + ']';
+            }
 
             // Load and remove from swap if it is new.
             boolean startVer = isStartVersion();
@@ -1123,7 +1130,10 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
         synchronized (this) {
             checkObsolete();
 
-            assert tx == null || (!tx.local() && tx.onePhaseCommit()) || tx.ownsLock(this) :
+            if (tx != null && tx.groupLock() && cctx.kernalContext().config().isCacheSanityCheckEnabled())
+                groupLockSanityCheck(tx);
+            else
+                assert tx == null || (!tx.local() && tx.onePhaseCommit()) || tx.ownsLock(this) :
                     "Transaction does not own lock for remove[entry=" + this + ", tx=" + tx + ']';
 
             boolean startVer = isStartVersion();
@@ -1156,7 +1166,7 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
             // can be updated without actually holding entry lock.
             clearIndex(old);
 
-            boolean hadValPtr = hasOffHeapPointer();
+            boolean hadValPtr = valPtr != 0;
 
             update(null, 0, 0, newVer);
 
@@ -1190,7 +1200,7 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
                 obsoleteVer = newVer;
             else {
                 // Only delete entry if the lock is not explicit.
-                if (lockedBy(tx.xidVersion()))
+                if (tx.groupLock() || lockedBy(tx.xidVersion()))
                     obsoleteVer = tx.xidVersion();
                 else if (log.isDebugEnabled())
                     log.debug("Obsolete version was not set because lock was explicit: " + this);
@@ -1513,7 +1523,7 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
                     // Must persist inside synchronization in non-tx mode.
                     cctx.store().remove(null, keyValue(false));
 
-                boolean hasValPtr = hasOffHeapPointer();
+                boolean hasValPtr = valPtr != 0;
 
                 // Update index inside synchronization since it can be updated
                 // in load methods without actually holding entry lock.
@@ -2114,7 +2124,7 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
 
                 enqueueVer = newVer;
 
-                boolean hasValPtr = hasOffHeapPointer();
+                boolean hasValPtr = valPtr != 0;
 
                 // Clear value on backup. Entry will be removed from cache when it got evicted from queue.
                 update(null, CU.TTL_ETERNAL, CU.EXPIRE_TIME_ETERNAL, newVer);
@@ -2791,6 +2801,25 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
     }
 
     /**
+     * Checks that entries in group locks transactions are not locked during commit.
+     *
+     * @param tx Transaction to check.
+     * @throws GridCacheEntryRemovedException If entry is obsolete.
+     * @throws IgniteCheckedException If entry was externally locked.
+     */
+    private void groupLockSanityCheck(IgniteInternalTx tx) throws GridCacheEntryRemovedException, IgniteCheckedException {
+        assert tx.groupLock();
+
+        IgniteTxEntry txEntry = tx.entry(txKey());
+
+        if (txEntry.groupLockEntry()) {
+            if (lockedByAny())
+                throw new IgniteCheckedException("Failed to update cache entry (entry was externally locked while " +
+                    "accessing entry within group lock transaction) [entry=" + this + ", tx=" + tx + ']');
+        }
+    }
+
+    /**
      * @param failFast Fail fast flag.
      * @param topVer Topology version.
      * @param filter Filter.
@@ -2902,8 +2931,8 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
         if (val != null)
             return val;
 
-        if (hasOffHeapPointer()) {
-            CacheObject val0 = cctx.fromOffheap(offHeapPointer(), tmp);
+        if (valPtr != 0) {
+            CacheObject val0 = cctx.fromOffheap(valPtr, tmp);
 
             if (!tmp && cctx.kernalContext().config().isPeerClassLoadingEnabled())
                 val0.finishUnmarshal(cctx.cacheObjectContext(), cctx.deploy().globalLoader());
@@ -2925,7 +2954,7 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
     protected boolean hasValueUnlocked() {
         assert Thread.holdsLock(this);
 
-        return val != null || hasOffHeapPointer();
+        return val != null || valPtr != 0;
     }
 
     /** {@inheritDoc} */
@@ -3271,7 +3300,7 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
             synchronized (this) {
                 CacheObject expiredVal = saveValueForIndexUnlocked();
 
-                boolean hasOldBytes = hasOffHeapPointer();
+                boolean hasOldBytes = valPtr != 0;
 
                 boolean expired = checkExpired();
 
@@ -4072,27 +4101,6 @@ public abstract class GridCacheMapEntry implements GridCacheEntryEx {
 
         extras = (extras != null) ? extras.ttlAndExpireTime(ttl, expireTime) : ttl != CU.TTL_ETERNAL ?
             new GridCacheTtlEntryExtras(ttl, expireTime) : null;
-    }
-
-    /**
-     * @return True if entry has off-heap value pointer.
-     */
-    protected boolean hasOffHeapPointer() {
-        return false;
-    }
-
-    /**
-     * @return Off-heap value pointer.
-     */
-    protected long offHeapPointer() {
-        return 0;
-    }
-
-    /**
-     * @param valPtr Off-heap value pointer.
-     */
-    protected void offHeapPointer(long valPtr) {
-        // No-op.
     }
 
     /**

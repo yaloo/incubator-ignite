@@ -23,6 +23,7 @@ import org.apache.ignite.compute.*;
 import org.apache.ignite.internal.*;
 import org.apache.ignite.internal.managers.deployment.*;
 import org.apache.ignite.internal.processors.*;
+import org.apache.ignite.internal.util.lang.*;
 import org.apache.ignite.internal.util.typedef.*;
 import org.apache.ignite.lifecycle.*;
 import org.apache.ignite.resources.*;
@@ -146,8 +147,8 @@ public class GridResourceProcessor extends GridProcessorAdapter {
                 Method mtd = rsrcMtd.getMethod();
 
                 try {
-                    // No need to call mtd.setAccessible(true);
-                    // It has been called in GridResourceMethod constructor.
+                    mtd.setAccessible(true);
+
                     mtd.invoke(target);
                 }
                 catch (IllegalArgumentException | InvocationTargetException | IllegalAccessException e) {
@@ -277,7 +278,7 @@ public class GridResourceProcessor extends GridProcessorAdapter {
             log.debug("Injecting resources: " + job);
 
         // Unwrap Proxy object.
-        Object obj = unwrapTarget(job);
+        Object obj = unwrapTarget(unwrapJob(job));
 
         injectToJob(dep, taskCls, obj, ses, jobCtx);
 
@@ -325,6 +326,19 @@ public class GridResourceProcessor extends GridProcessorAdapter {
                 }
             }
         }
+    }
+
+    /**
+     * Gets rid of job wrapper, if any.
+     *
+     * @param job Job to unwrap.
+     * @return Unwrapped job.
+     */
+    private ComputeJob unwrapJob(ComputeJob job) {
+        if (job instanceof GridComputeJobWrapper)
+            return ((GridComputeJobWrapper)job).wrappedJob();
+
+        return job;
     }
 
     /**

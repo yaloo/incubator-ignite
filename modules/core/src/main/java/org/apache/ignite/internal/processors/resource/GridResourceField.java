@@ -22,7 +22,6 @@ import org.jetbrains.annotations.*;
 
 import java.lang.annotation.*;
 import java.lang.reflect.*;
-import java.util.*;
 
 /**
  * Wrapper for data where resource should be injected.
@@ -44,7 +43,10 @@ class GridResourceField {
      * @param field Field where resource should be injected.
      * @param ann Resource annotation.
      */
-    GridResourceField(@NotNull Field field, @NotNull Annotation ann) {
+    GridResourceField(Field field, @Nullable Annotation ann) {
+        assert field != null;
+        assert ann != null || GridResourceUtils.mayRequireResources(field);
+
         this.field = field;
         this.ann = ann;
 
@@ -74,16 +76,6 @@ class GridResourceField {
      */
     public boolean processFieldValue() {
         return ann == null;
-    }
-
-    /**
-     * @param c Closure.
-     */
-    public static GridResourceField[] toArray(Collection<GridResourceField> c) {
-        if (c.isEmpty())
-            return EMPTY_ARRAY;
-
-        return c.toArray(new GridResourceField[c.size()]);
     }
 
     /** {@inheritDoc} */

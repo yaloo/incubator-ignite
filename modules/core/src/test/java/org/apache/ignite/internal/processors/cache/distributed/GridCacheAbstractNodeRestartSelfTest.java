@@ -19,6 +19,7 @@ package org.apache.ignite.internal.processors.cache.distributed;
 
 import org.apache.ignite.*;
 import org.apache.ignite.cache.*;
+import org.apache.ignite.cluster.*;
 import org.apache.ignite.configuration.*;
 import org.apache.ignite.spi.discovery.tcp.*;
 import org.apache.ignite.spi.discovery.tcp.ipfinder.*;
@@ -104,10 +105,6 @@ public abstract class GridCacheAbstractNodeRestartSelfTest extends GridCommonAbs
         TcpDiscoverySpi disco = new TcpDiscoverySpi();
 
         disco.setIpFinder(ipFinder);
-
-        disco.setSocketTimeout(30_000);
-        disco.setAckTimeout(30_000);
-        disco.setNetworkTimeout(30_000);
 
         c.setDiscoverySpi(disco);
 
@@ -515,7 +512,7 @@ public abstract class GridCacheAbstractNodeRestartSelfTest extends GridCommonAbs
                                 try {
                                     cache.put(key, Integer.toString(key));
                                 }
-                                catch (IgniteException | CacheException ignored) {
+                                catch (TransactionRollbackException | ClusterTopologyException | CacheException ignored) {
                                     // It is ok if primary node leaves grid.
                                 }
 
@@ -671,7 +668,7 @@ public abstract class GridCacheAbstractNodeRestartSelfTest extends GridCommonAbs
                                         tx.commit();
                                     }
                                 }
-                                catch (IgniteException | CacheException ignored) {
+                                catch (ClusterTopologyException | CacheException ignored) {
                                     // It is ok if primary node leaves grid.
                                 }
 
@@ -817,7 +814,7 @@ public abstract class GridCacheAbstractNodeRestartSelfTest extends GridCommonAbs
 
                                     tx.commit();
                                 }
-                                catch (IgniteException | CacheException ignored) {
+                                catch (ClusterTopologyException | CacheException ignored) {
                                     // It is ok if primary node leaves grid.
                                 }
 

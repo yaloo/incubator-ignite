@@ -86,9 +86,7 @@ public class GridNoStorageCacheMap extends GridCacheConcurrentMap {
         boolean create)
     {
         if (create) {
-            GridCacheMapEntry entry = ctx.useOffheapEntry() ?
-                new GridDhtOffHeapCacheEntry(ctx, topVer, key, hash(key.hashCode()), val, null, 0) :
-                new GridDhtCacheEntry(ctx, topVer, key, hash(key.hashCode()), val, null, 0);
+            GridCacheMapEntry entry = new GridDhtCacheEntry(ctx, topVer, key, hash(key.hashCode()), val, null, 0);
 
             return new GridTriple<>(entry, null, null);
         }

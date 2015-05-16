@@ -1656,13 +1656,6 @@ public class GridCacheContext<K, V> implements Externalizable {
     }
 
     /**
-     * @return {@code True} if should use entry with offheap value pointer.
-     */
-    public boolean useOffheapEntry() {
-        return cacheCfg.getMemoryMode() == OFFHEAP_TIERED || cacheCfg.getMemoryMode() == OFFHEAP_VALUES;
-    }
-
-    /**
      * Converts temporary offheap object to heap-based.
      *
      * @param obj Object.

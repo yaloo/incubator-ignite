@@ -347,6 +347,8 @@ public class IgniteTxManager extends GridCacheSharedManagerAdapter {
      * @param isolation Isolation.
      * @param timeout transaction timeout.
      * @param txSize Expected transaction size.
+     * @param grpLockKey Group lock key if this is a group-lock transaction.
+     * @param partLock {@code True} if partition is locked.
      * @return New transaction.
      */
     public IgniteTxLocalAdapter newTx(
@@ -357,7 +359,9 @@ public class IgniteTxManager extends GridCacheSharedManagerAdapter {
         TransactionIsolation isolation,
         long timeout,
         boolean storeEnabled,
-        int txSize) {
+        int txSize,
+        @Nullable IgniteTxKey grpLockKey,
+        boolean partLock) {
         assert sysCacheCtx == null || sysCacheCtx.systemTx();
 
         UUID subjId = null; // TODO GG-9141 how to get subj ID?
@@ -375,6 +379,8 @@ public class IgniteTxManager extends GridCacheSharedManagerAdapter {
             timeout,
             storeEnabled,
             txSize,
+            grpLockKey,
+            partLock,
             subjId,
             taskNameHash);
 
@@ -1201,10 +1207,13 @@ public class IgniteTxManager extends GridCacheSharedManagerAdapter {
             cctx.kernalContext().dataStructures().onTxCommitted(tx);
 
             // 4. Unlock write resources.
-            unlockMultiple(tx, tx.writeEntries());
+            if (tx.groupLock())
+                unlockGroupLocks(tx);
+            else
+                unlockMultiple(tx, tx.writeEntries());
 
             // 5. For pessimistic transaction, unlock read resources if required.
-            if (tx.pessimistic() && !tx.readCommitted())
+            if (tx.pessimistic() && !tx.readCommitted() && !tx.groupLock())
                 unlockMultiple(tx, tx.readEntries());
 
             // 6. Notify evictions.
@@ -1432,7 +1441,7 @@ public class IgniteTxManager extends GridCacheSharedManagerAdapter {
      * @param tx Transaction to notify evictions for.
      */
     private void notifyEvitions(IgniteInternalTx tx) {
-        if (tx.internal())
+        if (tx.internal() && !tx.groupLock())
             return;
 
         for (IgniteTxEntry txEntry : tx.allEntries())
@@ -1608,6 +1617,51 @@ public class IgniteTxManager extends GridCacheSharedManagerAdapter {
     }
 
     /**
+     * Unlocks entries locked by group transaction.
+     *
+     * @param txx Transaction.
+     */
+    @SuppressWarnings("unchecked")
+    private void unlockGroupLocks(IgniteInternalTx txx) {
+        IgniteTxKey grpLockKey = txx.groupLockKey();
+
+        assert grpLockKey != null;
+
+        if (grpLockKey == null)
+            return;
+
+        IgniteTxEntry txEntry = txx.entry(grpLockKey);
+
+        assert txEntry != null || (txx.near() && !txx.local());
+
+        if (txEntry != null) {
+            GridCacheContext cacheCtx = txEntry.context();
+
+            // Group-locked entries must be locked.
+            while (true) {
+                try {
+                    GridCacheEntryEx entry = txEntry.cached();
+
+                    assert entry != null;
+
+                    entry.txUnlock(txx);
+
+                    break;
+                }
+                catch (GridCacheEntryRemovedException ignored) {
+                    if (log.isDebugEnabled())
+                        log.debug("Got removed entry in TM unlockGroupLocks(..) method (will retry): " + txEntry);
+
+                    GridCacheAdapter cache = cacheCtx.cache();
+
+                    // Renew cache entry.
+                    txEntry.cached(cache.entryEx(txEntry.key()));
+                }
+            }
+        }
+    }
+
+    /**
      * @param tx Owning transaction.
      * @param entries Entries to unlock.
      */
@@ -1762,7 +1816,7 @@ public class IgniteTxManager extends GridCacheSharedManagerAdapter {
             if (nearVer.equals(tx.nearXidVersion())) {
                 TransactionState state = tx.state();
 
-                IgniteInternalFuture<?> prepFut = tx.currentPrepareFuture();
+                IgniteInternalFuture<IgniteInternalTx> prepFut = tx.currentPrepareFuture();
 
                 if (prepFut != null && !prepFut.isDone()) {
                     if (log.isDebugEnabled())
@@ -1774,8 +1828,8 @@ public class IgniteTxManager extends GridCacheSharedManagerAdapter {
 
                     final Collection<GridCacheVersion> processedVers0 = processedVers;
 
-                    prepFut.listen(new CI1<IgniteInternalFuture<?>>() {
-                        @Override public void apply(IgniteInternalFuture<?> prepFut) {
+                    prepFut.listen(new CI1<IgniteInternalFuture<IgniteInternalTx>>() {
+                        @Override public void apply(IgniteInternalFuture<IgniteInternalTx> prepFut) {
                             if (log.isDebugEnabled())
                                 log.debug("Transaction prepare future finished: " + tx);
 
@@ -1975,11 +2029,11 @@ public class IgniteTxManager extends GridCacheSharedManagerAdapter {
                             if (tx.state() == PREPARED)
                                 commitIfPrepared(tx);
                             else {
-                                IgniteInternalFuture<?> prepFut = tx.currentPrepareFuture();
+                                IgniteInternalFuture<IgniteInternalTx> prepFut = tx.currentPrepareFuture();
 
                                 if (prepFut != null) {
-                                    prepFut.listen(new CI1<IgniteInternalFuture<?>>() {
-                                        @Override public void apply(IgniteInternalFuture<?> fut) {
+                                    prepFut.listen(new CI1<IgniteInternalFuture<IgniteInternalTx>>() {
+                                        @Override public void apply(IgniteInternalFuture<IgniteInternalTx> fut) {
                                             if (tx.state() == PREPARED)
                                                 commitIfPrepared(tx);
                                             else if (tx.setRollbackOnly())

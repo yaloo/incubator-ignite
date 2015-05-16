@@ -160,7 +160,9 @@ public class IgniteTransactionsImpl<K, V> implements IgniteTransactionsEx {
             isolation,
             timeout,
             true,
-            txSize
+            txSize,
+            /** group lock keys */null,
+            /** partition lock */false
         );
 
         assert tx != null;

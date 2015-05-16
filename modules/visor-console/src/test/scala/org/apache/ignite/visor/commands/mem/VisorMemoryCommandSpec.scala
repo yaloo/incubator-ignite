@@ -23,60 +23,53 @@ import org.scalatest._
 /**
  * Unit test for memory commands.
  */
-class VisorMemoryCommandSpec extends FunSpec with Matchers {
-    describe("A 'mget' visor command") {
-        it("should get correct value") {
-            visor.mset("key", "value")
+class VisorMemoryCommandSpec extends FlatSpec with Matchers {
+    "A 'mget' visor command" should "get correct value" in {
+        visor.mset("key", "value")
 
-            assertResult(Option("value"))(visor.mgetOpt("key"))
+        assertResult(Option("value"))(visor.mgetOpt("key"))
 
-            visor.mclear()
-        }
+        visor.mclear()
     }
 
-    describe("A 'mlist' visor command") {
-        it("should list all variables") {
-            visor.mset("key1", "value1")
-            visor.mset("key2", "value2")
-            visor.mset("key3", "value3")
+    "A 'mlist' visor command" should "list all variables" in {
+        visor.mset("key1", "value1")
+        visor.mset("key2", "value2")
+        visor.mset("key3", "value3")
 
-            visor.mlist()
-            visor.mclear()
-        }
-
-        it("should list ax and cx variables") {
-            visor.mset("a1", "1")
-            visor.mset("a2", "2")
-            visor.mset("b1", "3")
-            visor.mset("b2", "4")
-            visor.mset("c1", "5")
-            visor.mset("c2", "6")
-
-            visor.mlist("ac")
-            visor.mclear()
-        }
+        visor.mlist()
+        visor.mclear()
     }
 
-    describe("A 'mclear' visor command") {
-        it("should remove first two variables") {
-            visor.mset("key1", "value1")
-            visor.mset("key2", "value2")
-            visor.mset("key3", "value3")
+    "A 'mlist' visor command" should "list ax and cx variables" in {
+        visor.mset("a1", "1")
+        visor.mset("a2", "2")
+        visor.mset("b1", "3")
+        visor.mset("b2", "4")
+        visor.mset("c1", "5")
+        visor.mset("c2", "6")
 
-            visor mclear "key1 key2"
+        visor.mlist("ac")
+        visor.mclear()
+    }
 
-            visor.mlist()
-            visor.mclear()
+    "A 'mclear' visor command" should "remove first two variables" in {
+        visor.mset("key1", "value1")
+        visor.mset("key2", "value2")
+        visor.mset("key3", "value3")
 
-        }
+        visor mclear "key1 key2"
 
-        it("should remove all variables") {
-            visor.mset("key1", "value1")
-            visor.mset("key2", "value2")
-            visor.mset("key3", "value3")
+        visor.mlist()
+        visor.mclear()
+    }
 
-            visor.mclear()
-            visor.mlist()
-        }
+    "A 'mclear' visor command" should "remove all variables" in {
+        visor.mset("key1", "value1")
+        visor.mset("key2", "value2")
+        visor.mset("key3", "value3")
+
+        visor.mclear()
+        visor.mlist()
     }
 }

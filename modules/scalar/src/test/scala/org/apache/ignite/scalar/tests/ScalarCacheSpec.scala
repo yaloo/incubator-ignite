@@ -22,35 +22,32 @@ import org.apache.ignite.events.EventType._
 import org.apache.ignite.lang.IgnitePredicate
 import org.apache.ignite.scalar.scalar
 import org.apache.ignite.scalar.scalar._
-
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
-
 import scala.collection.JavaConversions._
 
 /**
  * Scalar cache test.
  */
 @RunWith(classOf[JUnitRunner])
-class ScalarCacheSpec extends FunSpec with ShouldMatchers {
+class ScalarCacheSpec extends FlatSpec with ShouldMatchers {
     private val CFG = "modules/scalar/src/test/resources/spring-cache.xml"
 
-    describe("Scalar cache") {
+    behavior of "Scalar cache"
 
-        it("should work properly via Java APIs") {
-            scalar(CFG) {
-                registerListener()
+    it should "work properly via Java APIs" in {
+        scalar(CFG) {
+            registerListener()
 
-                val c = cache$[Int, Int]("partitioned").get
+            val c = cache$[Int, Int]("partitioned").get
 
-                c.put(1, 1)
-                c.put(2, 2)
+            c.put(1, 1)
+            c.put(2, 2)
 
-                c.iterator() foreach println
+            c.iterator() foreach println
 
-                println("Size is: " + c.size())
-            }
+            println("Size is: " + c.size())
         }
     }
 

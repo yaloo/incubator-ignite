@@ -51,6 +51,9 @@ public class GridNearTxRemote extends GridDistributedTxRemoteAdapter {
     /** Owned versions. */
     private Map<IgniteTxKey, GridCacheVersion> owned;
 
+    /** Group lock flag. */
+    private boolean grpLock;
+
     /**
      * Empty constructor required for {@link Externalizable}.
      */
@@ -75,6 +78,7 @@ public class GridNearTxRemote extends GridDistributedTxRemoteAdapter {
      * @param writeEntries Write entries.
      * @param ctx Cache registry.
      * @param txSize Expected transaction size.
+     * @param grpLockKey Group lock key if this is a group-lock transaction.
      * @throws IgniteCheckedException If unmarshalling failed.
      */
     public GridNearTxRemote(
@@ -93,11 +97,12 @@ public class GridNearTxRemote extends GridDistributedTxRemoteAdapter {
         long timeout,
         Collection<IgniteTxEntry> writeEntries,
         int txSize,
+        @Nullable IgniteTxKey grpLockKey,
         @Nullable UUID subjId,
         int taskNameHash
     ) throws IgniteCheckedException {
         super(ctx, nodeId, rmtThreadId, xidVer, commitVer, sys, plc, concurrency, isolation, invalidate, timeout,
-            txSize, subjId, taskNameHash);
+            txSize, grpLockKey, subjId, taskNameHash);
 
         assert nearNodeId != null;
 
@@ -133,6 +138,7 @@ public class GridNearTxRemote extends GridDistributedTxRemoteAdapter {
      * @param timeout Timeout.
      * @param ctx Cache registry.
      * @param txSize Expected transaction size.
+     * @param grpLockKey Collection of group lock keys if this is a group-lock transaction.
      */
     public GridNearTxRemote(
         GridCacheSharedContext ctx,
@@ -149,11 +155,12 @@ public class GridNearTxRemote extends GridDistributedTxRemoteAdapter {
         boolean invalidate,
         long timeout,
         int txSize,
+        @Nullable IgniteTxKey grpLockKey,
         @Nullable UUID subjId,
         int taskNameHash
     ) {
         super(ctx, nodeId, rmtThreadId, xidVer, commitVer, sys, plc, concurrency, isolation, invalidate, timeout,
-            txSize, subjId, taskNameHash);
+            txSize, grpLockKey, subjId, taskNameHash);
 
         assert nearNodeId != null;
 
@@ -182,6 +189,19 @@ public class GridNearTxRemote extends GridDistributedTxRemoteAdapter {
     /** {@inheritDoc} */
     @Override public GridCacheVersion ownedVersion(IgniteTxKey key) {
         return owned == null ? null : owned.get(key);
+    }
+
+    /**
+     * Marks near local transaction as group lock. Note that near remote transaction may be
+     * marked as group lock even if it does not contain any locked key.
+     */
+    public void markGroupLock() {
+        grpLock = true;
+    }
+
+    /** {@inheritDoc} */
+    @Override public boolean groupLock() {
+        return grpLock || super.groupLock();
     }
 
     /**

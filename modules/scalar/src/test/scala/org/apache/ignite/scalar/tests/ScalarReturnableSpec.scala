@@ -18,7 +18,6 @@
 package org.apache.ignite.scalar.tests
 
 import org.apache.ignite.scalar.scalar._
-
 import org.junit.runner.RunWith
 import org.scalatest._
 import org.scalatest.junit.JUnitRunner
@@ -29,32 +28,30 @@ import scala.util.control.Breaks._
  *
  */
 @RunWith(classOf[JUnitRunner])
-class ScalarReturnableSpec extends FunSpec with ShouldMatchers {
-    describe("Scalar '^^'") {
-        it("should work") {
-            var i = 0
+class ScalarReturnableSpec extends FlatSpec with ShouldMatchers {
+    "Scalar '^^'" should "work" in {
+        var i = 0
 
-            breakable {
-                while (true) {
-                    if (i == 0)
-                        println("Only once!") ^^
-
-                    i += 1
-                }
-            }
-
-            assert(i == 0)
-        }
-
-        // Ignore exception below.
-        def test() = breakable {
+        breakable {
             while (true) {
-                println("Only once!") ^^
+                if (i == 0)
+                    println("Only once!") ^^
+
+                i += 1
             }
         }
 
-        it("should also work") {
-            test()
+        assert(i == 0)
+    }
+
+    "Scalar '^^'" should "also work" in {
+        test()
+    }
+
+    // Ignore exception below.
+    def test() = breakable {
+        while (true) {
+            println("Only once!") ^^
         }
     }
 }

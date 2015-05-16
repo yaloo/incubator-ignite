@@ -18,7 +18,6 @@
 package org.apache.ignite.internal.processors.cache.distributed.dht.atomic;
 
 import org.apache.ignite.cache.*;
-import org.apache.ignite.configuration.*;
 
 import static org.apache.ignite.cache.CacheMode.*;
 
@@ -29,10 +28,5 @@ public class GridCacheAtomicReplicatedFailoverSelfTest extends GridCacheAtomicFa
     /** {@inheritDoc} */
     @Override protected CacheMode cacheMode() {
         return REPLICATED;
-    }
-
-    /** {@inheritDoc} */
-    @Override protected NearCacheConfiguration nearConfiguration() {
-        return null;
     }
 }

@@ -179,6 +179,9 @@ public abstract class IgniteTxAdapter extends GridMetadataAwareAdapter
     /** */
     protected int txSize;
 
+    /** Group lock key, if any. */
+    protected IgniteTxKey grpLockKey;
+
     /** */
     @GridToStringExclude
     private AtomicReference<GridFutureAdapter<IgniteInternalTx>> finFut = new AtomicReference<>();
@@ -230,6 +233,7 @@ public abstract class IgniteTxAdapter extends GridMetadataAwareAdapter
      * @param isolation Isolation.
      * @param timeout Timeout.
      * @param txSize Transaction size.
+     * @param grpLockKey Group lock key if this is group-lock transaction.
      */
     protected IgniteTxAdapter(
         GridCacheSharedContext<?, ?> cctx,
@@ -245,6 +249,7 @@ public abstract class IgniteTxAdapter extends GridMetadataAwareAdapter
         boolean invalidate,
         boolean storeEnabled,
         int txSize,
+        @Nullable IgniteTxKey grpLockKey,
         @Nullable UUID subjId,
         int taskNameHash
     ) {
@@ -264,6 +269,7 @@ public abstract class IgniteTxAdapter extends GridMetadataAwareAdapter
         this.invalidate = invalidate;
         this.storeEnabled = storeEnabled;
         this.txSize = txSize;
+        this.grpLockKey = grpLockKey;
         this.subjId = subjId;
         this.taskNameHash = taskNameHash;
 
@@ -288,6 +294,7 @@ public abstract class IgniteTxAdapter extends GridMetadataAwareAdapter
      * @param isolation Isolation.
      * @param timeout Timeout.
      * @param txSize Transaction size.
+     * @param grpLockKey Group lock key if this is group-lock transaction.
      */
     protected IgniteTxAdapter(
         GridCacheSharedContext<?, ?> cctx,
@@ -301,6 +308,7 @@ public abstract class IgniteTxAdapter extends GridMetadataAwareAdapter
         TransactionIsolation isolation,
         long timeout,
         int txSize,
+        @Nullable IgniteTxKey grpLockKey,
         @Nullable UUID subjId,
         int taskNameHash
     ) {
@@ -315,6 +323,7 @@ public abstract class IgniteTxAdapter extends GridMetadataAwareAdapter
         this.isolation = isolation;
         this.timeout = timeout;
         this.txSize = txSize;
+        this.grpLockKey = grpLockKey;
         this.subjId = subjId;
         this.taskNameHash = taskNameHash;
 
@@ -378,7 +387,30 @@ public abstract class IgniteTxAdapter extends GridMetadataAwareAdapter
 
     /** {@inheritDoc} */
     @Override public Collection<IgniteTxEntry> optimisticLockEntries() {
-        return writeEntries();
+        if (!groupLock())
+            return writeEntries();
+        else {
+            if (!F.isEmpty(invalidParts)) {
+                assert invalidParts.size() == 1 : "Only one partition expected for group lock transaction " +
+                    "[tx=" + this + ", invalidParts=" + invalidParts + ']';
+                assert groupLockEntry() == null : "Group lock key should be rejected " +
+                    "[tx=" + this + ", groupLockEntry=" + groupLockEntry() + ']';
+                assert F.isEmpty(writeMap()) : "All entries should be rejected for group lock transaction " +
+                    "[tx=" + this + ", writes=" + writeMap() + ']';
+
+                return Collections.emptyList();
+            }
+
+            IgniteTxEntry grpLockEntry = groupLockEntry();
+
+            assert grpLockEntry != null || (near() && !local()):
+                "Group lock entry was not enlisted into transaction [tx=" + this +
+                ", grpLockKey=" + groupLockKey() + ']';
+
+            return grpLockEntry == null ?
+                Collections.<IgniteTxEntry>emptyList() :
+                Collections.singletonList(grpLockEntry);
+        }
     }
 
     /** {@inheritDoc} */
@@ -448,6 +480,16 @@ public abstract class IgniteTxAdapter extends GridMetadataAwareAdapter
         }
 
         cctx.tm().uncommitTx(this);
+    }
+
+    /**
+     * This method uses unchecked assignment to cast group lock key entry to transaction generic signature.
+     *
+     * @return Group lock tx entry.
+     */
+    @SuppressWarnings("unchecked")
+    public IgniteTxEntry groupLockEntry() {
+        return this.entry(groupLockKey());
     }
 
     /** {@inheritDoc} */
@@ -559,6 +601,16 @@ public abstract class IgniteTxAdapter extends GridMetadataAwareAdapter
      * @return {@code True} if transaction has at least one key enlisted.
      */
     public abstract boolean isStarted();
+
+    /** {@inheritDoc} */
+    @Override public boolean groupLock() {
+        return grpLockKey != null;
+    }
+
+    /** {@inheritDoc} */
+    @Override public IgniteTxKey groupLockKey() {
+        return grpLockKey;
+    }
 
     /** {@inheritDoc} */
     @Override public int size() {
@@ -746,6 +798,9 @@ public abstract class IgniteTxAdapter extends GridMetadataAwareAdapter
 
         GridCacheVersion explicit = txEntry == null ? null : txEntry.explicitVersion();
 
+        assert !txEntry.groupLockEntry() || groupLock() : "Can not have group-locked tx entries in " +
+            "non-group-lock transactions [txEntry=" + txEntry + ", tx=" + this + ']';
+
         return local() && !cacheCtx.isDht() ?
             entry.lockedByThread(threadId()) || (explicit != null && entry.lockedBy(explicit)) :
             // If candidate is not there, then lock was explicit.
@@ -761,6 +816,9 @@ public abstract class IgniteTxAdapter extends GridMetadataAwareAdapter
         IgniteTxEntry txEntry = entry(entry.txKey());
 
         GridCacheVersion explicit = txEntry == null ? null : txEntry.explicitVersion();
+
+        assert !txEntry.groupLockEntry() || groupLock() : "Can not have group-locked tx entries in " +
+            "non-group-lock transactions [txEntry=" + txEntry + ", tx=" + this + ']';
 
         return local() && !cacheCtx.isDht() ?
             entry.lockedByThreadUnsafe(threadId()) || (explicit != null && entry.lockedByUnsafe(explicit)) :
@@ -950,7 +1008,7 @@ public abstract class IgniteTxAdapter extends GridMetadataAwareAdapter
     }
 
     /** {@inheritDoc} */
-    @Nullable @Override public IgniteInternalFuture<?> currentPrepareFuture() {
+    @Nullable @Override public IgniteInternalFuture<IgniteInternalTx> currentPrepareFuture() {
         return null;
     }
 
@@ -1496,7 +1554,7 @@ public abstract class IgniteTxAdapter extends GridMetadataAwareAdapter
     /** {@inheritDoc} */
     @Override public String toString() {
         return GridToStringBuilder.toString(IgniteTxAdapter.class, this,
-            "duration", (U.currentTimeMillis() - startTime) + "ms",
+            "duration", (U.currentTimeMillis() - startTime) + "ms", "grpLock", groupLock(),
             "onePhaseCommit", onePhaseCommit);
     }
 
@@ -1717,6 +1775,16 @@ public abstract class IgniteTxAdapter extends GridMetadataAwareAdapter
 
         /** {@inheritDoc} */
         @Override public boolean empty() {
+            throw new IllegalStateException("Deserialized transaction can only be used as read-only.");
+        }
+
+        /** {@inheritDoc} */
+        @Override public boolean groupLock() {
+            return false;
+        }
+
+        /** {@inheritDoc} */
+        @Nullable @Override public IgniteTxKey groupLockKey() {
             throw new IllegalStateException("Deserialized transaction can only be used as read-only.");
         }
 

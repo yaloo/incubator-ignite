@@ -24,15 +24,15 @@ import org.apache.ignite.visor.commands.ping.VisorPingCommand._
  * Unit test for 'ping' command.
  */
 class VisorPingCommandSpec extends VisorRuntimeBaseSpec(2) {
-    describe("A 'ping' visor command") {
-        it("should properly execute") {
-            visor.ping()
-        }
+    behavior of "A 'ping' visor command"
 
-        it("should print error message when not connected") {
-            closeVisorQuiet()
+    it should "properly execute" in {
+        visor.ping()
+    }
 
-            visor.ping()
-        }
+    it should "print error message when not connected" in {
+        closeVisorQuiet()
+
+        visor.ping()
     }
 }

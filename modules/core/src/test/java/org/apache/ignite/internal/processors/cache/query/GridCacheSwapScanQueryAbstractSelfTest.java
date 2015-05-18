@@ -129,14 +129,8 @@ public abstract class GridCacheSwapScanQueryAbstractSelfTest extends GridCommonA
             cache.getAndPut(new Key(i), new Person("p-" + i, i));
 
         try {
-            CacheQuery<Map.Entry<Key, Person>> qry = cache.context().queries().createScanQuery(
-                new IgniteBiPredicate<Key, Person>() {
-                    @Override public boolean apply(Key key, Person p) {
-                        assertEquals(key.id, (Integer)p.salary);
-
-                        return key.id % 2 == 0;
-                    }
-                }, false);
+            CacheQuery<Map.Entry<Key, Person>> qry = cache.context().queries().createScanQuery
+                (new QueryFilter(), false);
 
             Collection<Map.Entry<Key, Person>> res = qry.execute().get();
 
@@ -176,13 +170,7 @@ public abstract class GridCacheSwapScanQueryAbstractSelfTest extends GridCommonA
             @SuppressWarnings("unchecked")
             @Override public Void call() throws Exception {
                 CacheQuery<Map.Entry<Key, Person>> qry = cache.context().queries().createScanQuery(
-                    new IgniteBiPredicate<Key, Person>() {
-                        @Override public boolean apply(Key key, Person p) {
-                            assertEquals(key.id, (Integer)p.salary);
-
-                            return key.id % 2 == 0;
-                        }
-                    }, false);
+                    new QueryFilter(), false);
 
                 for (int i = 0; i < 250; i++) {
                     Collection<Map.Entry<Key, Person>> res = qry.execute().get();
@@ -363,6 +351,17 @@ public abstract class GridCacheSwapScanQueryAbstractSelfTest extends GridCommonA
         public Person(String name, int salary) {
             this.name = name;
             this.salary = salary;
+        }
+    }
+
+    /**
+     *
+     */
+    private static class QueryFilter implements IgniteBiPredicate<Key, Person> {
+        @Override public boolean apply(Key key, Person p) {
+            assertEquals(key.id, (Integer)p.salary);
+
+            return key.id % 2 == 0;
         }
     }
 }

@@ -51,9 +51,6 @@ import static org.apache.ignite.internal.managers.communication.GridIoPolicy.*;
  * Grid event storage SPI manager.
  */
 public class GridEventStorageManager extends GridManagerAdapter<EventStorageSpi> {
-    /** */
-    private static final int[] EMPTY = new int[0];
-
     /** Local event listeners. */
     private final ConcurrentMap<Integer, Set<GridLocalEventListener>> lsnrs = new ConcurrentHashMap8<>();
 
@@ -107,7 +104,7 @@ public class GridEventStorageManager extends GridManagerAdapter<EventStorageSpi>
         int[] cfgInclEvtTypes0 = ctx.config().getIncludeEventTypes();
 
         if (F.isEmpty(cfgInclEvtTypes0))
-            cfgInclEvtTypes = EMPTY;
+            cfgInclEvtTypes = U.EMPTY_INTS;
         else {
             cfgInclEvtTypes0 = copy(cfgInclEvtTypes0);
 

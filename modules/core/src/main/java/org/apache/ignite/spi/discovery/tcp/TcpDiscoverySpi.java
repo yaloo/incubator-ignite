@@ -2689,8 +2689,26 @@ public class TcpDiscoverySpi extends TcpDiscoverySpiAdapter implements TcpDiscov
                 msgLsnr.apply(msg);
 
             if (redirectToClients(msg)) {
-                for (ClientMessageWorker clientMsgWorker : clientMsgWorkers.values())
-                    clientMsgWorker.addMessage(msg);
+                ByteBuffer marshalledMsg = null;
+
+                for (ClientMessageWorker clientMsgWorker : clientMsgWorkers.values()) {
+                    // Send a clone to client to avoid ConcurrentModificationException
+                    TcpDiscoveryAbstractMessage msgClone;
+
+                    try {
+                        if (marshalledMsg == null)
+                            marshalledMsg = marsh.marshal(msg);
+
+                        msgClone = marsh.unmarshal(marshalledMsg, null);
+                    }
+                    catch (IgniteCheckedException e) {
+                        U.error(log, "Failed to marshal message: " + msg, e);
+
+                        msgClone = msg;
+                    }
+
+                    clientMsgWorker.addMessage(msgClone);
+                }
             }
 
             Collection<TcpDiscoveryNode> failedNodes;
@@ -3933,18 +3951,6 @@ public class TcpDiscoverySpi extends TcpDiscoverySpiAdapter implements TcpDiscov
                 long topVer;
 
                 if (locNodeCoord) {
-                    if (!msg.client() && ipFinder.isShared()) {
-                        try {
-                            ipFinder.unregisterAddresses(leftNode.socketAddresses());
-                        }
-                        catch (IgniteSpiException e) {
-                            if (log.isDebugEnabled())
-                                log.debug("Failed to unregister left node address: " + leftNode);
-
-                            onException("Failed to unregister left node address: " + leftNode, e);
-                        }
-                    }
-
                     topVer = ring.incrementTopologyVersion();
 
                     msg.topologyVersion(topVer);
@@ -4112,20 +4118,6 @@ public class TcpDiscoverySpi extends TcpDiscoverySpiAdapter implements TcpDiscov
                 long topVer;
 
                 if (locNodeCoord) {
-                    if (!node.isClient() && ipFinder.isShared()) {
-                        try {
-                            ipFinder.unregisterAddresses(node.socketAddresses());
-                        }
-                        catch (IgniteSpiException e) {
-                            if (log.isDebugEnabled())
-                                log.debug("Failed to unregister failed node address [node=" + node +
-                                    ", err=" + e.getMessage() + ']');
-
-                            onException("Failed to unregister failed node address [node=" + node +
-                                ", err=" + e.getMessage() + ']', e);
-                        }
-                    }
-
                     topVer = ring.incrementTopologyVersion();
 
                     msg.topologyVersion(topVer);

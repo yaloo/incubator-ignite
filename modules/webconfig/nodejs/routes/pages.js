@@ -14,7 +14,12 @@ router.get('/cluster', function(req, res) {
 
 /* GET cluster edit popup. */
 router.get('/cluster/edit', function(req, res) {
-    res.render('clusterEdit', { });
+    res.render('clusterEdit', {});
+});
+
+// GET dropdown-menu template.
+router.get('/select', function(req, res) {
+    res.render('templates/select', { });
 });
 
 module.exports = router;

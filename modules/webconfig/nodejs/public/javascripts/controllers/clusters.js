@@ -1,13 +1,15 @@
-angular.module('ignite-web-configurator', ['ngTable', 'mgcrea.ngStrap'])
+angular.module('ignite-web-configurator', ['ngTable', 'mgcrea.ngStrap', 'ngSanitize'])
     .controller('clusterRouter', ['$scope', '$modal', '$http', '$filter', 'ngTableParams', function($scope, $modal, $http, $filter, ngTableParams) {
-        $scope.discovery = 'VM';
+
+        $scope.discoveries = [
+            {value: 'VM', label: 'VM'},
+            {value: 'Multicast', label: 'Multicast'}
+        ];
 
         // when landing on the page, get all settings and show them
         $http.get('/rest/cluster')
             .success(function(data) {
                 $scope.clusters = data;
-
-                console.log(data);
 
                 $scope.clustersTable = new ngTableParams({
                     page: 1,            // show first page
@@ -35,8 +37,6 @@ angular.module('ignite-web-configurator', ['ngTable', 'mgcrea.ngStrap'])
         var myOtherModal = $modal({scope: $scope, template: '/cluster/edit', show: false});
 
         $scope.submit = function() {
-            myOtherModal.hide();
-
             var data = {
                 _id: $scope.cluster._id,
                 name: $scope.cluster.name,
@@ -47,6 +47,8 @@ angular.module('ignite-web-configurator', ['ngTable', 'mgcrea.ngStrap'])
 
             $http.post('/rest/cluster/save', data)
                 .success(function(data) {
+                    myOtherModal.hide();
+
                     $scope.clusters = data;
 
                     $scope.clustersTable.reload();

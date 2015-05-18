@@ -8,8 +8,8 @@ function selectAll(res) {
         // if there is an error retrieving, send the error. nothing after res.send(err) will execute
         if (err)
             res.send(err);
-
-        res.json(clusters); // return all clusters in JSON format
+        else
+            res.json(clusters); // return all clusters in JSON format
     });
 }
 

@@ -6,9 +6,8 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var session = require('express-session')
 
-var pageRoutes = require('./routes/page');
-var users = require('./routes/users');
-var clusterRouter = require('./routes/cluster');
+var pageRoutes = require('./routes/pages');
+var clusterRouter = require('./routes/clusters');
 
 //var passport = require('passport')
 //var LocalStrategy = require('passport-local').Strategy;
@@ -32,7 +31,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 //app.use(passport.session());
 
 app.use('/', pageRoutes);
-//app.use('/users', users);
 app.use('/rest', clusterRouter);
 
 // catch 404 and forward to error handler

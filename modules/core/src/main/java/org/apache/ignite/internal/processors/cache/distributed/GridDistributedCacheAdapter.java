@@ -38,6 +38,7 @@ import org.apache.ignite.transactions.*;
 import org.jetbrains.annotations.*;
 
 import java.io.*;
+import java.nio.*;
 import java.util.*;
 
 import static org.apache.ignite.internal.processors.cache.distributed.dht.GridDhtPartitionState.*;
@@ -378,7 +379,7 @@ public abstract class GridDistributedCacheAdapter<K, V> extends GridCacheAdapter
 
                             if (iter != null) {
                                 for (Map.Entry<byte[], GridCacheSwapEntry> e : iter)
-                                    dataLdr.removeDataInternal(ctx.toCacheKeyObject(e.getKey()));
+                                    dataLdr.removeDataInternal(ctx.toCacheKeyObject(ByteBuffer.wrap(e.getKey())));
                             }
                         }
                         finally {

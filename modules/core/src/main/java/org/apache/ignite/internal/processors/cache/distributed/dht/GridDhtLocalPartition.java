@@ -613,7 +613,7 @@ public class GridDhtLocalPartition implements Comparable<GridDhtLocalPartition> 
                 byte[] keyBytes = entry.getKey();
 
                 try {
-                    KeyCacheObject key = cctx.toCacheKeyObject(keyBytes);
+                    KeyCacheObject key = cctx.toCacheKeyObject(ByteBuffer.wrap(keyBytes));
 
                     lastEntry = (GridDhtCacheEntry)cctx.cache().entryEx(key, false);
 

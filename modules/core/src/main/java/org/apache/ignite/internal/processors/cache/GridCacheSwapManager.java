@@ -1616,7 +1616,7 @@ public class GridCacheSwapManager extends GridCacheManagerAdapter {
                 }
 
                 @Override protected void onRemove() throws IgniteCheckedException {
-                    KeyCacheObject key = cctx.toCacheKeyObject(cur.getKey());
+                    KeyCacheObject key = cctx.toCacheKeyObject(ByteBuffer.wrap(cur.getKey()));
 
                     int part = cctx.affinity().partition(key);
 

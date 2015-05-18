@@ -1,6 +1,5 @@
 angular.module('ignite-web-configurator', ['ngTable', 'mgcrea.ngStrap', 'ngSanitize'])
     .controller('clusterRouter', ['$scope', '$modal', '$http', '$filter', 'ngTableParams', function($scope, $modal, $http, $filter, ngTableParams) {
-
         $scope.discoveries = [
             {value: 'VM', label: 'VM'},
             {value: 'Multicast', label: 'Multicast'}
@@ -59,7 +58,7 @@ angular.module('ignite-web-configurator', ['ngTable', 'mgcrea.ngStrap', 'ngSanit
         };
 
         $scope.create = function () {
-            $scope.cluster = { discovery: 'VM' };
+            $scope.cluster = {};
 
             // Show when some event occurs (use $promise property to ensure the template has been loaded)
             myOtherModal.$promise.then(myOtherModal.show);

@@ -9,8 +9,10 @@ var session = require('express-session')
 var pageRoutes = require('./routes/pages');
 var clusterRouter = require('./routes/clusters');
 
-//var passport = require('passport')
-//var LocalStrategy = require('passport-local').Strategy;
+var passport = require('passport');
+var LocalStrategy = require('passport-local').Strategy;
+
+var db = require('./db.js');
 
 var app = express();
 
@@ -23,12 +25,12 @@ app.use(favicon(__dirname + '/public/favicon.ico'));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
-//app.use(cookieParser());
+app.use(cookieParser());
 app.use(require('less-middleware')(path.join(__dirname, 'public')));
 app.use(express.static(path.join(__dirname, 'public')));
 
-//app.use(passport.initialize());
-//app.use(passport.session());
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use('/', pageRoutes);
 app.use('/rest', clusterRouter);
@@ -70,27 +72,55 @@ app.use(function (err, req, res, next) {
 //    next();
 //});
 
-//app.use(session({
-//    secret: 'keyboard cat',
-//    resave: false,
-//    saveUninitialized: true
-//}))
-//
-//passport.use(new LocalStrategy(
-//    function (username, password, done) {
-//        User.findOne({username: username}, function (err, user) {
-//            if (err) {
-//                return done(err);
-//            }
-//            if (!user) {
-//                return done(null, false, {message: 'Incorrect username.'});
-//            }
-//            if (!user.validPassword(password)) {
-//                return done(null, false, {message: 'Incorrect password.'});
-//            }
-//            return done(null, user);
-//        });
-//    }
-//));
+app.use(session({
+    secret: 'keyboard cat',
+    resave: false,
+    saveUninitialized: true
+}));
+
+passport.serializeUser(function(user, done) {
+    done(null, user._id);
+});
+
+passport.deserializeUser(function(id, done) {
+    db.User.findById(id, function(err, user) {
+        done(err, user);
+    });
+});
+
+// passport/login.js
+passport.use('login', new LocalStrategy({
+        passReqToCallback : true
+    },
+    function(req, username, password, done) {
+        // check in mongo if a user with username exists or not
+        db.User.findOne({ 'username' :  username },
+            function(err, user) {
+                // In case of any error, return using the done method
+                if (err)
+                    return done(err);
+
+                // Username does not exist, log error & redirect back
+                if (!user) {
+                    console.log('User Not Found with username ' + username);
+
+                    return done(null, false,
+                        req.flash('message', 'User Not found.'));
+                }
+
+                // User exists but wrong password, log the error
+                if (!isValidPassword(user, password)) {
+                    console.log('Invalid Password');
+
+                    return done(null, false,
+                        req.flash('message', 'Invalid Password'));
+                }
+
+                // User and password both match, return user from done method which will be treated like success
+                return done(null, user);
+            }
+        );
+    })
+);
 
 module.exports = app;

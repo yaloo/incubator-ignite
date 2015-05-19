@@ -1093,6 +1093,7 @@ public abstract class GridAbstractTest extends TestCase {
         cfg.setNodeId(rsrcs.getNodeId());
         cfg.setIgniteHome(rsrcs.getIgniteHome());
         cfg.setMBeanServer(rsrcs.getMBeanServer());
+        cfg.setPluginConfigurations(IgniteTestResources.PLUGINS);
         cfg.setPeerClassLoadingEnabled(true);
         cfg.setMetricsLogFrequency(0);
 

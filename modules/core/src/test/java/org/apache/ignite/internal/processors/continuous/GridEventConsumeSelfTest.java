@@ -74,8 +74,6 @@ public class GridEventConsumeSelfTest extends GridCommonAbstractTest implements 
         if (include)
             cfg.setUserAttributes(F.asMap("include", true));
 
-        cfg.setMarshaller(new OptimizedMarshaller(false));
-
         return cfg;
     }
 

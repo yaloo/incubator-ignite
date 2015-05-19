@@ -40,6 +40,9 @@ public abstract class MarshallerContextAdapter implements MarshallerContext {
     /** */
     private final ConcurrentMap<Integer, String> map = new ConcurrentHashMap8<>();
 
+    /** */
+    private final Set<String> registeredTypes = new HashSet<>();
+
     /**
      * Initializes context.
      */
@@ -75,7 +78,15 @@ public abstract class MarshallerContextAdapter implements MarshallerContext {
 
                 String clsName = line.trim();
 
-                map.put(clsName.hashCode(), clsName);
+                int typeId = clsName.hashCode();
+
+                String oldClsName;
+
+                if ((oldClsName = map.put(typeId, clsName)) != null)
+                    throw new IgniteException("Duplicate type ID [id=" + typeId + ", clsName=" + clsName +
+                        ", oldClsName=" + oldClsName + ']');
+
+                registeredTypes.add(clsName);
             }
         }
     }
@@ -101,7 +112,8 @@ public abstract class MarshallerContextAdapter implements MarshallerContext {
         if (clsName == null) {
             clsName = className(id);
 
-            assert clsName != null : id;
+            if (clsName == null)
+                throw new ClassNotFoundException("Unknown type ID: " + id);
 
             String old = map.putIfAbsent(id, clsName);
 
@@ -110,6 +122,11 @@ public abstract class MarshallerContextAdapter implements MarshallerContext {
         }
 
         return U.forName(clsName, ldr);
+    }
+
+    /** {@inheritDoc} */
+    @Override public boolean isSystemType(String typeName) {
+        return registeredTypes.contains(typeName);
     }
 
     /**

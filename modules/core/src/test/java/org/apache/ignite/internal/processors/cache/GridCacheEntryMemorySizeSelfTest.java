@@ -91,6 +91,10 @@ public class GridCacheEntryMemorySizeSelfTest extends GridCommonAbstractTest {
                 @Override public Class getClass(int id, ClassLoader ldr) {
                     throw new UnsupportedOperationException();
                 }
+
+                @Override public boolean isSystemType(String typeName) {
+                    return false;
+                }
             });
 
             KEY_SIZE = marsh.marshal(1).length;

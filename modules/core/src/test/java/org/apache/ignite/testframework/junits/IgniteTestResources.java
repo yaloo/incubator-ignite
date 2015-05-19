@@ -22,6 +22,7 @@ import org.apache.ignite.internal.processors.resource.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 import org.apache.ignite.marshaller.*;
 import org.apache.ignite.marshaller.optimized.*;
+import org.apache.ignite.plugin.*;
 import org.apache.ignite.resources.*;
 import org.apache.ignite.testframework.config.*;
 import org.apache.ignite.testframework.junits.logger.*;
@@ -38,6 +39,9 @@ import java.util.concurrent.*;
  * Test resources for injection.
  */
 public class IgniteTestResources {
+    /** */
+    public static PluginConfiguration[] PLUGINS;
+
     /** */
     private static final IgniteLogger rootLog = new GridTestLog4jLogger(false);
 
@@ -228,15 +232,15 @@ public class IgniteTestResources {
     public synchronized Marshaller getMarshaller() throws IgniteCheckedException {
         String marshallerName = GridTestProperties.getProperty("marshaller.class");
 
-        Marshaller marshaller;
+        Marshaller marsh;
 
         if (marshallerName == null)
-            marshaller = new OptimizedMarshaller();
+            marsh = new OptimizedMarshaller();
         else {
             try {
                 Class<? extends Marshaller> cls = (Class<? extends Marshaller>)Class.forName(marshallerName);
 
-                marshaller = cls.newInstance();
+                marsh = cls.newInstance();
             }
             catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
                 throw new IgniteCheckedException("Failed to create test marshaller [marshaller=" +
@@ -244,8 +248,11 @@ public class IgniteTestResources {
             }
         }
 
-        marshaller.setContext(new MarshallerContextTestImpl());
+        if (marsh instanceof OptimizedMarshaller)
+            ((OptimizedMarshaller)marsh).setRequireSerializable(false);
 
-        return marshaller;
+        marsh.setContext(new MarshallerContextTestImpl());
+
+        return marsh;
     }
 }

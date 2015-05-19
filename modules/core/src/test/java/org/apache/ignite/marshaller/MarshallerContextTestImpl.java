@@ -27,7 +27,7 @@ import java.util.concurrent.*;
  */
 public class MarshallerContextTestImpl extends MarshallerContextAdapter {
     /** */
-    private final ConcurrentMap<Integer, String> map = new ConcurrentHashMap8<>();
+    private final static ConcurrentMap<Integer, String> map = new ConcurrentHashMap8<>();
 
     /** {@inheritDoc} */
     @Override protected boolean registerClassName(int id, String clsName) {

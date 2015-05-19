@@ -64,6 +64,9 @@ public final class GridTestProperties {
     private static final Map<String, Map<String, String>> pathProps = new HashMap<>();
 
     /** */
+    public static final String MARSH_CLASS_NAME = "marshaller.class";
+
+    /** */
     static {
         // Initialize IGNITE_HOME system property.
         String igniteHome = System.getProperty("IGNITE_HOME");

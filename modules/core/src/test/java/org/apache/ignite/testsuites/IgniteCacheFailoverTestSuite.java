@@ -23,7 +23,9 @@ import org.apache.ignite.internal.processors.cache.distributed.*;
 import org.apache.ignite.internal.processors.cache.distributed.dht.*;
 import org.apache.ignite.internal.processors.cache.distributed.dht.atomic.*;
 import org.apache.ignite.internal.processors.cache.distributed.near.*;
-import org.apache.ignite.internal.processors.cache.distributed.replicated.*;
+import org.apache.ignite.marshaller.jdk.*;
+import org.apache.ignite.marshaller.optimized.*;
+import org.apache.ignite.testframework.config.*;
 
 /**
  * Test suite.
@@ -38,7 +40,11 @@ public class IgniteCacheFailoverTestSuite extends TestSuite {
 
         suite.addTestSuite(GridCacheAtomicInvalidPartitionHandlingSelfTest.class);
 
-        suite.addTestSuite(GridCacheIncrementTransformTest.class);
+        Object marshClass = GridTestProperties.getProperty(GridTestProperties.MARSH_CLASS_NAME);
+
+        if (marshClass == null || marshClass.equals(OptimizedMarshaller.class.getName()) ||
+            marshClass.equals(JdkMarshaller.class.getName()))
+            suite.addTestSuite(GridCacheIncrementTransformTest.class);
 
         // Failure consistency tests.
         suite.addTestSuite(GridCacheAtomicRemoveFailureTest.class);

@@ -26,8 +26,11 @@ import org.apache.ignite.internal.processors.closure.*;
 import org.apache.ignite.internal.processors.continuous.*;
 import org.apache.ignite.internal.product.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
+import org.apache.ignite.marshaller.jdk.*;
+import org.apache.ignite.marshaller.optimized.*;
 import org.apache.ignite.messaging.*;
 import org.apache.ignite.spi.*;
+import org.apache.ignite.testframework.config.*;
 
 /**
  * Basic test suite.
@@ -42,7 +45,13 @@ public class IgniteBasicTestSuite extends TestSuite {
 
         suite.addTest(IgniteLangSelfTestSuite.suite());
         suite.addTest(IgniteUtilSelfTestSuite.suite());
-        suite.addTest(IgniteMarshallerSelfTestSuite.suite());
+
+        Object marshClass = GridTestProperties.getProperty(GridTestProperties.MARSH_CLASS_NAME);
+
+        if (marshClass == null || marshClass.equals(OptimizedMarshaller.class.getName()) ||
+            marshClass.equals(JdkMarshaller.class.getName()))
+            suite.addTest(IgniteMarshallerSelfTestSuite.suite());
+
         suite.addTest(IgniteKernalSelfTestSuite.suite());
         suite.addTest(IgniteStartUpTestSuite.suite());
         suite.addTest(IgniteExternalizableSelfTestSuite.suite());

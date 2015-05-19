@@ -33,7 +33,7 @@ public interface IgniteCacheObjectProcessor extends GridProcessor {
     /**
      * @see GridComponent#onKernalStart()
      */
-    public void onCacheProcessorStarted();
+    public void onUtilityCacheStarted();
 
     /**
      * @param typeName Type name.

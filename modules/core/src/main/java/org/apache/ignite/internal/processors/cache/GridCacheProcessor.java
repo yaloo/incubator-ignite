@@ -265,7 +265,7 @@ public class GridCacheProcessor extends GridProcessorAdapter {
 
         // Suppress warning if at least one ATOMIC cache found.
         perf.add("Enable ATOMIC mode if not using transactions (set 'atomicityMode' to ATOMIC)",
-            cfg.getAtomicityMode() == ATOMIC);
+                 cfg.getAtomicityMode() == ATOMIC);
 
         // Suppress warning if at least one non-FULL_SYNC mode found.
         perf.add("Disable fully synchronous writes (set 'writeSynchronizationMode' to PRIMARY_SYNC or FULL_ASYNC)",
@@ -425,7 +425,7 @@ public class GridCacheProcessor extends GridProcessorAdapter {
 
         if (cc.getAtomicityMode() == ATOMIC)
             assertParameter(cc.getTransactionManagerLookupClassName() == null,
-                "transaction manager can not be used with ATOMIC cache");
+                            "transaction manager can not be used with ATOMIC cache");
     }
 
     /**
@@ -774,18 +774,26 @@ public class GridCacheProcessor extends GridProcessorAdapter {
         for (GridCacheAdapter<?, ?> cache : caches.values())
             onKernalStart(cache);
 
+        boolean utilityCacheStarted = false;
+
         // Wait for caches in SYNC preload mode.
-        for (GridCacheAdapter<?, ?> cache : caches.values()) {
-            CacheConfiguration cfg = cache.configuration();
+        for (CacheConfiguration cfg : ctx.config().getCacheConfiguration()) {
+            GridCacheAdapter<?, ?> cache = caches.get(maskNull(cfg.getName()));
 
             if (cfg.getRebalanceMode() == SYNC) {
                 if (cfg.getCacheMode() == REPLICATED ||
                     (cfg.getCacheMode() == PARTITIONED && cfg.getRebalanceDelay() >= 0))
-                    cache.preloader().syncFuture().get();
+                cache.preloader().syncFuture().get();
+            }
+
+            if (CU.isUtilityCache(cache.name())) {
+                ctx.cacheObjects().onUtilityCacheStarted();
+
+                utilityCacheStarted = true;
             }
         }
 
-        ctx.cacheObjects().onCacheProcessorStarted();
+        assert utilityCacheStarted;
     }
 
     /** {@inheritDoc} */

@@ -780,6 +780,9 @@ public class GridCacheProcessor extends GridProcessorAdapter {
         for (CacheConfiguration cfg : ctx.config().getCacheConfiguration()) {
             GridCacheAdapter<?, ?> cache = caches.get(maskNull(cfg.getName()));
 
+            if (cache == null)
+                continue;
+
             if (cfg.getRebalanceMode() == SYNC) {
                 if (cfg.getCacheMode() == REPLICATED ||
                     (cfg.getCacheMode() == PARTITIONED && cfg.getRebalanceDelay() >= 0))

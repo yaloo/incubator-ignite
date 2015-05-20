@@ -890,7 +890,7 @@ public class DataStreamProcessorSelfTest extends GridCommonAbstractTest {
             try (IgniteDataStreamer<String, TestObject> ldr = ignite.dataStreamer(null)) {
                 ldr.allowOverwrite(true);
 
-                ldr.receiver(new TestDataReceiver());
+                ldr.receiver(getStreamReceiver());
 
                 for (int i = 0; i < 100; i++)
                     ldr.addData(String.valueOf(i), new TestObject(i));
@@ -913,14 +913,14 @@ public class DataStreamProcessorSelfTest extends GridCommonAbstractTest {
     /**
      *
      */
-    private static class TestObject {
+    protected static class TestObject {
         /** Value. */
-        private final int val;
+        public final int val;
 
         /**
          * @param val Value.
          */
-        private TestObject(int val) {
+        public TestObject(int val) {
             this.val = val;
         }
 
@@ -941,6 +941,13 @@ public class DataStreamProcessorSelfTest extends GridCommonAbstractTest {
         @Override public int hashCode() {
             return val;
         }
+    }
+
+    /**
+     *
+     */
+    protected StreamReceiver<String, TestObject> getStreamReceiver() {
+        return new TestDataReceiver();
     }
 
     /**

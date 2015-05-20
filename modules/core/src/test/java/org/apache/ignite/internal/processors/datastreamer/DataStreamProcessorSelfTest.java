@@ -913,7 +913,7 @@ public class DataStreamProcessorSelfTest extends GridCommonAbstractTest {
     /**
      *
      */
-    protected static class TestObject {
+    public static class TestObject {
         /** Value. */
         public final int val;
 

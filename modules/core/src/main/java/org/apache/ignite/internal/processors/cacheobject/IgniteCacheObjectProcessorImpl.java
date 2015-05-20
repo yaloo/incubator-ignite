@@ -229,7 +229,7 @@ public class IgniteCacheObjectProcessorImpl extends GridProcessorAdapter impleme
     }
 
     /** {@inheritDoc} */
-    @Override public boolean isPortableClass(Class<?> cls) {
+    @Override public boolean isPortableEnabled() {
         return false;
     }
 

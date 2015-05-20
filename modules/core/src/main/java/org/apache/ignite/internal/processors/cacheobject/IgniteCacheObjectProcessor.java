@@ -80,7 +80,7 @@ public interface IgniteCacheObjectProcessor extends GridProcessor {
      * @param cls Class.
      * @return {@code true} If the class was registered as portable.
      */
-    public boolean isPortableClass(Class<?> cls);
+    public boolean isPortableEnabled();
 
     /**
      * @param obj Portable object to get field from.

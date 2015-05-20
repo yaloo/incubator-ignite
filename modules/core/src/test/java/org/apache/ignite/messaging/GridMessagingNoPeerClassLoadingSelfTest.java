@@ -17,8 +17,10 @@
 
 package org.apache.ignite.messaging;
 
+import org.apache.ignite.*;
 import org.apache.ignite.configuration.*;
 import org.apache.ignite.internal.util.typedef.*;
+import org.apache.ignite.resources.*;
 import org.apache.ignite.testframework.config.*;
 
 import java.net.*;
@@ -54,30 +56,9 @@ public class GridMessagingNoPeerClassLoadingSelfTest extends GridMessagingSelfTe
 
         Class rcCls = extLdr.loadClass(EXT_RESOURCE_CLS_NAME);
 
-        final AtomicBoolean error = new AtomicBoolean(false); //to make it modifiable
+        MessageListener list = new MessageListener(ignite1);
 
-        final CountDownLatch rcvLatch = new CountDownLatch(1);
-
-        ignite2.message().remoteListen("", new P2<UUID, Object>() {
-            @Override public boolean apply(UUID nodeId, Object msg) {
-                try {
-                    log.info("Received new message [msg=" + msg + ", senderNodeId=" + nodeId + ']');
-
-                    if (!nodeId.equals(ignite1.cluster().localNode().id())) {
-                        log.error("Unexpected sender node: " + nodeId);
-
-                        error.set(true);
-
-                        return false;
-                    }
-
-                    return true;
-                }
-                finally {
-                    rcvLatch.countDown();
-                }
-            }
-        });
+        ignite2.message().remoteListen("", list);
 
         message(ignite1.cluster().forRemotes()).send(null, Collections.singleton(rcCls.newInstance()));
 
@@ -85,6 +66,51 @@ public class GridMessagingNoPeerClassLoadingSelfTest extends GridMessagingSelfTe
             We shouldn't get a message, because remote node won't be able to
             unmarshal it (peer class loading is disabled.)
          */
-        assertFalse(rcvLatch.await(3, TimeUnit.SECONDS));
+        assertFalse(list.rcvLatch.await(3, TimeUnit.SECONDS));
+    }
+
+    /**
+     *
+     */
+    private static class MessageListener<UUID, Object> implements P2<UUID, Object> {
+        /** */
+        final AtomicBoolean error = new AtomicBoolean(false); //to make it modifiable
+
+        /** */
+        final CountDownLatch rcvLatch = new CountDownLatch(1);
+
+        /** */
+        final Ignite sender;
+
+        /** */
+        @LoggerResource
+        private transient IgniteLogger log;
+
+        /**
+         * @param sender
+         */
+        private MessageListener(Ignite sender) {
+            this.sender = sender;
+        }
+
+        /** {@inheritDoc} */
+        @Override public boolean apply(UUID nodeId, Object msg) {
+            try {
+                log.info("Received new message [msg=" + msg + ", senderNodeId=" + nodeId + ']');
+
+                if (!nodeId.equals(sender.cluster().localNode().id())) {
+                    log.error("Unexpected sender node: " + nodeId);
+
+                    error.set(true);
+
+                    return false;
+                }
+
+                return true;
+            }
+            finally {
+                rcvLatch.countDown();
+            }
+        }
     }
 }

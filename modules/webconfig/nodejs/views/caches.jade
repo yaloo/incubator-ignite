@@ -1,0 +1,10 @@
+extends layout
+block head
+block content
+    div.docs-header
+        h1 Caches
+        p Create and configure Ignite caches.
+        hr
+    div.docs-body(ng-controller='cachesRouter')
+block body
+    script(src='/javascripts/controllers/caches.js')

@@ -24,6 +24,6 @@ exports.Cache =  mongoose.model('Cache', new mongoose.Schema({
 exports.Cluster =  mongoose.model('Cluster', new mongoose.Schema({
     name : String,
     caches : [String],
-    discovery : { type: String, enum: ['VM', 'Multicast'] },
+    discovery : { type: String, enum: ['TcpDiscoveryVmIpFinder', 'TcpDiscoveryMulticastIpFinder'] },
     addresses : [String]
 }));

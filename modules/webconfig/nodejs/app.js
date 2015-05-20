@@ -7,7 +7,7 @@ var bodyParser = require('body-parser');
 var session = require('express-session')
 
 var pageRoutes = require('./routes/pages');
-var clusterRouter = require('./routes/clusters');
+var clustersRouter = require('./routes/clusters');
 
 var passport = require('passport');
 var LocalStrategy = require('passport-local').Strategy;
@@ -33,7 +33,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use('/', pageRoutes);
-app.use('/rest', clusterRouter);
+app.use('/rest', clustersRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

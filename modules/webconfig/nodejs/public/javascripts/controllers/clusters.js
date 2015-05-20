@@ -1,9 +1,28 @@
-angular.module('ignite-web-configurator', ['ngTable', 'mgcrea.ngStrap', 'ngSanitize'])
-    .controller('clusterRouter', ['$scope', '$modal', '$http', '$filter', 'ngTableParams', function($scope, $modal, $http, $filter, ngTableParams) {
+angular.module('ignite-web-configurator', ['ngTable', 'mgcrea.ngStrap'])
+    .controller('activeLink', ['$scope', function($scope) {
+        $scope.isActive = function(path) {
+            return window.location.pathname.substr(0, path.length) == path;
+        };
+    }])
+    .controller('clustersController', ['$scope', '$modal', '$http', '$filter', 'ngTableParams', function($scope, $modal, $http, $filter, ngTableParams) {
+        $scope.edit = { };
+
+        $scope.editRow = {};
+        $scope.editIdx = false;
+
         $scope.discoveries = [
-            {value: 'VM', label: 'VM'},
-            {value: 'Multicast', label: 'Multicast'}
+            {value: 'TcpDiscoveryVmIpFinder', label: 'Static IPs'},
+            {value: 'TcpDiscoveryMulticastIpFinder', label: 'Multicast'}
         ];
+
+        $scope.discoveryAsString = function(value) {
+            for (var i in $scope.discoveries) {
+                if ($scope.discoveries[i].value == value)
+                    return $scope.discoveries[i].label;
+            }
+
+            return 'Wrong discovery';
+        };
 
         // when landing on the page, get all settings and show them
         $http.get('/rest/cluster')
@@ -11,13 +30,14 @@ angular.module('ignite-web-configurator', ['ngTable', 'mgcrea.ngStrap', 'ngSanit
                 $scope.clusters = data;
 
                 $scope.clustersTable = new ngTableParams({
-                    page: 1,            // show first page
-                    count: 10,          // count per page
+                    page: 1,                    // show first page
+                    count: Number.MAX_VALUE,        // count per page
                     sorting: {
-                        name: 'asc'     // initial sorting
+                        name: 'asc'             // initial sorting
                     }
                 }, {
                     total: $scope.clusters.length, // length of data
+                    counts: [],
                     getData: function($defer, params) {
                         // use build-in angular filter
                         var orderedData = params.sorting() ?
@@ -36,39 +56,62 @@ angular.module('ignite-web-configurator', ['ngTable', 'mgcrea.ngStrap', 'ngSanit
         var myOtherModal = $modal({scope: $scope, template: '/cluster/edit', show: false});
 
         $scope.submit = function() {
-            var data = {
-                _id: $scope.cluster._id,
-                name: $scope.cluster.name,
-                caches: ['cache1', 'cache2', 'cache2'],
-                discovery: $scope.cluster.discovery,
-                addresses: ['127.0.0.1', '192.168.1.1']
-            };
+            if ($scope.editIdx !== false) {
+                var cluster = $scope.clusters[$scope.editIdx];
 
-            $http.post('/rest/cluster/save', data)
-                .success(function(data) {
-                    myOtherModal.hide();
+                var data = {
+                    _id: cluster._id,
+                    name: cluster.name,
+                    caches: ['cache1', 'cache2', 'cache2'],
+                    discovery: cluster.discovery,
+                    addresses: ['127.0.0.1', '192.168.1.1']
+                };
 
-                    $scope.clusters = data;
+                $scope.editIdx = false;
 
-                    $scope.clustersTable.reload();
-                })
-                .error(function(data) {
-                    console.log('Error: ' + data);
-                });
+                $http.post('/rest/cluster/save', data)
+                    .success(function (data) {
+                        myOtherModal.hide();
+
+                        $scope.clusters = data;
+
+                        $scope.clustersTable.reload();
+                    })
+                    .error(function (data) {
+                        console.log('Error: ' + data);
+                    });
+            }
         };
 
-        $scope.create = function () {
-            $scope.cluster = {};
+        $scope.add = function () {
+            $scope.clusters.push({});
+
+            $scope.clustersTable.reload();
 
             // Show when some event occurs (use $promise property to ensure the template has been loaded)
-            myOtherModal.$promise.then(myOtherModal.show);
+            //myOtherModal.$promise.then(myOtherModal.show);
         };
 
-        $scope.edit = function (cluster) {
-            $scope.cluster = JSON.parse(JSON.stringify(cluster));
+        $scope.beginEdit = function (cluster) {
+            $scope.editIdx = $scope.clusters.indexOf(cluster);
 
-            // Show when some event occurs (use $promise property to ensure the template has been loaded)
-            myOtherModal.$promise.then(myOtherModal.show);
+            $scope.editRow = angular.copy(cluster);
+
+            //// Show when some event occurs (use $promise property to ensure the template has been loaded)
+            //myOtherModal.$promise.then(myOtherModal.show);
+        };
+
+        $scope.revert = function () {
+            if ($scope.editIdx !== false) {
+                $scope.clusters[$scope.editIdx] = $scope.editRow;
+
+                $scope.editIdx = false;
+
+                $scope.clustersTable.reload();
+            }
+
+            //// Show when some event occurs (use $promise property to ensure the template has been loaded)
+            //myOtherModal.$promise.then(myOtherModal.show);
         };
 
         $scope.delete = function (cluster) {
@@ -82,4 +125,5 @@ angular.module('ignite-web-configurator', ['ngTable', 'mgcrea.ngStrap', 'ngSanit
                     console.log('Error: ' + data);
                 });
         };
-    }]);
+    }])
+;

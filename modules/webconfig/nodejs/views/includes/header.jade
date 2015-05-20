@@ -1,28 +1,10 @@
-header.main-header
-    <!-- Logo -->
-    a(href='/' class='logo')
-        <!-- logo for regular state and mobile devices -->
-        span.logo-lg(style='vertical-align: middle')
-            img.pull-left(src='images/logo.png' alt='Apache Ignite Web-Configurator')
-    <!-- Sidebar toggle button-->
-    //a.sidebar-toggle(href='#' data-toggle='offcanvas' role='button')
-    //    span.sr-only Toggle navigation
-    //    span.icon-bar
-    //    span.icon-bar
-    //    span.icon-bar
-    nav(class=['navbar', 'navbar-static-top'] role='navigation')
-        div.navbar-custom-menu
-//nav(class=['navbar', 'navbar-default', 'navbar-fixed-top', 'navbar-style'])
-//    div.container
-//        div.navbar-header
-//            a(href='#')
-//                img(src='images/logo.png' alt='ApacheIgnite')
-//        div(class=[ 'navbar-collapse', 'collapse'])
-//            ul(class=['nav', 'navbar-nav', 'navbar-right'], style='margin-top: 5px')
-//                li
-//                    a(href='#') Settings
-//                li
-//                    a(href='#') Profile
-//                li
-//                    a(href='#') Log In
-
+header.header(id='header')
+    div.container
+        h1.navbar-brand
+            a(href='/') Apache Ignite Web Configurator
+        div(class=['navbar-collapse', 'collapse'])
+            ul(class=['nav', 'navbar-nav', 'pull-right'])
+                li(ng-show='user')
+                    // TODO
+                li(ng-show='!user' class=['nav-login'])
+                    a(ng-click='login()' href='#') Log In

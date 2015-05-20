@@ -1,0 +1,10 @@
+extends layout
+block head
+block content
+    div.docs-header
+        h1 Clients
+        p Create and configure Ignite clients.
+        hr
+    div.docs-body(ng-controller='clientsRouter')
+block body
+    script(src='/javascripts/controllers/clients.js')

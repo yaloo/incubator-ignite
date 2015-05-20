@@ -1462,7 +1462,7 @@ public final class GridTestUtils {
         double dur = (System.currentTimeMillis() - startTime) / 1000d;
 
         System.out.printf("%s:\n operations:%d, duration=%fs, op/s=%d, latency=%fms\n", name, cnt, dur,
-            (long)(cnt / dur), dur / cnt);
+                          (long)(cnt / dur), dur / cnt);
     }
 
     /**
@@ -1494,5 +1494,19 @@ public final class GridTestUtils {
      */
     public static String apacheIgniteTestPath() {
         return System.getProperty("IGNITE_TEST_PATH", U.getIgniteHome() + "/target/ignite");
+    }
+
+    /**
+     * Adds test to the suite only if it's not in {@code ignoredTests} set.
+     *
+     * @param suite TestSuite where to place the test.
+     * @param test Test.
+     * @param ignoredTests Tests to ignore.
+     */
+    public static void addTestIfNeeded(TestSuite suite, Class test, Set<Class> ignoredTests) {
+        if (ignoredTests != null && ignoredTests.contains(test))
+            return;
+
+        suite.addTestSuite(test);
     }
 }

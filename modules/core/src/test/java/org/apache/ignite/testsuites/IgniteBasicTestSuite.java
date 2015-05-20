@@ -32,6 +32,8 @@ import org.apache.ignite.messaging.*;
 import org.apache.ignite.spi.*;
 import org.apache.ignite.testframework.config.*;
 
+import java.util.*;
+
 /**
  * Basic test suite.
  */
@@ -41,16 +43,20 @@ public class IgniteBasicTestSuite extends TestSuite {
      * @throws Exception Thrown in case of the failure.
      */
     public static TestSuite suite() throws Exception {
+        return suite(null);
+    }
+
+    /**
+     * @param ignoredTests
+     * @return Test suite.
+     * @throws Exception Thrown in case of the failure.
+     */
+    public static TestSuite suite(Set<Class> ignoredTests) throws Exception {
         TestSuite suite = new TestSuite("Ignite Basic Test Suite");
 
         suite.addTest(IgniteLangSelfTestSuite.suite());
         suite.addTest(IgniteUtilSelfTestSuite.suite());
-
-        Object marshClass = GridTestProperties.getProperty(GridTestProperties.MARSH_CLASS_NAME);
-
-        if (marshClass == null || marshClass.equals(OptimizedMarshaller.class.getName()) ||
-            marshClass.equals(JdkMarshaller.class.getName()))
-            suite.addTest(IgniteMarshallerSelfTestSuite.suite());
+        suite.addTest(IgniteMarshallerSelfTestSuite.suite(ignoredTests));
 
         suite.addTest(IgniteKernalSelfTestSuite.suite());
         suite.addTest(IgniteStartUpTestSuite.suite());
@@ -58,10 +64,10 @@ public class IgniteBasicTestSuite extends TestSuite {
         suite.addTest(IgniteP2PSelfTestSuite.suite());
         suite.addTest(IgniteCacheP2pUnmarshallingErrorTestSuit.suite());
 
-        suite.addTest(new TestSuite(GridSelfTest.class));
-        suite.addTest(new TestSuite(GridProjectionSelfTest.class));
-        suite.addTest(new TestSuite(GridMessagingSelfTest.class));
-        suite.addTest(new TestSuite(GridMessagingNoPeerClassLoadingSelfTest.class));
+        suite.addTestSuite(GridSelfTest.class);
+        suite.addTestSuite(GridProjectionSelfTest.class);
+        suite.addTestSuite(GridMessagingSelfTest.class);
+        suite.addTestSuite(GridMessagingNoPeerClassLoadingSelfTest.class);
 
         if (U.isLinux() || U.isMacOs())
             suite.addTest(IgniteIpcSharedMemorySelfTestSuite.suite());

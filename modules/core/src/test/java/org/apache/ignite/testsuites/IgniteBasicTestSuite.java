@@ -26,11 +26,9 @@ import org.apache.ignite.internal.processors.closure.*;
 import org.apache.ignite.internal.processors.continuous.*;
 import org.apache.ignite.internal.product.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
-import org.apache.ignite.marshaller.jdk.*;
-import org.apache.ignite.marshaller.optimized.*;
 import org.apache.ignite.messaging.*;
 import org.apache.ignite.spi.*;
-import org.apache.ignite.testframework.config.*;
+import org.apache.ignite.testframework.*;
 
 import java.util.*;
 
@@ -72,7 +70,7 @@ public class IgniteBasicTestSuite extends TestSuite {
         if (U.isLinux() || U.isMacOs())
             suite.addTest(IgniteIpcSharedMemorySelfTestSuite.suite());
 
-        suite.addTestSuite(GridReleaseTypeSelfTest.class);
+        GridTestUtils.addTestIfNeeded(suite, GridReleaseTypeSelfTest.class, ignoredTests);
         suite.addTestSuite(GridProductVersionSelfTest.class);
         suite.addTestSuite(GridAffinityProcessorRendezvousSelfTest.class);
         suite.addTestSuite(GridClosureProcessorSelfTest.class);

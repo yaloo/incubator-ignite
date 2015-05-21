@@ -169,7 +169,7 @@ public class GridCacheAffinityRoutingSelfTest extends GridCommonAbstractTest {
     /**
      * Test key.
      */
-    private static class AffinityTestKey {
+    protected static class AffinityTestKey {
         /** Affinity key. */
         @AffinityKeyMapped
         private final int affKey;

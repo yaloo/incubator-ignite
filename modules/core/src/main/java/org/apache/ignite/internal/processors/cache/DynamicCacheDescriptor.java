@@ -18,6 +18,8 @@
 package org.apache.ignite.internal.processors.cache;
 
 import org.apache.ignite.configuration.*;
+import org.apache.ignite.internal.*;
+import org.apache.ignite.internal.processors.plugin.*;
 import org.apache.ignite.internal.util.tostring.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 import org.apache.ignite.lang.*;
@@ -59,13 +61,17 @@ public class DynamicCacheDescriptor {
     /** Template configuration flag. */
     private boolean template;
 
+    /** Cache plugin manager. */
+    private final CachePluginManager pluginMgr;
+
     /**
      * @param cacheCfg Cache configuration.
      * @param cacheType Cache type.
      * @param template {@code True} if this is template configuration.
      * @param deploymentId Deployment ID.
      */
-    public DynamicCacheDescriptor(CacheConfiguration cacheCfg,
+    public DynamicCacheDescriptor(GridKernalContext ctx,
+        CacheConfiguration cacheCfg,
         CacheType cacheType,
         boolean template,
         IgniteUuid deploymentId) {
@@ -73,6 +79,7 @@ public class DynamicCacheDescriptor {
         this.cacheType = cacheType;
         this.template = template;
         this.deploymentId = deploymentId;
+        pluginMgr = new CachePluginManager(ctx, cacheCfg);
     }
 
     /**
@@ -163,6 +170,13 @@ public class DynamicCacheDescriptor {
      */
     public CacheConfiguration cacheConfiguration() {
         return cacheCfg;
+    }
+
+    /**
+     * @return Cache plugin manager.
+     */
+    public CachePluginManager pluginManager() {
+        return pluginMgr;
     }
 
     /**

@@ -28,7 +28,7 @@ import java.util.*;
 /**
  * DHT transaction mapping.
  */
-public class GridDhtTxMapping<K, V> {
+public class GridDhtTxMapping {
     /** */
     private UUID locNodeId;
 

@@ -774,8 +774,6 @@ public class GridCacheProcessor extends GridProcessorAdapter {
         for (GridCacheAdapter<?, ?> cache : caches.values())
             onKernalStart(cache);
 
-        boolean utilityCacheStarted = false;
-
         // Wait for caches in SYNC preload mode.
         for (CacheConfiguration cfg : ctx.config().getCacheConfiguration()) {
             GridCacheAdapter<?, ?> cache = caches.get(maskNull(cfg.getName()));
@@ -789,14 +787,9 @@ public class GridCacheProcessor extends GridProcessorAdapter {
                 cache.preloader().syncFuture().get();
             }
 
-            if (CU.isUtilityCache(cache.name())) {
+            if (CU.isUtilityCache(cache.name()))
                 ctx.cacheObjects().onUtilityCacheStarted();
-
-                utilityCacheStarted = true;
-            }
         }
-
-        assert utilityCacheStarted;
     }
 
     /** {@inheritDoc} */

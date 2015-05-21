@@ -54,7 +54,7 @@ public class IgniteUtilSelfTestSuite extends TestSuite {
         TestSuite suite = new TestSuite("Ignite Util Test Suite");
 
         suite.addTestSuite(GridThreadPoolExecutorServiceSelfTest.class);
-        suite.addTestSuite(IgniteUtilsSelfTest.class);
+        GridTestUtils.addTestIfNeeded(suite, IgniteUtilsSelfTest.class, ignoredTests);
         suite.addTestSuite(GridSpinReadWriteLockSelfTest.class);
         suite.addTestSuite(GridQueueSelfTest.class);
         suite.addTestSuite(GridStringBuilderFactorySelfTest.class);

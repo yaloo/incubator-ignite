@@ -47,7 +47,7 @@ public class IgniteBasicTestSuite extends TestSuite {
     }
 
     /**
-     * @param ignoredTests
+     * @param ignoredTests Tests don't include in the execution.
      * @return Test suite.
      * @throws Exception Thrown in case of the failure.
      */
@@ -62,7 +62,7 @@ public class IgniteBasicTestSuite extends TestSuite {
         suite.addTest(IgniteStartUpTestSuite.suite());
         suite.addTest(IgniteExternalizableSelfTestSuite.suite());
         suite.addTest(IgniteP2PSelfTestSuite.suite());
-        suite.addTest(IgniteCacheP2pUnmarshallingErrorTestSuit.suite());
+        suite.addTest(IgniteCacheP2pUnmarshallingErrorTestSuit.suite(ignoredTests));
 
         suite.addTestSuite(GridSelfTest.class);
         suite.addTestSuite(GridProjectionSelfTest.class);

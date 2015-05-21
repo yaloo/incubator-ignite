@@ -26,9 +26,12 @@ import org.apache.ignite.internal.util.offheap.unsafe.*;
 import org.apache.ignite.internal.util.tostring.*;
 import org.apache.ignite.lang.*;
 import org.apache.ignite.spi.discovery.*;
+import org.apache.ignite.testframework.*;
 import org.apache.ignite.thread.*;
 import org.apache.ignite.util.*;
 import org.apache.ignite.util.mbeans.*;
+
+import java.util.*;
 
 /**
  * Test suite for Ignite utility classes.
@@ -39,6 +42,15 @@ public class IgniteUtilSelfTestSuite extends TestSuite {
      * @throws Exception If failed.
      */
     public static TestSuite suite() throws Exception {
+        return suite(null);
+    }
+
+    /**
+     * @param ignoredTests Tests don't include in the execution.
+     * @return Test suite.
+     * @throws Exception Thrown in case of the failure.
+     */
+    public static TestSuite suite(Set<Class> ignoredTests) throws Exception {
         TestSuite suite = new TestSuite("Ignite Util Test Suite");
 
         suite.addTestSuite(GridThreadPoolExecutorServiceSelfTest.class);
@@ -66,7 +78,7 @@ public class IgniteUtilSelfTestSuite extends TestSuite {
         suite.addTestSuite(GridNioSessionMetaKeySelfTest.class);
         suite.addTestSuite(GridNioSelfTest.class);
         suite.addTestSuite(GridNioFilterChainSelfTest.class);
-        suite.addTestSuite(GridNioSslSelfTest.class);
+        GridTestUtils.addTestIfNeeded(suite, GridNioSslSelfTest.class, ignoredTests);
         suite.addTestSuite(GridNioDelimitedBufferTest.class);
 
         return suite;

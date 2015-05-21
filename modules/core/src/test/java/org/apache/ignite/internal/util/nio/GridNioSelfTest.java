@@ -644,7 +644,7 @@ public class GridNioSelfTest extends GridCommonAbstractTest {
                             try {
                                 client = createClient(U.getLocalHost(), PORT, U.getLocalHost());
 
-                                MessageWithId msg = new MessageWithId();
+                                MessageWithId msg = new MessageWithId(idProvider.getAndIncrement());
 
                                 byte[] data = serializeMessage(msg);
 
@@ -746,7 +746,7 @@ public class GridNioSelfTest extends GridCommonAbstractTest {
                         client = createClient(U.getLocalHost(), PORT, U.getLocalHost());
 
                         while (cntr.getAndIncrement() < MSG_CNT * THREAD_CNT) {
-                            MessageWithId msg = new MessageWithId();
+                            MessageWithId msg = new MessageWithId(idProvider.getAndIncrement());
 
                             byte[] data = serializeMessage(msg);
 
@@ -829,13 +829,11 @@ public class GridNioSelfTest extends GridCommonAbstractTest {
                         U.sleep(4000);
 
                         info("After sleep.");
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         error("Failed to create client: " + e.getMessage());
 
                         fail("Failed to create client: " + e.getMessage());
-                    }
-                    finally {
+                    } finally {
                         info("Test thread finished.");
                     }
                 }
@@ -904,13 +902,11 @@ public class GridNioSelfTest extends GridCommonAbstractTest {
                         U.sleep(4000);
 
                         info("After sleep.");
-                    }
-                    catch (Exception e) {
+                    } catch (Exception e) {
                         error("Failed to create client: ", e);
 
                         fail("Failed to create client: " + e.getMessage());
-                    }
-                    finally {
+                    } finally {
                         info("Test thread finished.");
                     }
                 }
@@ -1408,7 +1404,14 @@ public class GridNioSelfTest extends GridCommonAbstractTest {
      */
     private static class MessageWithId implements Serializable {
         /** */
-        private final int id = idProvider.getAndIncrement();
+        private final int id;
+
+        /**
+         * @param id Message ID.
+         */
+        public MessageWithId(int id) {
+            this.id = id;
+        }
 
         /** */
         @SuppressWarnings({"unused"})

@@ -55,7 +55,7 @@ public class IgniteBasicTestSuite extends TestSuite {
         TestSuite suite = new TestSuite("Ignite Basic Test Suite");
 
         suite.addTest(IgniteLangSelfTestSuite.suite());
-        suite.addTest(IgniteUtilSelfTestSuite.suite());
+        suite.addTest(IgniteUtilSelfTestSuite.suite(ignoredTests));
         suite.addTest(IgniteMarshallerSelfTestSuite.suite(ignoredTests));
 
         suite.addTest(IgniteKernalSelfTestSuite.suite());

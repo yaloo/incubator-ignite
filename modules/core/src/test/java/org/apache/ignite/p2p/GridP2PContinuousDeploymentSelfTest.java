@@ -98,6 +98,8 @@ public class GridP2PContinuousDeploymentSelfTest extends GridCommonAbstractTest 
      */
     @SuppressWarnings("unchecked")
     public void testDeployment() throws Exception {
+        throw new IgniteCheckedException("https://issues.apache.org/jira/browse/IGNITE-934");
+        /*
         Ignite ignite = startGrid(GRID_NAME);
 
         Class cls = getExternalClassLoader().loadClass(TEST_TASK_1);
@@ -113,5 +115,6 @@ public class GridP2PContinuousDeploymentSelfTest extends GridCommonAbstractTest 
         compute(ignite.cluster().forRemotes()).execute(cls, null);
 
         stopGrid(GRID_NAME);
+        */
     }
 }

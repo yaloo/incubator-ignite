@@ -135,7 +135,7 @@ public class GridNearPessimisticTxPrepareFuture extends GridNearTxPrepareFutureA
 
         AffinityTopologyVersion topVer = tx.topologyVersion();
 
-        txMapping = new GridDhtTxMapping();
+        txMapping = new GridDhtTxMapping(cctx.localNodeId());
 
         for (IgniteTxEntry txEntry : tx.allEntries()) {
             GridCacheContext cacheCtx = txEntry.context();
@@ -144,7 +144,7 @@ public class GridNearPessimisticTxPrepareFuture extends GridNearTxPrepareFutureA
 
             ClusterNode primary = F.first(nodes);
 
-            boolean near = cacheCtx.isNear();
+            boolean near = primary.isLocal() && cacheCtx.isNear();
 
             IgniteBiTuple<ClusterNode, Boolean> key = F.t(primary, near);
 
@@ -162,7 +162,7 @@ public class GridNearPessimisticTxPrepareFuture extends GridNearTxPrepareFutureA
 
             nodeMapping.add(txEntry);
 
-            txMapping.addMapping(nodes);
+            txMapping.addMapping(nodes, near);
         }
 
         tx.transactionNodes(txMapping.transactionNodes());

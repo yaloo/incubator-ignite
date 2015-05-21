@@ -63,7 +63,9 @@ public class GridFailFastNodeFailureDetectionSelfTest extends GridCommonAbstract
      * @throws Exception If failed.
      */
     public void testFailFast() throws Exception {
-        startGridsMultiThreaded(5);
+        throw new IgniteCheckedException("https://issues.apache.org/jira/browse/IGNITE-933");
+
+        /*startGridsMultiThreaded(5);
 
         final CountDownLatch failLatch = new CountDownLatch(4);
 
@@ -98,7 +100,7 @@ public class GridFailFastNodeFailureDetectionSelfTest extends GridCommonAbstract
 
         failNode(ignite1);
 
-        assert failLatch.await(500, TimeUnit.MILLISECONDS);
+        assert failLatch.await(500, TimeUnit.MILLISECONDS);*/
     }
 
     /**

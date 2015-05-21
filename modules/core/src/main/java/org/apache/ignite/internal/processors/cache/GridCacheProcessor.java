@@ -669,12 +669,12 @@ public class GridCacheProcessor extends GridProcessorAdapter {
 
             ClusterNode locNode = ctx.discovery().localNode();
 
-        Collection<DynamicCacheDescriptor> initCaches = new ArrayList<>(F.view(registeredCaches.values(),
-            new IgnitePredicate<DynamicCacheDescriptor>() {
-                @Override public boolean apply(DynamicCacheDescriptor desc) {
-                    return desc.locallyConfigured() || desc.receivedOnStart();
-                }
-            }));
+            Collection<DynamicCacheDescriptor> initCaches = new ArrayList<>(F.view(registeredCaches.values(),
+                new IgnitePredicate<DynamicCacheDescriptor>() {
+                    @Override public boolean apply(DynamicCacheDescriptor desc) {
+                        return desc.locallyConfigured() || desc.receivedOnStart();
+                    }
+                }));
 
             if (!getBoolean(IGNITE_SKIP_CONFIGURATION_CONSISTENCY_CHECK)) {
                 for (ClusterNode n : ctx.discovery().remoteNodes()) {
@@ -703,42 +703,42 @@ public class GridCacheProcessor extends GridProcessorAdapter {
                 }
             }
 
-        // Start dynamic caches received from collect discovery data.
-        for (DynamicCacheDescriptor desc : initCaches) {
-            boolean started = desc.onStart();
+            // Start dynamic caches received from collect discovery data.
+            for (DynamicCacheDescriptor desc : initCaches) {
+                boolean started = desc.onStart();
 
-            assert started : "Failed to change started flag for locally configured cache: " + desc;
+                assert started : "Failed to change started flag for locally configured cache: " + desc;
 
-            desc.clearRemoteConfigurations();
+                desc.clearRemoteConfigurations();
 
-            CacheConfiguration ccfg = desc.cacheConfiguration();
+                CacheConfiguration ccfg = desc.cacheConfiguration();
 
-            IgnitePredicate filter = ccfg.getNodeFilter();
+                IgnitePredicate filter = ccfg.getNodeFilter();
 
-            if (filter.apply(locNode)) {
-                CacheObjectContext cacheObjCtx = ctx.cacheObjects().contextForCache(ccfg);
+                if (filter.apply(locNode)) {
+                    CacheObjectContext cacheObjCtx = ctx.cacheObjects().contextForCache(ccfg);
 
-                CachePluginManager pluginMgr = desc.pluginManager();
+                    CachePluginManager pluginMgr = desc.pluginManager();
 
-                GridCacheContext ctx = createCache(ccfg, pluginMgr, desc.cacheType(), cacheObjCtx);
+                    GridCacheContext ctx = createCache(ccfg, pluginMgr, desc.cacheType(), cacheObjCtx);
 
-                ctx.dynamicDeploymentId(desc.deploymentId());
+                    ctx.dynamicDeploymentId(desc.deploymentId());
 
-                sharedCtx.addCacheContext(ctx);
+                    sharedCtx.addCacheContext(ctx);
 
-                GridCacheAdapter cache = ctx.cache();
+                    GridCacheAdapter cache = ctx.cache();
 
-                String name = ccfg.getName();
+                    String name = ccfg.getName();
 
-                caches.put(maskNull(name), cache);
+                    caches.put(maskNull(name), cache);
 
-                startCache(cache);
+                    startCache(cache);
 
-                jCacheProxies.put(maskNull(name), new IgniteCacheProxy(ctx, cache, null, false));
+                    jCacheProxies.put(maskNull(name), new IgniteCacheProxy(ctx, cache, null, false));
 
-                startCaches.add(cache);
+                    startCaches.add(cache);
+                }
             }
-        }
         }
         finally {
             cacheStartedLatch.countDown();

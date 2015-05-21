@@ -100,7 +100,7 @@ public class GridDiscoveryEventSelfTest extends GridCommonAbstractTest {
                 @Override public boolean apply(Event evt) {
                     assert evt.type() == EVT_NODE_JOINED;
 
-                    evts.put(cnt.getAndIncrement(), ((DiscoveryEvent) evt).topologyNodes());
+                    evts.put(cnt.getAndIncrement(), ((DiscoveryEvent)evt).topologyNodes());
 
                     latch.countDown();
 
@@ -147,7 +147,8 @@ public class GridDiscoveryEventSelfTest extends GridCommonAbstractTest {
      * @throws Exception If failed.
      */
     public void testLeaveSequenceEvents() throws Exception {
-        try {
+        throw new IgniteCheckedException("https://issues.apache.org/jira/browse/IGNITE-932");
+        /*try {
             Ignite g0 = startGrid(0);
 
             UUID id0 = g0.cluster().localNode().id();
@@ -208,14 +209,15 @@ public class GridDiscoveryEventSelfTest extends GridCommonAbstractTest {
         }
         finally {
             stopAllGrids();
-        }
+        }*/
     }
 
     /**
      * @throws Exception If failed.
      */
     public void testMixedSequenceEvents() throws Exception {
-        try {
+        throw new IgniteCheckedException("https://issues.apache.org/jira/browse/IGNITE-932");
+        /*try {
             Ignite g0 = startGrid(0);
 
             UUID id0 = g0.cluster().localNode().id();
@@ -326,7 +328,7 @@ public class GridDiscoveryEventSelfTest extends GridCommonAbstractTest {
         }
         finally {
             stopAllGrids();
-        }
+        }*/
     }
 
     /**

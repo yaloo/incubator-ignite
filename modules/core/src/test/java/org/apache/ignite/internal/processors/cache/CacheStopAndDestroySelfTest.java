@@ -195,7 +195,7 @@ public class CacheStopAndDestroySelfTest extends GridCommonAbstractTest {
 
         //Close:
 
-        //DHT Close. No-Op.
+        //DHT Close. No-op.
         grid(0).cache(CACHE_NAME_3).close();
 
         assert grid(0).cache(CACHE_NAME_3).get(KEY_VAL).equals(KEY_VAL);// Not affected.

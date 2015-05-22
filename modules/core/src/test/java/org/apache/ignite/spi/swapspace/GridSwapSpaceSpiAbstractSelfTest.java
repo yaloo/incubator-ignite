@@ -103,7 +103,7 @@ public abstract class GridSwapSpaceSpiAbstractSelfTest extends GridCommonAbstrac
      *
      * @throws Exception If failed.
      */
-    public void testSimpleCrud() throws Exception {
+    public void _testSimpleCrud() throws Exception {
         assertEquals(0, spi.count(DFLT_SPACE_NAME));
 
         long key1 = 1;
@@ -139,7 +139,7 @@ public abstract class GridSwapSpaceSpiAbstractSelfTest extends GridCommonAbstrac
      *
      * @throws Exception If failed.
      */
-    public void testSimpleCrudDifferentSpaces() throws Exception {
+    public void _testSimpleCrudDifferentSpaces() throws Exception {
         String space1 = SPACE1;
 
         spi.clear(space1);
@@ -224,7 +224,7 @@ public abstract class GridSwapSpaceSpiAbstractSelfTest extends GridCommonAbstrac
      *
      * @throws Exception If failed.
      */
-    public void testBatchCrud() throws Exception {
+    public void _testBatchCrud() throws Exception {
         assertEquals(0, spi.count(DFLT_SPACE_NAME));
 
         final Map<SwapKey, byte[]> batch = new HashMap<>();
@@ -273,7 +273,7 @@ public abstract class GridSwapSpaceSpiAbstractSelfTest extends GridCommonAbstrac
     /**
      * @throws Exception If failed.
      */
-    public void testDeleteIfNotPersist() throws Exception {
+    public void _testDeleteIfNotPersist() throws Exception {
         spi.store(SPACE1, new SwapKey("key1"), "value1".getBytes(), context());
 
         assertArrayEquals("value1".getBytes(), spi.read(SPACE1, new SwapKey("key1"), context()));
@@ -282,7 +282,7 @@ public abstract class GridSwapSpaceSpiAbstractSelfTest extends GridCommonAbstrac
     /**
      * @throws Exception If failed.
      */
-    public void testStoreReadRemove() throws Exception {
+    public void _testStoreReadRemove() throws Exception {
         int cnt = 5;
 
         final CountDownLatch storeLatch = new CountDownLatch(cnt);
@@ -343,7 +343,7 @@ public abstract class GridSwapSpaceSpiAbstractSelfTest extends GridCommonAbstrac
     /**
      * @throws Exception If failed.
      */
-    public void testStoreReadRemoveNulls() throws Exception {
+    public void _testStoreReadRemoveNulls() throws Exception {
         int cnt = 5;
 
         final CountDownLatch storeLatch = new CountDownLatch(cnt);
@@ -403,7 +403,7 @@ public abstract class GridSwapSpaceSpiAbstractSelfTest extends GridCommonAbstrac
     /**
      * @throws Exception If failed.
      */
-    public void testCollisions() throws Exception {
+    public void _testCollisions() throws Exception {
         int cnt = 5;
 
         final CountDownLatch storeLatch = new CountDownLatch(cnt);
@@ -473,7 +473,7 @@ public abstract class GridSwapSpaceSpiAbstractSelfTest extends GridCommonAbstrac
     /**
      * @throws Exception If failed.
      */
-    public void testIteration() throws Exception {
+    public void _testIteration() throws Exception {
         spi.clear(SPACE1);
 
         int cnt = 10;
@@ -511,7 +511,7 @@ public abstract class GridSwapSpaceSpiAbstractSelfTest extends GridCommonAbstrac
     /**
      * @throws Exception If failed.
      */
-    public void testIterationOverPartition() throws Exception {
+    public void _testIterationOverPartition() throws Exception {
         spi.store(SPACE1, new SwapKey("key", 0), str2ByteArray("value"), context());
 
         spi.clear(SPACE1);
@@ -553,7 +553,7 @@ public abstract class GridSwapSpaceSpiAbstractSelfTest extends GridCommonAbstrac
     /**
      * @throws Exception If failed.
      */
-    public void testSwapIterator() throws Exception {
+    public void _testSwapIterator() throws Exception {
         spi.store(SPACE1, new SwapKey("key", 0), str2ByteArray("value"), context());
 
         spi.clear(SPACE1);

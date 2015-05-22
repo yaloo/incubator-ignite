@@ -3,7 +3,10 @@ header.header(id='header')
         h1.navbar-brand
             a(href='/') Apache Ignite Web Configurator
         div(class=['navbar-collapse', 'collapse'])
-            ul(class=['nav', 'navbar-nav', 'pull-right'])
+            ul(class=['nav', 'navbar-nav'])
+                li
+                    a.active(href='/') Home
+            ul(class=['nav', 'navbar-nav', 'pull-right'] ng-controller='auth')
                 li(ng-show='user')
                     // TODO
                 li(ng-show='!user' class=['nav-login'])

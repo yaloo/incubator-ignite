@@ -1,7 +1,7 @@
-var db = require('../db');
-
 var express = require('express');
 var router = express.Router();
+
+var db = require('../db');
 
 function selectAll(res) {
     db.Cluster.find(function(err, clusters) {
@@ -13,11 +13,11 @@ function selectAll(res) {
     });
 }
 
-router.get('/cluster', function(req, res) {
+router.get('/', function(req, res) {
     selectAll(res);
 });
 
-router.post('/cluster/save', function(req, res) {
+router.post('/save', function(req, res) {
     if (req.body._id) {
         var clusterId = req.body._id;
 
@@ -42,7 +42,7 @@ router.post('/cluster/save', function(req, res) {
     }
 });
 
-router.post('/cluster/remove', function(req, res) {
+router.post('/remove', function(req, res) {
     db.Cluster.remove(req.body, function (err) {
         if (err)
             res.send(err);

@@ -1,0 +1,18 @@
+extends layout
+block container
+    div.row
+        div(class=['col-sm-2', 'border-right', 'section-left'])
+            div.sidebar-nav
+                ul(ng-controller='activeLink' class="menu")
+                    li
+                        a(ng-class="{active: isActive('/clusters')}" href='/clusters') Clusters
+                    li
+                        a(ng-class="{active: isActive('/caches')}" href='/caches') Caches
+                    li
+                        a(ng-class="{active: isActive('/persistence')}" href='/persistence') Persistence
+                    li
+                        a(ng-class="{active: isActive('/sql')}" href='/sql') SQL
+                    li
+                        a(ng-class="{active: isActive('/clients')}" href='/clients') Clients
+        div(class=['col-sm-10', 'border-left', 'section-right'])
+            div.docs-content

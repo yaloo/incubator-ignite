@@ -1,0 +1,8 @@
+{
+    "express": {
+        "port": 3000
+    },
+    "mongoDB": {
+        "url": "mongodb://localhost/web-configurator"
+    }
+}

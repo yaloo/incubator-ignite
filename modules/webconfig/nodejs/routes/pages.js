@@ -2,9 +2,21 @@ var jade = require('jade');
 var express = require('express');
 var router = express.Router();
 
+/* GET login page. */
+router.get('/login', function(req, res) {
+    res.render('login');
+});
+
+/* GET register page. */
+router.get('/register', function(req, res) {
+    res.render('register');
+});
+
 /* GET home page. */
 router.get('/', function(req, res) {
-  res.redirect('clusters');
+    console.log(req.user);
+
+    res.render('index');
 });
 
 /* GET clusters page. */

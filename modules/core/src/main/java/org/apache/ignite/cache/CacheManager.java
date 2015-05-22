@@ -272,7 +272,7 @@ public class CacheManager implements javax.cache.CacheManager {
         }
 
         if (cache != null)
-            cache.close();
+            cache.destroy();
     }
 
     /**

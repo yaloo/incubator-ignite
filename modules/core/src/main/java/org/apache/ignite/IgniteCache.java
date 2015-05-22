@@ -499,9 +499,17 @@ public interface IgniteCache<K, V> extends javax.cache.Cache<K, V>, IgniteAsyncS
         CacheEntryProcessor<K, V, T> entryProcessor, Object... args);
 
     /**
-     * Completely deletes the cache with all its data from the system on all cluster nodes.
+     * Closes cache.
+     * For local cache equivalent to {@link #destroy()).
+     * For distributed caches, if called on clients, closes client cache, if called on a server node,
+     * do nothing.
      */
     @Override void close();
+
+    /**
+     * Completely deletes the cache with all its data from the system on all cluster nodes.
+     */
+    void destroy();
 
     /**
      * This cache node to re-balance its partitions. This method is usually used when

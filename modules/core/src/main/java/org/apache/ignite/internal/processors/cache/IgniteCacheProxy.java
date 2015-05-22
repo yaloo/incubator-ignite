@@ -18,8 +18,8 @@
 package org.apache.ignite.internal.processors.cache;
 
 import org.apache.ignite.*;
-import org.apache.ignite.cache.CacheManager;
 import org.apache.ignite.cache.*;
+import org.apache.ignite.cache.CacheManager;
 import org.apache.ignite.cache.query.*;
 import org.apache.ignite.cluster.*;
 import org.apache.ignite.configuration.*;
@@ -1329,6 +1329,28 @@ public class IgniteCacheProxy<K, V> extends AsyncSupportAdapter<IgniteCache<K, V
     }
 
     /** {@inheritDoc} */
+    @Override public void destroy() {
+        if (!onEnterIfNoClose())
+            return;
+
+        IgniteInternalFuture<?> fut;
+
+        try {
+            fut = ctx.kernalContext().cache().dynamicDestroyCache(ctx.name());
+        }
+        finally {
+            onLeave();
+        }
+
+        try {
+            fut.get();
+        }
+        catch (IgniteCheckedException e) {
+            throw cacheException(e);
+        }
+    }
+
+    /** {@inheritDoc} */
     @Override public void close() {
         if (!onEnterIfNoClose())
             return;
@@ -1336,7 +1358,10 @@ public class IgniteCacheProxy<K, V> extends AsyncSupportAdapter<IgniteCache<K, V
         IgniteInternalFuture<?> fut;
 
         try {
-            fut = ctx.kernalContext().cache().dynamicStopCache(ctx.name());
+            fut = ctx.kernalContext().cache().dynamicCloseCache(ctx.name());
+
+            if (fut == null)
+                return;
         }
         finally {
             onLeave();

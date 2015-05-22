@@ -1935,13 +1935,40 @@ public class GridCacheProcessor extends GridProcessorAdapter {
     }
 
     /**
-     * @param cacheName Cache name to stop.
-     * @return Future that will be completed when cache is stopped.
+     * @param cacheName Cache name to destroy.
+     * @return Future that will be completed when cache is destroyed.
      */
-    public IgniteInternalFuture<?> dynamicStopCache(String cacheName) {
+    public IgniteInternalFuture<?> dynamicDestroyCache(String cacheName) {
         DynamicCacheChangeRequest t = new DynamicCacheChangeRequest(cacheName, ctx.localNodeId(), true);
 
         return F.first(initiateCacheChanges(F.asList(t)));
+    }
+
+
+    /**
+     * @param cacheName Cache name to stop.
+     * @return Future that will be completed when cache is stopped.
+     */
+    public IgniteInternalFuture<?> dynamicCloseCache(String cacheName) {
+        CacheConfiguration cfg = ctx.cache().cacheConfiguration(cacheName);
+
+        if (cfg.getCacheMode() == LOCAL)
+            return dynamicDestroyCache(cacheName);
+        else if (ctx.config().isClientMode()) {
+            GridCacheAdapter<?, ?> cache = caches.remove(maskNull(cacheName));
+
+            if (cache != null) {
+                GridCacheContext<?, ?> ctx = cache.context();
+
+                sharedCtx.removeCacheContext(ctx);
+
+                onKernalStop(cache, true);
+                stopCache(cache, true);
+            }
+
+            return null;
+        }
+        else return null;// No-Op.
     }
 
     /**

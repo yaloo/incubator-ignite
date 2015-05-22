@@ -1954,21 +1954,22 @@ public class GridCacheProcessor extends GridProcessorAdapter {
 
         if (cfg.getCacheMode() == LOCAL)
             return dynamicDestroyCache(cacheName);
-        else if (ctx.config().isClientMode()) {
-            GridCacheAdapter<?, ?> cache = caches.remove(maskNull(cacheName));
+        else {
+            GridCacheAdapter<?, ?> cache = caches.get(maskNull(cacheName));
 
-            if (cache != null) {
-                GridCacheContext<?, ?> ctx = cache.context();
+            if (cache != null && !cache.context().affinityNode()) {
+                if (caches.remove(maskNull(cacheName)) != null) {
+                    GridCacheContext<?, ?> ctx = cache.context();
 
-                sharedCtx.removeCacheContext(ctx);
+                    sharedCtx.removeCacheContext(ctx);
 
-                onKernalStop(cache, true);
-                stopCache(cache, true);
+                    onKernalStop(cache, true);
+                    stopCache(cache, true);
+                }
             }
 
-            return null;
+            return null; // No-op.
         }
-        else return null;// No-Op.
     }
 
     /**

@@ -57,7 +57,7 @@ public class CacheStopAndDestroySelfTest extends GridCommonAbstractTest {
     @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
         IgniteConfiguration iCfg = super.getConfiguration(gridName);
 
-        if (gridName.endsWith("2"))
+        if (getTestGridName(2).equals(gridName))
             iCfg.setClientMode(true);
 
         iCfg.setCacheConfiguration();
@@ -68,12 +68,10 @@ public class CacheStopAndDestroySelfTest extends GridCommonAbstractTest {
     /**
      * Test.
      *
-     * @throws Exception
+     * @throws Exception If failed.
      */
     public void testCacheStopAndDestroy() throws Exception {
         startGridsMultiThreaded(gridCount());
-
-        awaitPartitionMapExchange();
 
         CacheConfiguration cCfg1 = defaultCacheConfiguration();
         cCfg1.setName(CACHE_NAME_1);
@@ -240,7 +238,5 @@ public class CacheStopAndDestroySelfTest extends GridCommonAbstractTest {
                 }
             }
         }
-
     }
-
 }

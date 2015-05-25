@@ -1,15 +1,15 @@
 var config = require('./configuration.js');
 
-// mongoose for mongodb
+// Mongoose for mongodb.
 var mongoose = require('mongoose'),
     Schema = mongoose.Schema,
     ObjectId = mongoose.Schema.Types.ObjectId,
     passportLocalMongoose = require('passport-local-mongoose');
 
-// connect to mongoDB database on modulus.io
+// Connect to mongoDB database on modulus.io.
 mongoose.connect(config.get('mongoDB:url'), {server: {poolSize: 4}});
 
-// define user model.
+// Define user model.
 var AccountSchema = new Schema({
     username: String
 });
@@ -18,7 +18,7 @@ AccountSchema.plugin(passportLocalMongoose, { usernameField: 'email' });
 
 exports.Account = mongoose.model('Account', AccountSchema);
 
-// define space model.
+// Define space model.
 exports.Space =  mongoose.model('Space', new Schema({
     name: String,
     owner: { type: ObjectId, ref: 'Account' },
@@ -28,7 +28,7 @@ exports.Space =  mongoose.model('Space', new Schema({
     }]
 }));
 
-// define cluster model.
+// Define cluster model.
 exports.Cluster =  mongoose.model('Cluster', new Schema({
     space: { type: ObjectId, ref: 'Space' },
     name : String,
@@ -36,7 +36,7 @@ exports.Cluster =  mongoose.model('Cluster', new Schema({
     addresses : [String]
 }));
 
-// define cache model.
+// Define cache model.
 exports.Cache =  mongoose.model('Cache', new Schema({
     space: { type: ObjectId, ref: 'Space' },
     name: String,

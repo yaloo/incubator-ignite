@@ -1,3 +1,4 @@
+// Page with cluster configuration.
 extends layout-sidebar
 
 append css
@@ -13,7 +14,7 @@ block content
         hr
     div.docs-body(ng-controller='clustersController')
         div.block-edit-parameters
-            div(class=['btn-group'])
+            div.btn-group
                 button(ng-click='add()' class=['btn', 'btn-default', 'fa', 'fa-plus'] ) &nbspAdd
         table(ng-table="clustersTable" class=['table', 'table-bordered', 'table-hover'])
             tr(ng-repeat="cluster in $data")

@@ -4,8 +4,6 @@ var router = require('express').Router();
 var db = require('../db');
 
 router.post('/register', function(req, res, next) {
-    console.log('registering user');
-
     var account = new db.Account(req.body);
 
     db.Account.register(account, req.body.password, function(err, user) {
@@ -21,9 +19,7 @@ router.post('/register', function(req, res, next) {
     });
 });
 
-router.post('/login', passport.authenticate('local', function(req, res) {
-    req.redirect('/clusters');
-}));
+router.post('/login', passport.authenticate('local', { successRedirect: '/clusters', failureFlash: true }));
 
 router.get('/logout', function(req, res) {
     req.logout();

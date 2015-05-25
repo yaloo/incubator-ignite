@@ -14,14 +14,12 @@ router.get('/register', function(req, res) {
 
 /* GET home page. */
 router.get('/', function(req, res) {
-    console.log(req.user);
-
-    res.render('index');
+    res.render('index', { user: req.user, messages: req.flash('info') });
 });
 
 /* GET clusters page. */
 router.get('/clusters', function(req, res) {
-    res.render('clusters', { });
+    res.render('clusters', { user: req.user });
 });
 
 /* GET cluster edit popup. */

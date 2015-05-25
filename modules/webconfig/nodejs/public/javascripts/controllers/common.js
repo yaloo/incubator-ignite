@@ -22,11 +22,16 @@ configuratorModule.controller('auth', ['$scope', '$modal', '$http', function($sc
     };
 
     $scope.auth = function(action, user_info) {
-        if (action == 'signup') {
-            $http.post('/rest/auth/register', user_info)
-                .error(function (data) {
-                    $scope.message = data;
-                });
-        }
+        $http.post('/rest/auth/' + action, user_info)
+            .success(function(data) {
+                console.log(data);
+
+                authModal.hide();
+            });
+            //.error(function (data) {
+            //    console.log(data);
+            //
+            //    $scope.message = data;
+            //});
     };
 }]);

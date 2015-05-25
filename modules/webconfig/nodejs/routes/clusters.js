@@ -3,7 +3,7 @@ var router = express.Router();
 
 var db = require('../db');
 
-function selectAll(res) {
+function selectAll(user_id, res) {
     db.Cluster.find(function(err, clusters) {
         // if there is an error retrieving, send the error. nothing after res.send(err) will execute
         if (err)
@@ -14,7 +14,9 @@ function selectAll(res) {
 }
 
 router.get('/', function(req, res) {
-    selectAll(res);
+    var user = req.session.user;
+
+    selectAll(user, res);
 });
 
 router.post('/save', function(req, res) {

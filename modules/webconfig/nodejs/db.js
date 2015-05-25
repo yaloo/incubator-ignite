@@ -3,7 +3,7 @@ var config = require('./configuration.js');
 // mongoose for mongodb
 var mongoose = require('mongoose'),
     Schema = mongoose.Schema,
-    ObjectId = mongoose.Types.ObjectId,
+    ObjectId = mongoose.Schema.Types.ObjectId,
     passportLocalMongoose = require('passport-local-mongoose');
 
 // connect to mongoDB database on modulus.io
@@ -11,24 +11,36 @@ mongoose.connect(config.get('mongoDB:url'), {server: {poolSize: 4}});
 
 // define user model.
 var AccountSchema = new Schema({
-    email: String
+    username: String
 });
 
-AccountSchema.plugin(passportLocalMongoose);
+AccountSchema.plugin(passportLocalMongoose, { usernameField: 'email' });
 
 exports.Account = mongoose.model('Account', AccountSchema);
 
-// define cache model.
-exports.Cache =  mongoose.model('Cache', new Schema({
+// define space model.
+exports.Space =  mongoose.model('Space', new Schema({
     name: String,
-    mode: { type: String, enum: ['PARTITIONED', 'REPLICATED', 'LOCAL'] },
-    backups: Number
+    owner: { type: ObjectId, ref: 'Account' },
+    usedBy: [{
+        permission: { type: String, enum: ['VIEW', 'FULL']},
+        account: { type: ObjectId, ref: 'Account' }
+    }]
 }));
 
 // define cluster model.
 exports.Cluster =  mongoose.model('Cluster', new Schema({
+    space: { type: ObjectId, ref: 'Space' },
     name : String,
-    caches : [String],
     discovery : { type: String, enum: ['TcpDiscoveryVmIpFinder', 'TcpDiscoveryMulticastIpFinder'] },
     addresses : [String]
+}));
+
+// define cache model.
+exports.Cache =  mongoose.model('Cache', new Schema({
+    space: { type: ObjectId, ref: 'Space' },
+    name: String,
+    mode: { type: String, enum: ['PARTITIONED', 'REPLICATED', 'LOCAL'] },
+    backups: Number,
+    clusters: [{ type: ObjectId, ref: 'Cluster' }]
 }));

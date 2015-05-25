@@ -2,12 +2,17 @@ header.header(id='header')
     div.container
         h1.navbar-brand
             a(href='/') Apache Ignite Web Configurator
-        div(class=['navbar-collapse', 'collapse'])
+        div(class=['navbar-collapse', 'collapse'] ng-controller='auth')
             ul(class=['nav', 'navbar-nav'])
                 li
                     a.active(href='/') Home
-            ul(class=['nav', 'navbar-nav', 'pull-right'] ng-controller='auth')
+            ul(class=['nav', 'navbar-nav', 'pull-right'] ng-init='user = #{JSON.stringify(user)}')
                 li(ng-show='user')
-                    // TODO
+                    a.dropdown-toggle(data-toggle="dropdown" aria-expanded="true" bs-dropdown data-template="user-dropdown" data-placement='bottom-right') {{user.username}}
+                        span.caret
+                    script#user-dropdown(type="text/ng-template")
+                        ul.dropdown-menu
+                            li
+                                a(href='/rest/auth/logout') Log Out
                 li(ng-show='!user' class=['nav-login'])
-                    a(ng-click='login()' href='#') Log In
+                        a(ng-click='login()' href='#') Log In

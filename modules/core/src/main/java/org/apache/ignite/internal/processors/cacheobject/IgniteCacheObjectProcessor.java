@@ -117,8 +117,9 @@ public interface IgniteCacheObjectProcessor extends GridProcessor {
 
     /**
      * @return Cache object context.
+     * @throws IgniteCheckedException If failed.
      */
-    public CacheObjectContext contextForCache(CacheConfiguration ccfg);
+    public CacheObjectContext contextForCache(CacheConfiguration ccfg) throws IgniteCheckedException;
 
     /**
      * @param ctx Cache context.

@@ -11,7 +11,6 @@ var clustersRouter = require('./routes/clusters');
 var authRouter = require('./routes/auth');
 
 var passport = require('passport');
-var LocalStrategy = require('passport-local').Strategy;
 
 var db = require('./db');
 

@@ -28,10 +28,5 @@ configuratorModule.controller('auth', ['$scope', '$modal', '$http', function($sc
                     $scope.message = data;
                 });
         }
-
-        $http.post('/rest/auth/login', user_info)
-            .error(function (data) {
-                $scope.message = data;
-            });
     };
 }]);

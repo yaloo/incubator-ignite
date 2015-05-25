@@ -8,19 +8,15 @@ router.post('/register', function(req, res, next) {
 
     var account = new db.Account(req.body);
 
-    db.Account.register(account, req.body.password, function(err) {
-        if (err) {
-            console.log('error while user register!', err);
-
+    db.Account.register(account, req.body.password, function(err, user) {
+        if (err)
             return next(err);
-        }
 
-        console.log('user registered!');
+        req.logIn(user, {}, function(err) {
+            if (err)
+                return next(err);
 
-        passport.authenticate('local')(req, res, function () {
-
-
-            res.redirect('/clusters');
+            res.send(user);
         });
     });
 });
@@ -28,20 +24,6 @@ router.post('/register', function(req, res, next) {
 router.post('/login', passport.authenticate('local', function(req, res) {
     req.redirect('/clusters');
 }));
-//
-//router.post('/register', function(req, res, next) {
-//    var user = new db.Account(req.body);
-//
-//    user.save(function(err) {
-//        return err
-//            ? next(err)
-//            : req.logIn(user, function(err) {
-//            return err
-//                ? next(err)
-//                : res.redirect('/clusters');
-//        });
-//    });
-//});
 
 router.get('/logout', function(req, res) {
     req.logout();

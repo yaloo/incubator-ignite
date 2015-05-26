@@ -10,9 +10,8 @@ div(class=['modal', 'center'] tabindex='-1' role='dialog')
             .modal-body
                 form.form-horizontal(name='loginForm')
                     .modal-body.row
-                        //#messages
-                        //if messages
-                        h3.text-center.error-message #{messages}
+                        div(ng-show='errorMessage')
+                            p.text-center.error-message {{errorMessage}}
                         .col-xs-10.login.col-xs-offset-1
                             div.form-group(ng-show="action == 'register'")
                                 label.col-sm-3.control-label Full Name

@@ -9,7 +9,7 @@ configuratorModule.controller('activeLink', ['$scope', function($scope) {
 configuratorModule.controller('auth', ['$scope', '$modal', '$http', function($scope, $modal, $http) {
     $scope.action = 'login';
 
-    $scope.message = '';
+    $scope.errorMessage = '';
 
     $scope.valid = false;
 
@@ -27,11 +27,11 @@ configuratorModule.controller('auth', ['$scope', '$modal', '$http', function($sc
                 console.log(data);
 
                 authModal.hide();
+            })
+            .error(function (data) {
+                console.log(data);
+
+                $scope.errorMessage = data;
             });
-            //.error(function (data) {
-            //    console.log(data);
-            //
-            //    $scope.message = data;
-            //});
     };
 }]);

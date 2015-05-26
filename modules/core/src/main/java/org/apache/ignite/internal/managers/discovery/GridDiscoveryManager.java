@@ -240,12 +240,26 @@ public class GridDiscoveryManager extends GridManagerAdapter<DiscoverySpi> {
      *
      * @param cacheName Cache name.
      * @param clientNodeId Near node ID.
+     * @param nearEnabled Near cache enabled.
      */
     public void addClientNode(String cacheName, UUID clientNodeId, boolean nearEnabled) {
         CachePredicate predicate = registeredCaches.get(cacheName);
 
         if (predicate != null)
             predicate.addClientNode(clientNodeId, nearEnabled);
+    }
+
+    /**
+     * Removes near node ID from cache filter.
+     *
+     * @param cacheName Cache name.
+     * @param clientNodeId Near node ID.
+     */
+    public void onNodeLeft(String cacheName, UUID clientNodeId) {
+        CachePredicate predicate = registeredCaches.get(cacheName);
+
+        if (predicate != null)
+            predicate.onNodeLeft(clientNodeId);
     }
 
     /**

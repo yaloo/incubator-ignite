@@ -1,6 +1,5 @@
 configuratorModule.controller('clustersController',
-    [
-        '$scope', '$modal', '$http', '$filter', 'ngTableParams',
+    ['$scope', '$modal', '$http', '$filter', 'ngTableParams',
         function ($scope, $modal, $http, $filter, ngTableParams) {
             $scope.edit = {};
             $scope.editRow = {};
@@ -28,7 +27,7 @@ configuratorModule.controller('clustersController',
                     $scope.clustersTable = new ngTableParams({
                         page: 1,                    // Show first page.
                         count: Number.MAX_VALUE,    // Count per page.
-                        sorting: { name: 'asc'}     // Initial sorting.
+                        sorting: {name: 'asc'}      // Initial sorting.
                     }, {
                         total: $scope.clusters.length, // Length of data.
                         counts: [],
@@ -48,8 +47,14 @@ configuratorModule.controller('clustersController',
                     $scope.text = data;
                 });
 
-            // TODO: Pre-fetch an external template populated with a custom scope.
-            var myOtherModal = $modal({scope: $scope, template: '/cluster/edit', show: false});
+            // Create popup for discovery advanced settings.
+            var discoveryModal = $modal({scope: $scope, template: '/discovery', show: false});
+
+            $scope.editDiscovery = function (cluster) {
+                console.log('>>> editDiscovery');
+
+                discoveryModal.$promise.then(discoveryModal.show);
+            }
 
             $scope.submit = function () {
                 if ($scope.editIdx !== false) {

@@ -7,6 +7,10 @@ router.get('/login', function(req, res) {
     res.render('login');
 });
 
+router.get('/discovery', function(req, res) {
+    res.render('discovery');
+});
+
 /* GET register page. */
 router.get('/register', function(req, res) {
     res.render('register');

@@ -32,11 +32,11 @@ block content
                 td.text-center(data-title="'Discovery'" sortable="'discovery'")
                     div(ng-if='!(edit.discovery && editIdx == $index)')
                         span(ng-if='cluster.discovery') {{discoveryAsString(cluster.discovery)}}
-                        span.pull-right(type='button' ng-click='beginEdit(cluster); edit.discovery = true' data-animation="am-fade-and-scale")
-                            i(class=['fa', 'fa-pencil'])
+                        span.pull-right(type='button')
+                            i(class=['fa', 'fa-caret-square-o-down'] ng-click='editDiscovery(cluster); edit.discovery = false')
+                            i(class=['fa', 'fa-pencil'] ng-click='beginEdit(cluster); edit.discovery = true' style='margin-left: 10px;')
                     div.input-group(ng-if='edit.discovery && editIdx == $index')
-                        button(
-                        class=['btn', 'btn-default', 'form-control', 'pull-right'] style='width: 85%' data-placement='bottom-center' ng-model='cluster.discovery' data-template='/select' data-placeholder='Choose discovery' bs-options='discovery.value as discovery.label for discovery in discoveries' bs-select)
+                        button(class=['btn', 'btn-default', 'form-control', 'pull-right'] style='width: 85%' data-placement='bottom-center' ng-model='cluster.discovery' data-template='/select' data-placeholder='Choose discovery' bs-options='discovery.value as discovery.label for discovery in discoveries' bs-select)
                             span.caret
                         span.input-group-addon
                             i(class=['fa', 'fa-repeat'] ng-click='revert(); edit.discovery = false')

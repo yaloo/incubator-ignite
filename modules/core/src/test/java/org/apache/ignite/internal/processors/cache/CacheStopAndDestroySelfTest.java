@@ -22,29 +22,35 @@ import org.apache.ignite.configuration.*;
 import org.apache.ignite.testframework.junits.common.*;
 
 /**
- * Check stop and remove methods behavior.
+ * Checks stop and destroy methods behavior.
  */
 public class CacheStopAndDestroySelfTest extends GridCommonAbstractTest {
     /** key-value used at test. */
     protected static String KEY_VAL = "1";
 
     /** cache name 1. */
-    protected static String CACHE_NAME_1 = "cache1";
+    protected static String CACHE_NAME_DESTROY_DHT = "cache_d";
 
     /** cache name 2. */
-    protected static String CACHE_NAME_2 = "cache2";
+    protected static String CACHE_NAME_CLOSE_DHT = "cache_c";
 
     /** cache name 3. */
-    protected static String CACHE_NAME_3 = "cache3";
+    protected static String CACHE_NAME_DESTROY_CLIENT = "cache_d_client";
 
     /** cache name 4. */
-    protected static String CACHE_NAME_4 = "cache4";
+    protected static String CACHE_NAME_CLOSE_CLIENT = "cache_c_client";
+
+    /** near cache name 1. */
+    protected static String CACHE_NAME_DESTROY_NEAR = "cache_d_near";
+
+    /** near cache name 2. */
+    protected static String CACHE_NAME_CLOSE_NEAR = "cache_c_near";
 
     /** local cache name 1. */
-    protected static String CACHE_NAME_LOC_1 = "local1";
+    protected static String CACHE_NAME_DESTROY_LOC = "cache_d_local";
 
     /** local cache name 2. */
-    protected static String CACHE_NAME_LOC_2 = "local2";
+    protected static String CACHE_NAME_CLOSE_LOC = "cache_c_local";
 
     /**
      * @return Grids count to start.
@@ -73,72 +79,85 @@ public class CacheStopAndDestroySelfTest extends GridCommonAbstractTest {
     public void testCacheStopAndDestroy() throws Exception {
         startGridsMultiThreaded(gridCount());
 
-        CacheConfiguration cCfg1 = defaultCacheConfiguration();
-        cCfg1.setName(CACHE_NAME_1);
-        cCfg1.setCacheMode(CacheMode.PARTITIONED);
+        CacheConfiguration cCfgD = defaultCacheConfiguration();
+        cCfgD.setName(CACHE_NAME_DESTROY_DHT);
+        cCfgD.setCacheMode(CacheMode.PARTITIONED);
 
-        CacheConfiguration cCfg2 = defaultCacheConfiguration();
-        cCfg2.setName(CACHE_NAME_2);
-        cCfg2.setCacheMode(CacheMode.PARTITIONED);
+        CacheConfiguration cCfgC = defaultCacheConfiguration();
+        cCfgC.setName(CACHE_NAME_CLOSE_DHT);
+        cCfgC.setCacheMode(CacheMode.PARTITIONED);
 
-        CacheConfiguration cCfg3 = defaultCacheConfiguration();
-        cCfg3.setName(CACHE_NAME_3);
-        cCfg3.setCacheMode(CacheMode.PARTITIONED);
+        CacheConfiguration cCfgDClient = defaultCacheConfiguration();
+        cCfgDClient.setName(CACHE_NAME_DESTROY_CLIENT);
+        cCfgDClient.setCacheMode(CacheMode.PARTITIONED);
 
-        CacheConfiguration cCfg4 = defaultCacheConfiguration();
-        cCfg4.setName(CACHE_NAME_4);
-        cCfg4.setCacheMode(CacheMode.PARTITIONED);
+        CacheConfiguration cCfgCClient = defaultCacheConfiguration();
+        cCfgCClient.setName(CACHE_NAME_CLOSE_CLIENT);
+        cCfgCClient.setCacheMode(CacheMode.PARTITIONED);
 
-        CacheConfiguration cCfgLoc1 = defaultCacheConfiguration();
-        cCfgLoc1.setName(CACHE_NAME_LOC_1);
-        cCfgLoc1.setCacheMode(CacheMode.LOCAL);
+        CacheConfiguration cCfgDNear = defaultCacheConfiguration();
+        cCfgDNear.setName(CACHE_NAME_DESTROY_NEAR);
+        cCfgDNear.setCacheMode(CacheMode.PARTITIONED);
+        cCfgDNear.setNearConfiguration(new NearCacheConfiguration());
 
-        CacheConfiguration cCfgLoc2 = defaultCacheConfiguration();
-        cCfgLoc2.setName(CACHE_NAME_LOC_2);
-        cCfgLoc2.setCacheMode(CacheMode.LOCAL);
+        CacheConfiguration cCfgCNear = defaultCacheConfiguration();
+        cCfgCNear.setName(CACHE_NAME_CLOSE_NEAR);
+        cCfgCNear.setCacheMode(CacheMode.PARTITIONED);
+        cCfgCNear.setNearConfiguration(new NearCacheConfiguration());
 
-        grid(0).getOrCreateCache(cCfg1);
-        grid(0).getOrCreateCache(cCfg2);
-        grid(0).getOrCreateCache(cCfg3);
-        grid(0).getOrCreateCache(cCfg4);
-        grid(0).getOrCreateCache(cCfgLoc1);
-        grid(0).getOrCreateCache(cCfgLoc2);
+        CacheConfiguration cCfgDLoc = defaultCacheConfiguration();
+        cCfgDLoc.setName(CACHE_NAME_DESTROY_LOC);
+        cCfgDLoc.setCacheMode(CacheMode.LOCAL);
 
-        grid(0).cache(CACHE_NAME_1).put(KEY_VAL, KEY_VAL);
-        grid(0).cache(CACHE_NAME_2).put(KEY_VAL, KEY_VAL);
-        grid(0).cache(CACHE_NAME_3).put(KEY_VAL, KEY_VAL);
-        grid(0).cache(CACHE_NAME_4).put(KEY_VAL, KEY_VAL);
-        grid(0).cache(CACHE_NAME_LOC_1).put(KEY_VAL, KEY_VAL + 0);
-        grid(0).cache(CACHE_NAME_LOC_2).put(KEY_VAL, KEY_VAL + 0);
-        grid(1).cache(CACHE_NAME_LOC_1).put(KEY_VAL, KEY_VAL + 1);
-        grid(1).cache(CACHE_NAME_LOC_2).put(KEY_VAL, KEY_VAL + 1);
+        CacheConfiguration cCfgCLoc = defaultCacheConfiguration();
+        cCfgCLoc.setName(CACHE_NAME_CLOSE_LOC);
+        cCfgCLoc.setCacheMode(CacheMode.LOCAL);
 
-        assert grid(0).cache(CACHE_NAME_1).get(KEY_VAL).equals(KEY_VAL);
-        assert grid(0).cache(CACHE_NAME_2).get(KEY_VAL).equals(KEY_VAL);
-        assert grid(0).cache(CACHE_NAME_3).get(KEY_VAL).equals(KEY_VAL);
-        assert grid(0).cache(CACHE_NAME_4).get(KEY_VAL).equals(KEY_VAL);
-        assert grid(0).cache(CACHE_NAME_LOC_1).get(KEY_VAL).equals(KEY_VAL + 0);
-        assert grid(0).cache(CACHE_NAME_LOC_2).get(KEY_VAL).equals(KEY_VAL + 0);
-        assert grid(1).cache(CACHE_NAME_LOC_1).get(KEY_VAL).equals(KEY_VAL + 1);
-        assert grid(1).cache(CACHE_NAME_LOC_2).get(KEY_VAL).equals(KEY_VAL + 1);
+        grid(0).getOrCreateCache(cCfgD);
+        grid(0).getOrCreateCache(cCfgC);
+        grid(0).getOrCreateCache(cCfgDClient);
+        grid(0).getOrCreateCache(cCfgCClient);
+        grid(0).getOrCreateCache(cCfgDNear);
+        grid(0).getOrCreateCache(cCfgCNear);
+        grid(0).getOrCreateCache(cCfgDLoc);
+        grid(0).getOrCreateCache(cCfgCLoc);
+
+        grid(0).cache(CACHE_NAME_DESTROY_DHT).put(KEY_VAL, KEY_VAL);
+        grid(0).cache(CACHE_NAME_CLOSE_DHT).put(KEY_VAL, KEY_VAL);
+        grid(0).cache(CACHE_NAME_DESTROY_CLIENT).put(KEY_VAL, KEY_VAL);
+        grid(0).cache(CACHE_NAME_CLOSE_CLIENT).put(KEY_VAL, KEY_VAL);
+        grid(0).cache(CACHE_NAME_DESTROY_LOC).put(KEY_VAL, KEY_VAL + 0);
+        grid(0).cache(CACHE_NAME_CLOSE_LOC).put(KEY_VAL, KEY_VAL + 0);
+        grid(1).cache(CACHE_NAME_DESTROY_LOC).put(KEY_VAL, KEY_VAL + 1);
+        grid(1).cache(CACHE_NAME_CLOSE_LOC).put(KEY_VAL, KEY_VAL + 1);
+
+        assert grid(0).cache(CACHE_NAME_DESTROY_DHT).get(KEY_VAL).equals(KEY_VAL);
+        assert grid(0).cache(CACHE_NAME_CLOSE_DHT).get(KEY_VAL).equals(KEY_VAL);
+        assert grid(0).cache(CACHE_NAME_DESTROY_CLIENT).get(KEY_VAL).equals(KEY_VAL);
+        assert grid(0).cache(CACHE_NAME_CLOSE_CLIENT).get(KEY_VAL).equals(KEY_VAL);
+        assert grid(0).cache(CACHE_NAME_DESTROY_LOC).get(KEY_VAL).equals(KEY_VAL + 0);
+        assert grid(0).cache(CACHE_NAME_CLOSE_LOC).get(KEY_VAL).equals(KEY_VAL + 0);
+        assert grid(1).cache(CACHE_NAME_DESTROY_LOC).get(KEY_VAL).equals(KEY_VAL + 1);
+        assert grid(1).cache(CACHE_NAME_CLOSE_LOC).get(KEY_VAL).equals(KEY_VAL + 1);
 
         //Destroy:
 
         //DHT Destroy. Cache should be removed from each node.
-        grid(0).cache(CACHE_NAME_1).destroy();
+
+        grid(0).cache(CACHE_NAME_DESTROY_DHT).destroy();
 
         try {
-            grid(0).cache(CACHE_NAME_1).get(KEY_VAL).equals(KEY_VAL);
+            grid(0).cache(CACHE_NAME_DESTROY_DHT).get(KEY_VAL);
             assert false;
         }
         catch (IllegalArgumentException | IllegalStateException ignored0) {
             try {
-                grid(1).cache(CACHE_NAME_1).get(KEY_VAL).equals(KEY_VAL);
+                grid(1).cache(CACHE_NAME_DESTROY_DHT).get(KEY_VAL);
                 assert false;
             }
             catch (IllegalArgumentException | IllegalStateException ignored1) {
                 try {
-                    grid(2).cache(CACHE_NAME_1).get(KEY_VAL).equals(KEY_VAL);
+                    grid(2).cache(CACHE_NAME_DESTROY_DHT).get(KEY_VAL);
                     assert false;
                 }
                 catch (IllegalArgumentException | IllegalStateException ignored2) {
@@ -148,20 +167,21 @@ public class CacheStopAndDestroySelfTest extends GridCommonAbstractTest {
         }
 
         //DHT Destroy from client node. Cache should be removed from each node.
-        grid(2).cache(CACHE_NAME_2).destroy();// Client node.
+
+        grid(2).cache(CACHE_NAME_DESTROY_CLIENT).destroy();// Client node.
 
         try {
-            grid(0).cache(CACHE_NAME_2).get(KEY_VAL).equals(KEY_VAL);
+            grid(0).cache(CACHE_NAME_DESTROY_CLIENT).get(KEY_VAL);
             assert false;
         }
         catch (IllegalArgumentException | IllegalStateException ignored0) {
             try {
-                grid(1).cache(CACHE_NAME_2).get(KEY_VAL).equals(KEY_VAL);
+                grid(1).cache(CACHE_NAME_DESTROY_CLIENT).get(KEY_VAL);
                 assert false;
             }
             catch (IllegalArgumentException | IllegalStateException ignored1) {
                 try {
-                    grid(2).cache(CACHE_NAME_2).get(KEY_VAL).equals(KEY_VAL);
+                    grid(2).cache(CACHE_NAME_DESTROY_CLIENT).get(KEY_VAL);
                     assert false;
                 }
                 catch (IllegalArgumentException | IllegalStateException ignored2) {
@@ -171,20 +191,55 @@ public class CacheStopAndDestroySelfTest extends GridCommonAbstractTest {
         }
 
         //Local destroy. Cache should be removed from each node.
-        grid(0).cache(CACHE_NAME_LOC_1).destroy();
+
+        grid(0).cache(CACHE_NAME_DESTROY_LOC).destroy();
 
         try {
-            grid(0).cache(CACHE_NAME_LOC_1).get(KEY_VAL).equals(KEY_VAL);
+            grid(0).cache(CACHE_NAME_DESTROY_LOC).get(KEY_VAL);
             assert false;
         }
         catch (IllegalArgumentException | IllegalStateException ignored0) {
             try {
-                grid(1).cache(CACHE_NAME_LOC_1).get(KEY_VAL).equals(KEY_VAL);
+                grid(1).cache(CACHE_NAME_DESTROY_LOC).get(KEY_VAL);
                 assert false;
             }
             catch (IllegalArgumentException | IllegalStateException ignored1) {
                 try {
-                    grid(2).cache(CACHE_NAME_LOC_1).get(KEY_VAL).equals(KEY_VAL);
+                    grid(2).cache(CACHE_NAME_DESTROY_LOC).get(KEY_VAL);
+                    assert false;
+                }
+                catch (IllegalArgumentException | IllegalStateException ignored2) {
+                    // No-op
+                }
+            }
+        }
+
+        //Near destroy. Cache should be removed from each node.
+
+        grid(0).createNearCache(CACHE_NAME_DESTROY_NEAR, new NearCacheConfiguration());
+        grid(1).createNearCache(CACHE_NAME_DESTROY_NEAR, new NearCacheConfiguration());
+        grid(2).createNearCache(CACHE_NAME_DESTROY_NEAR, new NearCacheConfiguration());
+
+        grid(0).cache(CACHE_NAME_DESTROY_NEAR).put(KEY_VAL, KEY_VAL);
+
+        assert grid(0).cache(CACHE_NAME_DESTROY_NEAR).get(KEY_VAL).equals(KEY_VAL);
+        assert grid(1).cache(CACHE_NAME_DESTROY_NEAR).get(KEY_VAL).equals(KEY_VAL);
+        assert grid(2).cache(CACHE_NAME_DESTROY_NEAR).get(KEY_VAL).equals(KEY_VAL);
+
+        grid(0).cache(CACHE_NAME_DESTROY_NEAR).destroy();
+
+        try {
+            grid(0).cache(CACHE_NAME_DESTROY_NEAR).get(KEY_VAL);
+            assert false;
+        }
+        catch (IllegalArgumentException | IllegalStateException ignored0) {
+            try {
+                grid(1).cache(CACHE_NAME_DESTROY_NEAR).get(KEY_VAL);
+                assert false;
+            }
+            catch (IllegalArgumentException | IllegalStateException ignored1) {
+                try {
+                    grid(2).cache(CACHE_NAME_DESTROY_NEAR).get(KEY_VAL);
                     assert false;
                 }
                 catch (IllegalArgumentException | IllegalStateException ignored2) {
@@ -196,41 +251,98 @@ public class CacheStopAndDestroySelfTest extends GridCommonAbstractTest {
         //Close:
 
         //DHT Close. No-op.
-        grid(0).cache(CACHE_NAME_3).close();
 
-        assert grid(0).cache(CACHE_NAME_3).get(KEY_VAL).equals(KEY_VAL);// Not affected.
-        assert grid(1).cache(CACHE_NAME_3).get(KEY_VAL).equals(KEY_VAL);// Not affected.
-        assert grid(2).cache(CACHE_NAME_3).get(KEY_VAL).equals(KEY_VAL);// Not affected.
+        grid(0).cache(CACHE_NAME_CLOSE_DHT).close();
+
+        assert grid(0).cache(CACHE_NAME_CLOSE_DHT).get(KEY_VAL).equals(KEY_VAL);// Not affected.
+        assert grid(1).cache(CACHE_NAME_CLOSE_DHT).get(KEY_VAL).equals(KEY_VAL);// Not affected.
+        assert grid(2).cache(CACHE_NAME_CLOSE_DHT).get(KEY_VAL).equals(KEY_VAL);// Not affected.
+
+        //DHT Creation after closed.
+
+        grid(0).getOrCreateCache(cCfgC);
+
+        grid(0).cache(CACHE_NAME_CLOSE_DHT).put(KEY_VAL, KEY_VAL + "recreated");
+
+        assert grid(0).cache(CACHE_NAME_CLOSE_DHT).get(KEY_VAL).equals(KEY_VAL + "recreated");
+        assert grid(1).cache(CACHE_NAME_CLOSE_DHT).get(KEY_VAL).equals(KEY_VAL + "recreated");
+        assert grid(2).cache(CACHE_NAME_CLOSE_DHT).get(KEY_VAL).equals(KEY_VAL + "recreated");
 
         //DHT Close from client node. Should affect only client node.
-        grid(2).cache(CACHE_NAME_4).close();// Client node.
 
-        assert grid(0).cache(CACHE_NAME_4).get(KEY_VAL).equals(KEY_VAL);// Not affected.
-        assert grid(1).cache(CACHE_NAME_4).get(KEY_VAL).equals(KEY_VAL);// Not affected.
+        grid(2).cache(CACHE_NAME_CLOSE_CLIENT).close();// Client node.
+
+        assert grid(0).cache(CACHE_NAME_CLOSE_CLIENT).get(KEY_VAL).equals(KEY_VAL);// Not affected.
+        assert grid(1).cache(CACHE_NAME_CLOSE_CLIENT).get(KEY_VAL).equals(KEY_VAL);// Not affected.
 
         try {
-            grid(2).cache(CACHE_NAME_4).get(KEY_VAL).equals(KEY_VAL);// Affected.
+            grid(2).cache(CACHE_NAME_CLOSE_CLIENT).get(KEY_VAL);// Affected.
             assert false;
         }
         catch (IllegalArgumentException | IllegalStateException ignored) {
             // No-op
         }
 
-        //Local close. Same as Local destroy.
-        grid(1).cache(CACHE_NAME_LOC_2).close();
+        //DHT Creation from client node after closed.
+
+        grid(2).getOrCreateCache(cCfgCClient);
+
+        grid(0).cache(CACHE_NAME_CLOSE_CLIENT).put(KEY_VAL, KEY_VAL + "recreated");
+
+        assert grid(0).cache(CACHE_NAME_CLOSE_CLIENT).get(KEY_VAL).equals(KEY_VAL + "recreated");
+        assert grid(1).cache(CACHE_NAME_CLOSE_CLIENT).get(KEY_VAL).equals(KEY_VAL + "recreated");
+        assert grid(2).cache(CACHE_NAME_CLOSE_CLIENT).get(KEY_VAL).equals(KEY_VAL + "recreated");
+
+        //Near Close from client node.
+
+        grid(2).createNearCache(CACHE_NAME_CLOSE_NEAR, new NearCacheConfiguration());
+
+        //Subscribing to events.
+        grid(2).cache(CACHE_NAME_CLOSE_NEAR).put(KEY_VAL, KEY_VAL);
+
+        grid(2).cache(CACHE_NAME_CLOSE_NEAR).close();
+
+        //Should not produce messages to client node.
+        grid(0).cache(CACHE_NAME_CLOSE_NEAR).put(KEY_VAL, KEY_VAL + 0);
+
+        assert grid(0).cache(CACHE_NAME_CLOSE_NEAR).get(KEY_VAL).equals(KEY_VAL + 0);// Not affected.
+        assert grid(1).cache(CACHE_NAME_CLOSE_NEAR).get(KEY_VAL).equals(KEY_VAL + 0);// Not affected.
 
         try {
-            grid(0).cache(CACHE_NAME_LOC_2).get(KEY_VAL).equals(KEY_VAL);
+            grid(2).cache(CACHE_NAME_CLOSE_NEAR).get(KEY_VAL);// Affected.
+            assert false;
+        }
+        catch (IllegalArgumentException | IllegalStateException ignored) {
+            // No-op
+        }
+
+        //Near Creation from client node after closed.
+
+        grid(2).getOrCreateCache(cCfgCNear);
+        grid(2).createNearCache(CACHE_NAME_CLOSE_NEAR, new NearCacheConfiguration());
+
+        grid(0).cache(CACHE_NAME_CLOSE_NEAR).put(KEY_VAL, KEY_VAL + "recreated");
+
+        assert grid(0).cache(CACHE_NAME_CLOSE_NEAR).get(KEY_VAL).equals(KEY_VAL + "recreated");
+        assert grid(1).cache(CACHE_NAME_CLOSE_NEAR).get(KEY_VAL).equals(KEY_VAL + "recreated");
+        assert grid(2).cache(CACHE_NAME_CLOSE_NEAR).get(KEY_VAL).equals(KEY_VAL + "recreated");
+
+        //Local close. Same as Local destroy.
+
+        grid(1).cache(CACHE_NAME_CLOSE_LOC).close();
+
+        try {
+            grid(0).cache(CACHE_NAME_CLOSE_LOC).get(KEY_VAL);
             assert false;
         }
         catch (IllegalArgumentException | IllegalStateException ignored0) {
             try {
-                grid(1).cache(CACHE_NAME_LOC_2).get(KEY_VAL).equals(KEY_VAL);
+                grid(1).cache(CACHE_NAME_CLOSE_LOC).get(KEY_VAL);
                 assert false;
             }
             catch (IllegalArgumentException | IllegalStateException ignored1) {
                 try {
-                    grid(2).cache(CACHE_NAME_LOC_2).get(KEY_VAL).equals(KEY_VAL);
+                    grid(2).cache(CACHE_NAME_CLOSE_LOC).get(KEY_VAL);
                     assert false;
                 }
                 catch (IllegalArgumentException | IllegalStateException ignored2) {
@@ -238,5 +350,17 @@ public class CacheStopAndDestroySelfTest extends GridCommonAbstractTest {
                 }
             }
         }
+
+        //Local creation after closed.
+
+        grid(0).getOrCreateCache(cCfgCLoc);
+
+        grid(0).cache(CACHE_NAME_CLOSE_LOC).put(KEY_VAL, KEY_VAL + "recreated0");
+        grid(1).cache(CACHE_NAME_CLOSE_LOC).put(KEY_VAL, KEY_VAL + "recreated1");
+        grid(2).cache(CACHE_NAME_CLOSE_LOC).put(KEY_VAL, KEY_VAL + "recreated2");
+
+        assert grid(0).cache(CACHE_NAME_CLOSE_LOC).get(KEY_VAL).equals(KEY_VAL + "recreated0");
+        assert grid(1).cache(CACHE_NAME_CLOSE_LOC).get(KEY_VAL).equals(KEY_VAL + "recreated1");
+        assert grid(2).cache(CACHE_NAME_CLOSE_LOC).get(KEY_VAL).equals(KEY_VAL + "recreated2");
     }
 }

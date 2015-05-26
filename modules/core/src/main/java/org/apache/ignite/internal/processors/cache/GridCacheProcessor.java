@@ -265,7 +265,7 @@ public class GridCacheProcessor extends GridProcessorAdapter {
 
         // Suppress warning if at least one ATOMIC cache found.
         perf.add("Enable ATOMIC mode if not using transactions (set 'atomicityMode' to ATOMIC)",
-                 cfg.getAtomicityMode() == ATOMIC);
+            cfg.getAtomicityMode() == ATOMIC);
 
         // Suppress warning if at least one non-FULL_SYNC mode found.
         perf.add("Disable fully synchronous writes (set 'writeSynchronizationMode' to PRIMARY_SYNC or FULL_ASYNC)",
@@ -425,7 +425,7 @@ public class GridCacheProcessor extends GridProcessorAdapter {
 
         if (cc.getAtomicityMode() == ATOMIC)
             assertParameter(cc.getTransactionManagerLookupClassName() == null,
-                            "transaction manager can not be used with ATOMIC cache");
+                "transaction manager can not be used with ATOMIC cache");
     }
 
     /**

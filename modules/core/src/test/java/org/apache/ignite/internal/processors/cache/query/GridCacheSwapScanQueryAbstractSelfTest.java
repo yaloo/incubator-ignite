@@ -129,8 +129,8 @@ public abstract class GridCacheSwapScanQueryAbstractSelfTest extends GridCommonA
             cache.getAndPut(new Key(i), new Person("p-" + i, i));
 
         try {
-            CacheQuery<Map.Entry<Key, Person>> qry = cache.context().queries().createScanQuery
-                (new QueryFilter(), false);
+            CacheQuery<Map.Entry<Key, Person>> qry =
+                cache.context().queries().createScanQuery(new QueryFilter(), false);
 
             Collection<Map.Entry<Key, Person>> res = qry.execute().get();
 
@@ -358,6 +358,7 @@ public abstract class GridCacheSwapScanQueryAbstractSelfTest extends GridCommonA
      *
      */
     private static class QueryFilter implements IgniteBiPredicate<Key, Person> {
+        /** {@inheritDoc} */
         @Override public boolean apply(Key key, Person p) {
             assertEquals(key.id, (Integer)p.salary);
 

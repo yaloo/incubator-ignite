@@ -36,6 +36,7 @@ public class GridNioSslSelfTest extends GridNioSelfTest {
     /** {@inheritDoc} */
     @Override protected void beforeTestsStarted() throws Exception {
         super.beforeTestsStarted();
+
         sslCtx = GridTestUtils.sslContext();
     }
 

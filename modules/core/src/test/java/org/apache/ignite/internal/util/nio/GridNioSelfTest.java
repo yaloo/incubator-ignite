@@ -829,11 +829,13 @@ public class GridNioSelfTest extends GridCommonAbstractTest {
                         U.sleep(4000);
 
                         info("After sleep.");
-                    } catch (Exception e) {
+                    }
+                    catch (Exception e) {
                         error("Failed to create client: " + e.getMessage());
 
                         fail("Failed to create client: " + e.getMessage());
-                    } finally {
+                    }
+                    finally {
                         info("Test thread finished.");
                     }
                 }
@@ -902,11 +904,13 @@ public class GridNioSelfTest extends GridCommonAbstractTest {
                         U.sleep(4000);
 
                         info("After sleep.");
-                    } catch (Exception e) {
+                    }
+                    catch (Exception e) {
                         error("Failed to create client: ", e);
 
                         fail("Failed to create client: " + e.getMessage());
-                    } finally {
+                    }
+                    finally {
                         info("Test thread finished.");
                     }
                 }

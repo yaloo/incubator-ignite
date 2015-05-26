@@ -944,7 +944,7 @@ public class DataStreamProcessorSelfTest extends GridCommonAbstractTest {
     }
 
     /**
-     *
+     * @return Stream receiver.
      */
     protected StreamReceiver<String, TestObject> getStreamReceiver() {
         return new TestDataReceiver();
@@ -975,9 +975,9 @@ public class DataStreamProcessorSelfTest extends GridCommonAbstractTest {
      *
      */
     private static class TestDataReceiver implements StreamReceiver<String, TestObject> {
-        @Override
-        public void receive(IgniteCache<String, TestObject> cache,
-                            Collection<Map.Entry<String, TestObject>> entries) {
+        /** {@inheritDoc} */
+        @Override public void receive(IgniteCache<String, TestObject> cache,
+            Collection<Map.Entry<String, TestObject>> entries) {
             for (Map.Entry<String, TestObject> e : entries) {
                 assertTrue(e.getKey() instanceof String);
                 assertTrue(e.getValue() instanceof TestObject);

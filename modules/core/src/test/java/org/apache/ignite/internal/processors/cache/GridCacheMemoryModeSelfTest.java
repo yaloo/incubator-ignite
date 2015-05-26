@@ -79,6 +79,9 @@ public class GridCacheMemoryModeSelfTest extends GridCommonAbstractTest {
         return cfg;
     }
 
+    /**
+     * @return Cache configuration.
+     */
     protected CacheConfiguration cacheConfiguration() {
         CacheConfiguration cacheCfg = defaultCacheConfiguration();
 

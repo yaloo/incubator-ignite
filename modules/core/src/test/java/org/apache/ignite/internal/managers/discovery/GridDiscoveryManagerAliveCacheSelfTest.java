@@ -74,8 +74,9 @@ public class GridDiscoveryManagerAliveCacheSelfTest extends GridCommonAbstractTe
         }
     };
 
+    /** {@inheritDoc} */
     @Override protected long getTestTimeout() {
-        return 10 * 60 * 1000; //10 minutes
+        return 10 * 60 * 1000; //10 minutes.
     }
 
     /** {@inheritDoc} */

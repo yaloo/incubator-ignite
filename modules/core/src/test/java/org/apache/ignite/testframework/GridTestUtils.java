@@ -1462,7 +1462,7 @@ public final class GridTestUtils {
         double dur = (System.currentTimeMillis() - startTime) / 1000d;
 
         System.out.printf("%s:\n operations:%d, duration=%fs, op/s=%d, latency=%fms\n", name, cnt, dur,
-                          (long)(cnt / dur), dur / cnt);
+            (long)(cnt / dur), dur / cnt);
     }
 
     /**

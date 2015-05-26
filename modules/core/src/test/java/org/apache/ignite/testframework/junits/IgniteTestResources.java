@@ -197,6 +197,7 @@ public class IgniteTestResources {
     }
 
     /**
+     * @param cls Class.
      * @return Logger for specified class.
      */
     public static IgniteLogger getLogger(Class<?> cls) {

@@ -18,7 +18,6 @@
 package org.apache.ignite.internal.processors.cache.datastructures;
 
 import org.apache.ignite.*;
-import org.apache.ignite.configuration.*;
 import org.apache.ignite.lang.*;
 
 import java.util.*;
@@ -33,13 +32,6 @@ public abstract class GridCacheAtomicReferenceMultiNodeAbstractTest extends Igni
     /** {@inheritDoc} */
     @Override protected int gridCount() {
         return GRID_CNT;
-    }
-
-    /** {@inheritDoc} */
-    @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
-        IgniteConfiguration cfg = super.getConfiguration(gridName);
-
-        return cfg;
     }
 
     /**

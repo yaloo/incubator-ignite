@@ -709,7 +709,7 @@ public class IgniteCacheQueryMultiThreadedSelfTest extends GridCommonAbstractTes
      */
     private static class TestValue implements Serializable {
         /** Value. */
-        @QuerySqlField
+        @QuerySqlField(index = true)
         private int val;
 
         /**

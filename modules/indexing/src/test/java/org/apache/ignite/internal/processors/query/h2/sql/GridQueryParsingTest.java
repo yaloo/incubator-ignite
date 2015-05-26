@@ -89,7 +89,7 @@ public class GridQueryParsingTest extends GridCommonAbstractTest {
     }
 
     /**
-     *
+     * @throws Exception If failed.
      */
     public void testAllExamples() throws Exception {
         checkQuery("select ? limit ? offset ?");

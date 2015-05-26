@@ -36,7 +36,6 @@ public interface GridPortableInputStream extends GridPortableStream {
      */
     public byte[] readByteArray(int cnt);
 
-
     /**
      * Reads {@code cnt} of bytes into byte array.
      *

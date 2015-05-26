@@ -70,21 +70,19 @@ public class GridToStringBuilderSelfTest extends GridCommonAbstractTest {
     }
 
     /**
-     * TODO: IGNITE-602.
-     *
      * @throws Exception If failed.
      */
     public void testToStringCheckAdvancedRecursionPrevention() throws Exception {
-        throw new IgniteCheckedException("https://issues.apache.org/jira/browse/IGNITE-602");
+        fail("https://issues.apache.org/jira/browse/IGNITE-602");
 
-        /*ArrayList<Object> list1 = new ArrayList<>();
+        ArrayList<Object> list1 = new ArrayList<>();
         ArrayList<Object> list2 = new ArrayList<>();
 
         list2.add(list1);
         list1.add(list2);
 
         GridToStringBuilder.toString(ArrayList.class, list1, "name", list2);
-        GridToStringBuilder.toString(ArrayList.class, list2, "name", list1);*/
+        GridToStringBuilder.toString(ArrayList.class, list2, "name", list1);
     }
 
     /**

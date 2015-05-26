@@ -890,6 +890,7 @@ public class GridMessagingSelfTest extends GridCommonAbstractTest {
 
     /**
      * @param expOldestIgnite Expected oldest ignite.
+     * @throws InterruptedException If interrupted.
      */
     private void remoteListenForOldest(Ignite expOldestIgnite) throws InterruptedException {
         ClusterGroup grp = ignite1.cluster().forOldest();
@@ -919,15 +920,13 @@ public class GridMessagingSelfTest extends GridCommonAbstractTest {
 
         /** {@inheritDoc} */
         @Override public boolean apply(UUID nodeId, Object msg) {
-            log.info(Thread.currentThread().getName() +
-                         " Listener received new message [msg=" + msg + ", senderNodeId=" + nodeId + ']');
+            log.info("Listener received new message [msg=" + msg + ", senderNodeId=" + nodeId + ']');
 
             msgCnt.incrementAndGet();
 
             return true;
         }
     }
-
 
     /**
      *
@@ -999,7 +998,6 @@ public class GridMessagingSelfTest extends GridCommonAbstractTest {
             return true;
         }
     }
-
 
     /**
      *
@@ -1081,7 +1079,6 @@ public class GridMessagingSelfTest extends GridCommonAbstractTest {
         }
     }
 
-
     /**
      *
      */
@@ -1110,5 +1107,4 @@ public class GridMessagingSelfTest extends GridCommonAbstractTest {
             }
         }
     }
-
 }

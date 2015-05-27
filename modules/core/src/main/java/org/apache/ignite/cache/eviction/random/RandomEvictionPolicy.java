@@ -18,6 +18,7 @@
 package org.apache.ignite.cache.eviction.random;
 
 import org.apache.ignite.*;
+import org.apache.ignite.cache.*;
 import org.apache.ignite.cache.eviction.*;
 import org.apache.ignite.configuration.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
@@ -87,13 +88,13 @@ public class RandomEvictionPolicy<K, V> implements EvictionPolicy<K, V>, RandomE
 
         IgniteCache<K, V> cache = entry.unwrap(IgniteCache.class);
 
-        int size = cache.size();
+        int size = cache.localSize(CachePeekMode.ONHEAP);
 
-        for (int i = max; i < size; i++) {
+        for (int i = max; i < size;) {
             Cache.Entry<K, V> e = cache.randomEntry();
 
-            if (e != null)
-                e.unwrap(EvictableEntry.class).evict();
+            if (e != null && e.unwrap(EvictableEntry.class).evict())
+                i++;
         }
     }
 

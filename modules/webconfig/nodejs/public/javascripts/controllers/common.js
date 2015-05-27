@@ -6,7 +6,7 @@ configuratorModule.controller('activeLink', ['$scope', function($scope) {
     };
 }]);
 
-configuratorModule.controller('auth', ['$scope', '$modal', '$http', function($scope, $modal, $http) {
+configuratorModule.controller('auth', ['$scope', '$modal', '$http', '$window', function($scope, $modal, $http, $window) {
     $scope.action = 'login';
 
     $scope.errorMessage = '';
@@ -24,13 +24,11 @@ configuratorModule.controller('auth', ['$scope', '$modal', '$http', function($sc
     $scope.auth = function(action, user_info) {
         $http.post('/rest/auth/' + action, user_info)
             .success(function(data) {
-                console.log(data);
-
                 authModal.hide();
+
+                $window.location = '/clusters';
             })
             .error(function (data) {
-                console.log(data);
-
                 $scope.errorMessage = data;
             });
     };

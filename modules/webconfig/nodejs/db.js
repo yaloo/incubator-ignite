@@ -6,10 +6,10 @@ var mongoose = require('mongoose'),
     ObjectId = mongoose.Schema.Types.ObjectId,
     passportLocalMongoose = require('passport-local-mongoose');
 
-// Connect to mongoDB database on modulus.io.
+// Connect to mongoDB database.
 mongoose.connect(config.get('mongoDB:url'), {server: {poolSize: 4}});
 
-// Define user model.
+// Define account model.
 var AccountSchema = new Schema({
     username: String
 });
@@ -44,3 +44,15 @@ exports.Cache =  mongoose.model('Cache', new Schema({
     backups: Number,
     clusters: [{ type: ObjectId, ref: 'Cluster' }]
 }));
+
+exports.upsert = function(model, data, cb){
+    if (data._id) {
+        var id = data._id;
+
+        delete data._id;
+
+        model.findOneAndUpdate({_id: id}, data, cb);
+    }
+    else
+        model.create(data, cb);
+};

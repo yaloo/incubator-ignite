@@ -321,15 +321,12 @@ public class CacheStopAndDestroySelfTest extends GridCommonAbstractTest {
         grid(2).getOrCreateCache(cCfgCNear);
         grid(2).createNearCache(CACHE_NAME_CLOSE_NEAR, new NearCacheConfiguration());
 
+        grid(2).cache(CACHE_NAME_CLOSE_NEAR).put(KEY_VAL, KEY_VAL);
         grid(0).cache(CACHE_NAME_CLOSE_NEAR).put(KEY_VAL, KEY_VAL + "recreated");
 
         assert grid(0).cache(CACHE_NAME_CLOSE_NEAR).get(KEY_VAL).equals(KEY_VAL + "recreated");
         assert grid(1).cache(CACHE_NAME_CLOSE_NEAR).get(KEY_VAL).equals(KEY_VAL + "recreated");
         assert grid(2).cache(CACHE_NAME_CLOSE_NEAR).localPeek(KEY_VAL).equals(KEY_VAL + "recreated");
-
-        grid(0).cache(CACHE_NAME_CLOSE_NEAR).put(KEY_VAL, KEY_VAL + "recreated2");
-
-        assert grid(2).cache(CACHE_NAME_CLOSE_NEAR).localPeek(KEY_VAL).equals(KEY_VAL + "recreated2");
 
         //Local close. Same as Local destroy.
 
@@ -366,5 +363,11 @@ public class CacheStopAndDestroySelfTest extends GridCommonAbstractTest {
         assert grid(0).cache(CACHE_NAME_CLOSE_LOC).get(KEY_VAL).equals(KEY_VAL + "recreated0");
         assert grid(1).cache(CACHE_NAME_CLOSE_LOC).get(KEY_VAL).equals(KEY_VAL + "recreated1");
         assert grid(2).cache(CACHE_NAME_CLOSE_LOC).get(KEY_VAL).equals(KEY_VAL + "recreated2");
+    }
+
+    @Override protected void afterTest() throws Exception {
+        super.afterTest();
+
+        stopAllGrids();
     }
 }

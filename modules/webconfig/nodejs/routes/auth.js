@@ -14,7 +14,7 @@ router.post('/register', function(req, res, next) {
         if (!account)
             return res.status(500).send('Failed to create account.');
 
-        new db.Space({name: 'Personal space', owner: account._id}).create();
+        new db.Space({name: 'Personal space', owner: account._id}).save();
 
         req.logIn(account, {}, function(err) {
             if (err)

@@ -19,29 +19,29 @@ block content
         table(ng-table="clustersTable" class=['table', 'table-bordered', 'table-hover'])
             tr(ng-repeat="cluster in $data")
                 td(data-title="'#'" class=['text-center', 'vcenter'] style='width: 50px') {{$index + 1}}
-                td(data-title="'Name'" sortable="'name'" class=['text-center', 'col-sm-4'])
-                    div(ng-if='!(edit.name && editIdx == $index)')
+                td(data-title="'Name'" sortable="'name'" class=['text-center', 'col-sm-7'])
+                    div(ng-if='!(editColumn == "name" && currentRow == cluster)')
                         span(ng-if='cluster.name') {{cluster.name}}
-                        span.pull-right(type='button' ng-click='beginEdit(cluster); edit.name = true' data-animation="am-fade-and-scale")
+                        span.pull-right(type='button' ng-click='beginEdit("name", cluster);')
                             i(class=['fa', 'fa-pencil'])
-                    div.input-group(ng-if='edit.name && editIdx == $index')
+                    div.input-group(ng-if='editColumn == "name" && currentRow == cluster')
                         input.form-control(type='text' ng-model='cluster.name')
                         span.input-group-addon
-                            i(class=['fa', 'fa-repeat'] ng-click='revert(); edit.name = false')
-                            i(class=['fa', 'fa-save'] ng-click='submit(); edit.name = false' style='margin-left: 10px;')
+                            i(class=['fa', 'fa-repeat'] ng-click='revert();')
+                            i(class=['fa', 'fa-save'] ng-click='submit();' style='margin-left: 10px;')
                 td.text-center(data-title="'Discovery'" sortable="'discovery'")
-                    div(ng-if='!(edit.discovery && editIdx == $index)')
+                    div(ng-if='!(editColumn == "discovery" && currentRow == cluster)')
                         span(ng-if='cluster.discovery') {{discoveryAsString(cluster.discovery)}}
                         span.pull-right(type='button')
-                            i(class=['fa', 'fa-caret-square-o-down'] ng-click='editDiscovery(cluster); edit.discovery = false')
-                            i(class=['fa', 'fa-pencil'] ng-click='beginEdit(cluster); edit.discovery = true' style='margin-left: 10px;')
-                    div.input-group(ng-if='edit.discovery && editIdx == $index')
+                            i(class=['fa', 'fa-caret-square-o-down'] ng-click='editDiscovery(cluster);')
+                            i(class=['fa', 'fa-pencil'] ng-click='beginEdit("discovery", cluster);' style='margin-left: 10px;')
+                    div.input-group(ng-if='editColumn == "discovery" && currentRow == cluster')
                         button(class=['btn', 'btn-default', 'form-control', 'pull-right'] style='width: 85%' data-placement='bottom-center' ng-model='cluster.discovery' data-template='/select' data-placeholder='Choose discovery' bs-options='discovery.value as discovery.label for discovery in discoveries' bs-select)
                             span.caret
                         span.input-group-addon
-                            i(class=['fa', 'fa-repeat'] ng-click='revert(); edit.discovery = false')
-                            i(class=['fa', 'fa-save'] ng-click='submit(); edit.discovery = false' style='margin-left: 10px;')
-                td(data-title="'Delete'" class=['col-sm-1'])
+                            i(class=['fa', 'fa-repeat'] ng-click='revert();')
+                            i(class=['fa', 'fa-save'] ng-click='submit();' style='margin-left: 10px;')
+                td.col-sm-1(data-title="'Delete'")
                     center
                         span(type='button' ng-click='delete(cluster)')
                             i(class=['fa', 'fa-remove'])

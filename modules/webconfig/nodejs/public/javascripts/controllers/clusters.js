@@ -1,7 +1,9 @@
 configuratorModule.controller('clustersController', [ '$scope', '$modal', '$http', '$filter', 'ngTableParams',
-    function ($scope, $modal, $http, $filter, ngTableParams) {
-        $scope.edit = {};
+    function($scope, $modal, $http, $filter, ngTableParams) {
+        $scope.editColumn = {};
+
         $scope.editRow = {};
+
         $scope.editIdx = false;
 
         $scope.discoveries = [
@@ -9,7 +11,7 @@ configuratorModule.controller('clustersController', [ '$scope', '$modal', '$http
             {value: 'TcpDiscoveryMulticastIpFinder', label: 'Multicast'}
         ];
 
-        $scope.discoveryAsString = function (value) {
+        $scope.discoveryAsString = function(value) {
             for (var i in $scope.discoveries) {
                 if ($scope.discoveries[i].value == value)
                     return $scope.discoveries[i].label;
@@ -20,7 +22,7 @@ configuratorModule.controller('clustersController', [ '$scope', '$modal', '$http
 
         // When landing on the page, get clusters and show them.
         $http.get('/rest/clusters')
-            .success(function (data) {
+            .success(function(data) {
                 $scope.spaces = data.spaces;
                 $scope.clusters = data.clusters;
 
@@ -31,7 +33,7 @@ configuratorModule.controller('clustersController', [ '$scope', '$modal', '$http
                 }, {
                     total: $scope.clusters.length, // Length of data.
                     counts: [],
-                    getData: function ($defer, params) {
+                    getData: function($defer, params) {
                         // Use build-in angular filter.
                         var orderedData = params.sorting() ?
                             $filter('orderBy')($scope.clusters, params.orderBy()) :
@@ -48,15 +50,44 @@ configuratorModule.controller('clustersController', [ '$scope', '$modal', '$http
         // Create popup for discovery advanced settings.
         var discoveryModal = $modal({scope: $scope, template: '/discovery', show: false});
 
-        $scope.editDiscovery = function (cluster) {
+        $scope.editDiscovery = function(cluster) {
             discoveryModal.$promise.then(discoveryModal.show);
         };
 
-        $scope.submit = function () {
-            if ($scope.editIdx !== false) {
-                console.log($scope.$data);
+        // Add new cluster.
+        $scope.add = function() {
+            $scope.clusters.push({space: $scope.spaces[0]._id});
 
-                var cluster = $scope.clusters[$scope.editIdx];
+            $scope.clustersTable.reload();
+        };
+
+        $scope.beginEdit = function(name, cluster) {
+            $scope.revert();
+
+            $scope.currentRow = cluster;
+
+            $scope.editColumn = name;
+
+            $scope.editRow = angular.copy(cluster);
+
+            $scope.editIdx = $scope.clusters.indexOf(cluster);
+        };
+
+        $scope.revert = function() {
+            if ($scope.editColumn && $scope.currentRow) {
+                $scope.clusters[$scope.clusters.indexOf($scope.currentRow)] = $scope.editRow;
+
+                $scope.currentRow = undefined;
+
+                $scope.editColumn = undefined;
+
+                $scope.clustersTable.reload();
+            }
+        };
+
+        $scope.submit = function() {
+            if ($scope.editColumn && $scope.currentRow) {
+                var cluster = $scope.currentRow;
 
                 var data = {
                     _id: cluster._id,
@@ -66,62 +97,32 @@ configuratorModule.controller('clustersController', [ '$scope', '$modal', '$http
                     addresses: ['127.0.0.1', '192.168.1.1']
                 };
 
-                $scope.editIdx = false;
+                $scope.currentRow = undefined;
+
+                $scope.editColumn = undefined;
 
                 $http.post('/rest/clusters/save', data)
-                    .success(function (data) {
-                        myOtherModal.hide();
-
+                    .success(function(data) {
                         $scope.spaces = data.spaces;
                         $scope.clusters = data.clusters;
 
                         $scope.clustersTable.reload();
                     })
-                    .error(function (errorMessage) {
+                    .error(function(errorMessage) {
                         console.log('Error: ' + errorMessage);
                     });
             }
         };
 
-        // Add new cluster.
-        $scope.add = function () {
-            // $scope.clusters.push({name: 'Cluster', discovery: 'TcpDiscoveryVmIpFinder'});
-            $scope.clusters.push({space: $scope.spaces[0]._id});
-
-            $scope.clustersTable.reload();
-        };
-
-        $scope.beginEdit = function (cluster) {
-            $scope.editIdx = $scope.clusters.indexOf(cluster);
-
-            $scope.editRow = angular.copy(cluster);
-
-            //// Show when some event occurs (use $promise property to ensure the template has been loaded)
-            //myOtherModal.$promise.then(myOtherModal.show);
-        };
-
-        $scope.revert = function () {
-            if ($scope.editIdx !== false) {
-                $scope.clusters[$scope.editIdx] = $scope.editRow;
-
-                $scope.editIdx = false;
-
-                $scope.clustersTable.reload();
-            }
-
-            //// Show when some event occurs (use $promise property to ensure the template has been loaded)
-            //myOtherModal.$promise.then(myOtherModal.show);
-        };
-
-        $scope.delete = function (cluster) {
+        $scope.delete = function(cluster) {
             $http.post('/rest/clusters/remove', {_id: cluster._id})
-                .success(function (data) {
+                .success(function(data) {
                     $scope.spaces = data.spaces;
                     $scope.clusters = data.clusters;
 
                     $scope.clustersTable.reload();
                 })
-                .error(function (errorMessage) {
+                .error(function(errorMessage) {
                     console.log('Error: ' + errorMessage);
                 });
         };

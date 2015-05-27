@@ -6,6 +6,7 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var session = require('express-session');
+var mongoStore = require('connect-mongo')(session);
 
 var pageRoutes = require('./routes/pages');
 var clustersRouter = require('./routes/clusters');
@@ -38,7 +39,10 @@ app.use(cookieParser('keyboard cat'));
 app.use(session({
     secret: 'keyboard cat',
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: true,
+    store: new mongoStore({
+        mongooseConnection: db.mongoose.connection
+    })
 }));
 
 app.use(flash());

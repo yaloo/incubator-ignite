@@ -1,27 +1,4 @@
-body {
-  //padding: 60px;
-
-  //font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  //font-size: 18px;
-}
-
-//.navbar-style {
-//  background: rgba(54, 54, 54, 0.95);
-//}
-//
-//.navbar-default .navbar-text {
-//  color: white;
-//}
-//
-//.navbar-default .navbar-nav > li > a {
-//    color: white;
-//
-//    &:hover,
-//    &:focus {
-//      color: red;
-//    }
-//}
-//
+@logo-path: "https://www.filepicker.io/api/file/QagunjDGRFul2JgNCAli";
 
 .main-header .logo {
   height: auto;
@@ -717,7 +694,7 @@ a:hover, .link:hover .title {
 }
 
 .header h1.navbar-brand a {
-  background-image: url(https://www.filepicker.io/api/file/QagunjDGRFul2JgNCAli)
+  background-image: url("@{logo-path}");
 }
 
 .header h1.navbar-brand {
@@ -803,4 +780,12 @@ a:hover, .link:hover .title {
 
 .modal .modal-content .modal-footer {
   margin-top: 0;
+}
+
+.modal-body {
+  padding-top: 30px;
+}
+
+h1.ignite-logo {
+  background-image: url("@{logo-path}");
 }

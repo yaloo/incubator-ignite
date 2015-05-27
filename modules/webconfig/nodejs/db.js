@@ -56,3 +56,5 @@ exports.upsert = function(model, data, cb){
     else
         model.create(data, cb);
 };
+
+exports.mongoose = mongoose;

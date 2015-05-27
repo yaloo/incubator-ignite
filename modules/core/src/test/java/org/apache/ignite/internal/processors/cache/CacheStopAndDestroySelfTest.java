@@ -325,7 +325,11 @@ public class CacheStopAndDestroySelfTest extends GridCommonAbstractTest {
 
         assert grid(0).cache(CACHE_NAME_CLOSE_NEAR).get(KEY_VAL).equals(KEY_VAL + "recreated");
         assert grid(1).cache(CACHE_NAME_CLOSE_NEAR).get(KEY_VAL).equals(KEY_VAL + "recreated");
-        assert grid(2).cache(CACHE_NAME_CLOSE_NEAR).get(KEY_VAL).equals(KEY_VAL + "recreated");
+        assert grid(2).cache(CACHE_NAME_CLOSE_NEAR).localPeek(KEY_VAL).equals(KEY_VAL + "recreated");
+
+        grid(0).cache(CACHE_NAME_CLOSE_NEAR).put(KEY_VAL, KEY_VAL + "recreated2");
+
+        assert grid(2).cache(CACHE_NAME_CLOSE_NEAR).localPeek(KEY_VAL).equals(KEY_VAL + "recreated2");
 
         //Local close. Same as Local destroy.
 

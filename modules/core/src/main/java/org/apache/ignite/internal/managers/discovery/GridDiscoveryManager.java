@@ -255,7 +255,7 @@ public class GridDiscoveryManager extends GridManagerAdapter<DiscoverySpi> {
      * @param cacheName Cache name.
      * @param clientNodeId Near node ID.
      */
-    public void onNodeLeft(String cacheName, UUID clientNodeId) {
+    public void onClientCacheClose(String cacheName, UUID clientNodeId) {
         CachePredicate predicate = registeredCaches.get(cacheName);
 
         if (predicate != null)
@@ -999,9 +999,17 @@ public class GridDiscoveryManager extends GridManagerAdapter<DiscoverySpi> {
      * @return {@code True} if node for given ID is alive.
      */
     public boolean alive(UUID nodeId) {
+        return getAlive(nodeId) != null;
+    }
+
+    /**
+     * @param nodeId Node ID.
+     * @return Node if node is alive.
+     */
+    @Nullable public ClusterNode getAlive(UUID nodeId) {
         assert nodeId != null;
 
-        return getSpi().getNode(nodeId) != null; // Go directly to SPI without checking disco cache.
+        return getSpi().getNode(nodeId); // Go directly to SPI without checking disco cache.
     }
 
     /**

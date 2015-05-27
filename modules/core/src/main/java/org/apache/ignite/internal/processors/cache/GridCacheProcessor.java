@@ -2129,7 +2129,6 @@ public class GridCacheProcessor extends GridProcessorAdapter {
                     req.nearCacheConfiguration() != null);
             }
             else if (req.close()) {
-
                 if (req.initiatingNodeId().equals(ctx.localNodeId())) {
                     stopGateway(req);
 
@@ -2139,14 +2138,12 @@ public class GridCacheProcessor extends GridProcessorAdapter {
                         registeredCaches.remove(maskNull(req.cacheName()), desc);
                 }
 
-                ctx.discovery().onNodeLeft(req.cacheName(), req.initiatingNodeId());
+                ctx.discovery().onClientCacheClose(req.cacheName(), req.initiatingNodeId());
 
                 DynamicCacheStartFuture changeFut = (DynamicCacheStartFuture)pendingFuts.get(maskNull(req.cacheName()));
 
-                if (changeFut != null && changeFut.deploymentId().equals(req.deploymentId())) {
-                    // No-op.
+                if (changeFut != null && changeFut.deploymentId().equals(req.deploymentId()))
                     changeFut.onDone();
-                }
             }
             else {
                 if (desc == null) {

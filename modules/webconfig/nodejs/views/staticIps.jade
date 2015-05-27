@@ -9,26 +9,15 @@ div(class=['modal', 'center'] tabindex='-1' role='dialog')
                     div.btn-group
                         button(ng-click='add()' class=['btn', 'btn-default', 'fa', 'fa-plus'] ) &nbspAdd
                 table(ng-table="tcpDiscoveryVmIpFinderTable" class=['table', 'table-bordered', 'table-hover'])
-                    tr(ng-repeat="cluster in $data")
+                    tr(ng-repeat="address in $data")
                         td(data-title="'#'" class=['text-center', 'vcenter'] style='width: 50px') {{$index + 1}}
-                        td(data-title="'IP Address'" sortable="'name'" class=['text-center', 'col-sm-5'])
-                            div(ng-if='!(editColumn == "name" && currentRow == cluster)')
-                                span(ng-if='cluster.name') {{'127.0.0.1'}}
-                                span.pull-right(type='button' ng-click='beginEdit("name", cluster);')
+                        td.text-center(data-title="'IP Address with ports range'")
+                            div(ng-if='!(editColumn == "ip" && currentRow == cluster)')
+                                span(ng-if='cluster.name') {{'127.0.0.1:47500..47509'}}
+                                span.pull-right(type='button' ng-click='beginEditStaticIps(cluster);')
                                     i(class=['fa', 'fa-pencil'])
                             div.input-group(ng-if='editColumn == "name" && currentRow == cluster')
                                 input.form-control(type='text' ng-model='cluster.name')
-                                span.input-group-addon
-                                    i(class=['fa', 'fa-repeat'] ng-click='revert();')
-                                    i(class=['fa', 'fa-save'] ng-click='submit();' style='margin-left: 10px;')
-                        td(data-title="'Ports range'" sortable="'discovery'" class=['text-center', 'col-sm-5'])
-                            div(ng-if='!(editColumn == "discovery" && currentRow == cluster)')
-                                span(ng-if='cluster.discovery') {{'47500..47509'}}
-                                span.pull-right(type='button')
-                                    i(class=['fa', 'fa-pencil'] ng-click='beginEdit("discovery", cluster);')
-                            div.input-group(ng-if='editColumn == "discovery" && currentRow == cluster')
-                                button(class=['btn', 'btn-default', 'form-control', 'pull-right'] style='width: 85%' data-placement='bottom-center' ng-model='cluster.discovery' data-template='/select' data-placeholder='Choose discovery' bs-options='discovery.value as discovery.label for discovery in discoveries' bs-select)
-                                    span.caret
                                 span.input-group-addon
                                     i(class=['fa', 'fa-repeat'] ng-click='revert();')
                                     i(class=['fa', 'fa-save'] ng-click='submit();' style='margin-left: 10px;')

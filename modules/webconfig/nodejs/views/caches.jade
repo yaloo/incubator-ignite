@@ -1,10 +1,64 @@
+// Page with caches configuration.
 extends layout-sidebar
-block head
+append css
+    link(rel='stylesheet', href='/stylesheets/ng-table.css')
+append scripts
+    script(src='/javascripts/controllers/caches.js')
 block content
     div.docs-header
         h1 Caches
         p Create and configure Ignite caches.
         hr
-    div.docs-body(ng-controller='cachesRouter')
-block body
-    script(src='/javascripts/controllers/caches.js')
+    div.docs-body(ng-controller='cachesController')
+        div.block-edit-parameters
+            div.btn-group
+                button(ng-click='addCache()' class=['btn', 'btn-default', 'fa', 'fa-plus'] ) &nbspAdd
+        table(ng-table="cachesTable" class=['table', 'table-bordered', 'table-hover'])
+            tr(ng-repeat="cache in $data")
+                td(data-title="'#'" class=['text-center', 'vcenter'] style='width: 50px') {{$index + 1}}
+                td(data-title="'Name'" sortable="'name'" class=['text-center', 'col-sm-2'])
+                    div(ng-if='!(editColumn == "name" && currentCache == cache)')
+                        span(ng-if='cache.name') {{cache.name}}
+                        span.pull-right(type='button' ng-click='beginEditCache("name", cache);')
+                            i(class=['fa', 'fa-pencil'])
+                    div.input-group(ng-if='editColumn == "name" && currentCache == cache')
+                        input.form-control(type='text' ng-model='cache.name')
+                        span.input-group-addon
+                            i(class=['fa', 'fa-repeat'] ng-click='revert();')
+                            i(class=['fa', 'fa-save'] ng-click='submit();' style='margin-left: 10px;')
+                td(data-title="'Mode'" sortable="'mode'" class=['text-center', 'col-sm-4'])
+                    div(ng-if='!(editColumn == "mode" && currentCache == cache)')
+                        span(ng-if='cache.mode') {{cache.mode}}
+                        span.pull-right(type='button')
+                            i(class=['fa', 'fa-pencil'] ng-click='beginEditCache("mode", cache);' style='margin-left: 10px;')
+                    div.input-group(ng-if='editColumn == "mode" && currentCache == cache')
+                        button(class=['btn', 'btn-default', 'form-control', 'pull-right'] style='width: 85%' data-placement='bottom-center' ng-model='cache.mode' data-template='/select' data-placeholder='Choose mode' bs-options='mode.value as mode.label for mode in modes' bs-select)
+                            span.caret
+                        span.input-group-addon
+                            i(class=['fa', 'fa-repeat'] ng-click='revertCache();')
+                            i(class=['fa', 'fa-save'] ng-click='submit();' style='margin-left: 10px;')
+                td(data-title="'Backups'" sortable="'backups'" class=['text-center', 'col-sm-1'])
+                    div(ng-if='!(editColumn == "backups" && currentCache == cache)')
+                        span(ng-if='cache.backups') {{cache.backups}}
+                        span.pull-right(type='button' ng-click='beginEditCache("backups", cache);')
+                            i(class=['fa', 'fa-pencil'])
+                    div.input-group(ng-if='editColumn == "name" && currentCache == cache')
+                        input.form-control(type='text' ng-model='cache.name')
+                        span.input-group-addon
+                            i(class=['fa', 'fa-repeat'] ng-click='revert();')
+                            i(class=['fa', 'fa-save'] ng-click='submit();' style='margin-left: 10px;')
+                td(data-title="'Atomicity'" sortable="'atomicity'" class=['text-center', 'col-sm-4'])
+                    div(ng-if='!(editColumn == "atomicity" && currentCache == cache)')
+                        span(ng-if='cache.atomicity') {{cache.atomicity}}
+                        span.pull-right(type='button')
+                            i(class=['fa', 'fa-pencil'] ng-click='beginEditCache("atomicity", cache);' style='margin-left: 10px;')
+                    div.input-group(ng-if='editColumn == "atomicity" && currentCache == cache')
+                        button(class=['btn', 'btn-default', 'form-control', 'pull-right'] style='width: 85%' data-placement='bottom-center' ng-model='cache.atomicity' data-template='/select' data-placeholder='Choose atomicity' bs-options='atomicity.value as atomicity.label for atomicity in atomicities' bs-select)
+                            span.caret
+                        span.input-group-addon
+                            i(class=['fa', 'fa-repeat'] ng-click='revertCache();')
+                            i(class=['fa', 'fa-save'] ng-click='submit();' style='margin-left: 10px;')
+                td.col-sm-1(data-title="'Delete'")
+                    center
+                        span(type='button' ng-click='deleteCache(Cache)')
+                            i(class=['fa', 'fa-remove'])        

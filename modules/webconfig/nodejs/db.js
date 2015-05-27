@@ -42,6 +42,7 @@ exports.Cache =  mongoose.model('Cache', new Schema({
     name: String,
     mode: { type: String, enum: ['PARTITIONED', 'REPLICATED', 'LOCAL'] },
     backups: Number,
+    atomicity: { type: String, enum: ['ATOMIC', 'TRANSACTIONAL'] },
     clusters: [{ type: ObjectId, ref: 'Cluster' }]
 }));
 

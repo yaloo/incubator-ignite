@@ -47,59 +47,70 @@ configuratorModule.controller('clustersController', ['$scope', '$modal', '$http'
             });
 
         // Create popup for tcpDiscoveryVmIpFinder advanced settings.
-        var tcpDiscoveryVmIpFinderModal = $modal({scope: $scope, template: '/tcpDiscoveryVmIpFinder', show: false});
+        var staticIpsModal = $modal({scope: $scope, template: '/staticIps', show: false});
 
-        $scope.editTcpDiscoveryVmIpFinder = function(cluster) {
-            tcpDiscoveryVmIpFinderModal.$promise.then(tcpDiscoveryVmIpFinderModal.show);
-        };
+        $scope.editStaticIps = function(cluster) {
+            $scope.staticIpsTable = new ngTableParams({
+                page: 1,                    // Show first page.
+                count: Number.MAX_VALUE     // Count per page.
+            }, {
+                total: cluster.addresses.length, // Length of data.
+                counts: [],
+                getData: function($defer, params) {
+                    var addresses = cluster.addresses;
 
-        $scope.tcpDiscoveryVmIpFinderTable = new ngTableParams({
-            page: 1,                    // Show first page.
-            count: Number.MAX_VALUE,    // Count per page.
-        }, {
-            total: $scope.editCluster.addresses.length, // Length of data.
-            counts: [],
-            getData: function($defer, params) {
-                var addresses = $scope.editCluster.addresses;
+                    var page = params.page();
+                    var cnt = params.count();
 
-                var page = params.page();
-                var cnt = params.count();
+                    $defer.resolve(addresses.slice(page - 1 * cnt, page * cnt));
+                }
+            });
 
-                $defer.resolve(addresses.slice(page - 1 * cnt, page * cnt));
-            }
-        });
-
-        // Create popup for tcpDiscoveryMulticastIpFinder advanced settings.
-        var tcpDiscoveryMulticastIpFinder = $modal({scope: $scope, template: '/tcpDiscoveryMulticastIpFinder', show: false});
-
-        $scope.editTcpDiscoveryMulticastIpFinder = function(cluster) {
-            tcpDiscoveryMulticastIpFinderModal.$promise.then(tcpDiscoveryMulticastIpFinderModal.show);
+            staticIpsModal.$promise.then(staticIpsModal.show);
         };
 
         // Add new cluster.
-        $scope.add = function() {
+        $scope.addStaticIp = function(cluster) {
+            cluster.push({space: $scope.spaces[0]._id, discovery: 'TcpDiscoveryVmIpFinder'});
+
+            $scope.clustersTable.reload();
+        };
+
+        $scope.beginEditStaticIp = function(address) {
+            $scope.revertStaticIp();
+
+            $scope.editAddress = angular.copy(address);
+        };
+
+        // Create popup for tcpDiscoveryMulticastIpFinder advanced settings.
+        var multicastModal = $modal({scope: $scope, template: '/staticIps', show: false});
+
+        $scope.editMulticast = function(cluster) {
+            multicastModal.$promise.then(multicastModal.show);
+        };
+
+        // Add new cluster.
+        $scope.addCluster = function() {
             $scope.clusters.push({space: $scope.spaces[0]._id, discovery: 'TcpDiscoveryVmIpFinder'});
 
             $scope.clustersTable.reload();
         };
 
-        $scope.beginEdit = function(name, cluster) {
-            $scope.revert();
+        $scope.beginEditCluster = function(column, cluster) {
+            $scope.revertCluster();
 
-            $scope.currentRow = cluster;
+            $scope.currentCluster = cluster;
 
-            $scope.editColumn = name;
+            $scope.editColumn = column;
 
             $scope.editCluster = angular.copy(cluster);
-
-            $scope.editIdx = $scope.clusters.indexOf(cluster);
         };
 
-        $scope.revert = function() {
-            if ($scope.editColumn && $scope.currentRow) {
-                $scope.clusters[$scope.clusters.indexOf($scope.currentRow)] = $scope.editCluster;
+        $scope.revertCluster = function() {
+            if ($scope.editColumn && $scope.currentCluster) {
+                $scope.clusters[$scope.clusters.indexOf($scope.currentCluster)] = $scope.editCluster;
 
-                $scope.currentRow = undefined;
+                $scope.currentCluster = undefined;
 
                 $scope.editColumn = undefined;
 
@@ -108,18 +119,18 @@ configuratorModule.controller('clustersController', ['$scope', '$modal', '$http'
         };
 
         $scope.submit = function() {
-            if ($scope.editColumn && $scope.currentRow) {
-                var cluster = $scope.currentRow;
+            if ($scope.editColumn && $scope.currentCluster) {
+                var cluster = $scope.currentCluster;
 
                 var data = {
                     _id: cluster._id,
                     space: cluster.space,
                     name: cluster.name,
                     discovery: cluster.discovery,
-                    addresses: ['127.0.0.1', '192.168.1.1']
+                    addresses: cluster.addresses
                 };
 
-                $scope.currentRow = undefined;
+                $scope.currentCluster = undefined;
 
                 $scope.editColumn = undefined;
 
@@ -136,7 +147,7 @@ configuratorModule.controller('clustersController', ['$scope', '$modal', '$http'
             }
         };
 
-        $scope.delete = function(cluster) {
+        $scope.deleteCluster = function(cluster) {
             $http.post('/rest/clusters/remove', {_id: cluster._id})
                 .success(function(data) {
                     $scope.spaces = data.spaces;

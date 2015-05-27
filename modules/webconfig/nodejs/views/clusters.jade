@@ -15,33 +15,33 @@ block content
     div.docs-body(ng-controller='clustersController')
         div.block-edit-parameters
             div.btn-group
-                button(ng-click='add()' class=['btn', 'btn-default', 'fa', 'fa-plus'] ) &nbspAdd
+                button(ng-click='addCluster()' class=['btn', 'btn-default', 'fa', 'fa-plus'] ) &nbspAdd
         table(ng-table="clustersTable" class=['table', 'table-bordered', 'table-hover'])
             tr(ng-repeat="cluster in $data")
                 td(data-title="'#'" class=['text-center', 'vcenter'] style='width: 50px') {{$index + 1}}
                 td(data-title="'Name'" sortable="'name'" class=['text-center', 'col-sm-7'])
-                    div(ng-if='!(editColumn == "name" && currentRow == cluster)')
+                    div(ng-if='!(editColumn == "name" && currentCluster == cluster)')
                         span(ng-if='cluster.name') {{cluster.name}}
-                        span.pull-right(type='button' ng-click='beginEdit("name", cluster);')
+                        span.pull-right(type='button' ng-click='beginEditCluster("name", cluster);')
                             i(class=['fa', 'fa-pencil'])
-                    div.input-group(ng-if='editColumn == "name" && currentRow == cluster')
+                    div.input-group(ng-if='editColumn == "name" && currentCluster == cluster')
                         input.form-control(type='text' ng-model='cluster.name')
                         span.input-group-addon
                             i(class=['fa', 'fa-repeat'] ng-click='revert();')
                             i(class=['fa', 'fa-save'] ng-click='submit();' style='margin-left: 10px;')
                 td.text-center(data-title="'Discovery'" sortable="'discovery'")
-                    div(ng-if='!(editColumn == "discovery" && currentRow == cluster)')
+                    div(ng-if='!(editColumn == "discovery" && currentCluster == cluster)')
                         span(ng-if='cluster.discovery') {{discoveryAsString(cluster.discovery)}}
                         span.pull-right(type='button')
-                            i(class=['fa', 'fa-caret-square-o-down'] ng-click='editTcpDiscoveryVmIpFinder(cluster);')
-                            i(class=['fa', 'fa-pencil'] ng-click='beginEdit("discovery", cluster);' style='margin-left: 10px;')
-                    div.input-group(ng-if='editColumn == "discovery" && currentRow == cluster')
+                            i(class=['fa', 'fa-caret-square-o-down'] ng-click='editStaticIps(cluster);')
+                            i(class=['fa', 'fa-pencil'] ng-click='beginEditCluster("discovery", cluster);' style='margin-left: 10px;')
+                    div.input-group(ng-if='editColumn == "discovery" && currentCluster == cluster')
                         button(class=['btn', 'btn-default', 'form-control', 'pull-right'] style='width: 85%' data-placement='bottom-center' ng-model='cluster.discovery' data-template='/select' data-placeholder='Choose discovery' bs-options='discovery.value as discovery.label for discovery in discoveries' bs-select)
                             span.caret
                         span.input-group-addon
-                            i(class=['fa', 'fa-repeat'] ng-click='revert();')
+                            i(class=['fa', 'fa-repeat'] ng-click='revertCluster();')
                             i(class=['fa', 'fa-save'] ng-click='submit();' style='margin-left: 10px;')
                 td.col-sm-1(data-title="'Delete'")
                     center
-                        span(type='button' ng-click='delete(cluster)')
+                        span(type='button' ng-click='deleteCluster(cluster)')
                             i(class=['fa', 'fa-remove'])

@@ -8,13 +8,13 @@ router.get('/login', function(req, res) {
 });
 
 /* GET advanced options for TcpDiscoveryVmIpFinder page. */
-router.get('/tcpDiscoveryVmIpFinder', function(req, res) {
-    res.render('tcpDiscoveryVmIpFinder');
+router.get('/staticIps', function(req, res) {
+    res.render('staticIps');
 });
 
 /* GET advanced options for TcpDiscoveryMulticastIpFinder page. */
-router.get('/tcpDiscoveryMulticastIpFinder', function(req, res) {
-    res.render('tcpDiscoveryMulticastIpFinder');
+router.get('/multicast', function(req, res) {
+    res.render('multicast');
 });
 
 /* GET register page. */

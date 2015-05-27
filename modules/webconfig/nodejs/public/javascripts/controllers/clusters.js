@@ -1,10 +1,9 @@
-configuratorModule.controller('clustersController', [ '$scope', '$modal', '$http', '$filter', 'ngTableParams',
+// Controller for clusters page.
+configuratorModule.controller('clustersController', ['$scope', '$modal', '$http', '$filter', 'ngTableParams',
     function($scope, $modal, $http, $filter, ngTableParams) {
         $scope.editColumn = {};
 
-        $scope.editRow = {};
-
-        $scope.editIdx = false;
+        $scope.editCluster = {};
 
         $scope.discoveries = [
             {value: 'TcpDiscoveryVmIpFinder', label: 'Static IPs'},
@@ -29,7 +28,7 @@ configuratorModule.controller('clustersController', [ '$scope', '$modal', '$http
                 $scope.clustersTable = new ngTableParams({
                     page: 1,                    // Show first page.
                     count: Number.MAX_VALUE,    // Count per page.
-                    sorting: {name: 'asc'}     // Initial sorting.
+                    sorting: {name: 'asc'}      // Initial sorting.
                 }, {
                     total: $scope.clusters.length, // Length of data.
                     counts: [],
@@ -47,16 +46,39 @@ configuratorModule.controller('clustersController', [ '$scope', '$modal', '$http
                 });
             });
 
-        // Create popup for discovery advanced settings.
-        var discoveryModal = $modal({scope: $scope, template: '/discovery', show: false});
+        // Create popup for tcpDiscoveryVmIpFinder advanced settings.
+        var tcpDiscoveryVmIpFinderModal = $modal({scope: $scope, template: '/tcpDiscoveryVmIpFinder', show: false});
 
-        $scope.editDiscovery = function(cluster) {
-            discoveryModal.$promise.then(discoveryModal.show);
+        $scope.editTcpDiscoveryVmIpFinder = function(cluster) {
+            tcpDiscoveryVmIpFinderModal.$promise.then(tcpDiscoveryVmIpFinderModal.show);
+        };
+
+        $scope.tcpDiscoveryVmIpFinderTable = new ngTableParams({
+            page: 1,                    // Show first page.
+            count: Number.MAX_VALUE,    // Count per page.
+        }, {
+            total: $scope.editCluster.addresses.length, // Length of data.
+            counts: [],
+            getData: function($defer, params) {
+                var addresses = $scope.editCluster.addresses;
+
+                var page = params.page();
+                var cnt = params.count();
+
+                $defer.resolve(addresses.slice(page - 1 * cnt, page * cnt));
+            }
+        });
+
+        // Create popup for tcpDiscoveryMulticastIpFinder advanced settings.
+        var tcpDiscoveryMulticastIpFinder = $modal({scope: $scope, template: '/tcpDiscoveryMulticastIpFinder', show: false});
+
+        $scope.editTcpDiscoveryMulticastIpFinder = function(cluster) {
+            tcpDiscoveryMulticastIpFinderModal.$promise.then(tcpDiscoveryMulticastIpFinderModal.show);
         };
 
         // Add new cluster.
         $scope.add = function() {
-            $scope.clusters.push({space: $scope.spaces[0]._id});
+            $scope.clusters.push({space: $scope.spaces[0]._id, discovery: 'TcpDiscoveryVmIpFinder'});
 
             $scope.clustersTable.reload();
         };
@@ -68,14 +90,14 @@ configuratorModule.controller('clustersController', [ '$scope', '$modal', '$http
 
             $scope.editColumn = name;
 
-            $scope.editRow = angular.copy(cluster);
+            $scope.editCluster = angular.copy(cluster);
 
             $scope.editIdx = $scope.clusters.indexOf(cluster);
         };
 
         $scope.revert = function() {
             if ($scope.editColumn && $scope.currentRow) {
-                $scope.clusters[$scope.clusters.indexOf($scope.currentRow)] = $scope.editRow;
+                $scope.clusters[$scope.clusters.indexOf($scope.currentRow)] = $scope.editCluster;
 
                 $scope.currentRow = undefined;
 

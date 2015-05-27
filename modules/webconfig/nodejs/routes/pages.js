@@ -7,8 +7,14 @@ router.get('/login', function(req, res) {
     res.render('login');
 });
 
-router.get('/discovery', function(req, res) {
-    res.render('discovery');
+/* GET advanced options for TcpDiscoveryVmIpFinder page. */
+router.get('/tcpDiscoveryVmIpFinder', function(req, res) {
+    res.render('tcpDiscoveryVmIpFinder');
+});
+
+/* GET advanced options for TcpDiscoveryMulticastIpFinder page. */
+router.get('/tcpDiscoveryMulticastIpFinder', function(req, res) {
+    res.render('tcpDiscoveryMulticastIpFinder');
 });
 
 /* GET register page. */

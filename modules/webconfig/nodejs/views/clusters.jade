@@ -33,7 +33,7 @@ block content
                     div(ng-if='!(editColumn == "discovery" && currentRow == cluster)')
                         span(ng-if='cluster.discovery') {{discoveryAsString(cluster.discovery)}}
                         span.pull-right(type='button')
-                            i(class=['fa', 'fa-caret-square-o-down'] ng-click='editDiscovery(cluster);')
+                            i(class=['fa', 'fa-caret-square-o-down'] ng-click='editTcpDiscoveryVmIpFinder(cluster);')
                             i(class=['fa', 'fa-pencil'] ng-click='beginEdit("discovery", cluster);' style='margin-left: 10px;')
                     div.input-group(ng-if='editColumn == "discovery" && currentRow == cluster')
                         button(class=['btn', 'btn-default', 'form-control', 'pull-right'] style='width: 85%' data-placement='bottom-center' ng-model='cluster.discovery' data-template='/select' data-placeholder='Choose discovery' bs-options='discovery.value as discovery.label for discovery in discoveries' bs-select)

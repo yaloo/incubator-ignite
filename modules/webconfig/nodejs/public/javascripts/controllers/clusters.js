@@ -1,9 +1,9 @@
 // Controller for clusters page.
 configuratorModule.controller('clustersController', ['$scope', '$modal', '$http',
     function($scope, $modal, $http) {
-        $scope.editColumn = {};
+        $scope.selectedItem = {};
 
-        $scope.editCluster = {};
+        $scope.backupItem = {};
 
         $scope.templates = [
             {value: {discovery: 'TcpDiscoveryVmIpFinder', addresses: ['127.0.0.1:47500..47510']}, label: 'Local'},
@@ -99,27 +99,26 @@ configuratorModule.controller('clustersController', ['$scope', '$modal', '$http'
             multicastModal.$promise.then(multicastModal.show);
         };
 
+        //function revertSelectedItem() {
+        //    if ($scope.selectedItem) {
+        //        //$scope.clusters[$scope.clusters.indexOf($scope.currentCluster)] = $scope.editCluster;
+        //        //
+        //        //$scope.currentCluster = undefined;
+        //        //
+        //        //$scope.editColumn = undefined;
+        //        //
+        //        //$scope.clustersTable.reload();
+        //    }
+        //};
 
-        $scope.beginEditCluster = function(column, cluster) {
-            $scope.revertCluster();
+        $scope.selectItem = function(item) {
+            console.log(item);
 
-            $scope.currentCluster = cluster;
+            //revertSelectedItem();
 
-            $scope.editColumn = column;
+            $scope.selectedItem = item;
 
-            $scope.editCluster = angular.copy(cluster);
-        };
-
-        $scope.revertCluster = function() {
-            if ($scope.editColumn && $scope.currentCluster) {
-                $scope.clusters[$scope.clusters.indexOf($scope.currentCluster)] = $scope.editCluster;
-
-                $scope.currentCluster = undefined;
-
-                $scope.editColumn = undefined;
-
-                $scope.clustersTable.reload();
-            }
+            //$scope.backupItem = angular.copy(item);
         };
 
         // Add new cluster.

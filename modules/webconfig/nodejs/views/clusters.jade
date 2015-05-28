@@ -32,7 +32,7 @@ block content
                     th(st-sort='name') Name
                     th.col-sm-1 Action
             tbody
-                tr(st-select-row='row' ng-click='cluster=row' st-select-mode='single' ng-repeat='row in rowCollection')
+                tr(st-select-row='row' ng-click='selectItem(row)' st-select-mode='single' ng-repeat='row in rowCollection')
                     td {{$index + 1}}
                     td {{row.name}}
                     td
@@ -53,4 +53,4 @@ block content
             .form-group
                 label.control-label.col-sm-2 Cluster name
                 .col-sm-10
-                    input.form-control(type="text" ng-model='cluster.name')
+                    input.form-control(type="text" ng-model='selectedItem.name')

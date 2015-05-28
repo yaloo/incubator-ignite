@@ -174,7 +174,7 @@ public abstract class GridDhtTransactionalCacheAdapter<K, V> extends GridDhtCach
 
                         // Invalidate key in near cache, if any.
                         if (isNearEnabled(cacheCfg))
-                            obsoleteNearEntry(key, req.version());
+                            obsoleteNearEntry(key);
 
                         break;
                     }
@@ -203,7 +203,6 @@ public abstract class GridDhtTransactionalCacheAdapter<K, V> extends GridDhtCach
                                     req.isInvalidate(),
                                     req.timeout(),
                                     req.txSize(),
-                                    req.groupLockKey(),
                                     req.subjectId(),
                                     req.taskNameHash());
 
@@ -220,10 +219,8 @@ public abstract class GridDhtTransactionalCacheAdapter<K, V> extends GridDhtCach
                                 txKey,
                                 null,
                                 null,
-                                req.accessTtl());
-
-                            if (req.groupLock())
-                                tx.groupLockKey(txKey);
+                                req.accessTtl(),
+                                req.skipStore());
                         }
 
                         entry = entryExx(key, req.topologyVersion());
@@ -290,7 +287,7 @@ public abstract class GridDhtTransactionalCacheAdapter<K, V> extends GridDhtCach
 
                     // Invalidate key in near cache, if any.
                     if (isNearEnabled(cacheCfg))
-                        obsoleteNearEntry(key, req.version());
+                        obsoleteNearEntry(key);
 
                     if (tx != null) {
                         tx.clearEntry(txKey);
@@ -560,6 +557,8 @@ public abstract class GridDhtTransactionalCacheAdapter<K, V> extends GridDhtCach
         boolean retval,
         TransactionIsolation isolation,
         long accessTtl) {
+        CacheOperationContext opCtx = ctx.operationContextPerCall();
+
         return lockAllAsyncInternal(
             keys,
             timeout,
@@ -569,7 +568,8 @@ public abstract class GridDhtTransactionalCacheAdapter<K, V> extends GridDhtCach
             retval,
             isolation,
             accessTtl,
-            CU.empty0());
+            CU.empty0(),
+            opCtx != null && opCtx.skipStore());
     }
 
     /**
@@ -584,6 +584,7 @@ public abstract class GridDhtTransactionalCacheAdapter<K, V> extends GridDhtCach
      * @param isolation Transaction isolation.
      * @param accessTtl TTL for read operation.
      * @param filter Optional filter.
+     * @param skipStore Skip store flag.
      * @return Lock future.
      */
     public GridDhtFuture<Boolean> lockAllAsyncInternal(@Nullable Collection<KeyCacheObject> keys,
@@ -594,7 +595,8 @@ public abstract class GridDhtTransactionalCacheAdapter<K, V> extends GridDhtCach
         boolean retval,
         TransactionIsolation isolation,
         long accessTtl,
-        CacheEntryPredicate[] filter) {
+        CacheEntryPredicate[] filter,
+        boolean skipStore) {
         if (keys == null || keys.isEmpty())
             return new GridDhtFinishedFuture<>(true);
 
@@ -614,7 +616,8 @@ public abstract class GridDhtTransactionalCacheAdapter<K, V> extends GridDhtCach
             tx,
             tx.threadId(),
             accessTtl,
-            filter);
+            filter,
+            skipStore);
 
         for (KeyCacheObject key : keys) {
             try {
@@ -730,7 +733,8 @@ public abstract class GridDhtTransactionalCacheAdapter<K, V> extends GridDhtCach
                                 tx,
                                 req.threadId(),
                                 req.accessTtl(),
-                                filter);
+                                filter,
+                                req.skipStore());
 
                             // Add before mapping.
                             if (!ctx.mvcc().addFuture(fut))
@@ -802,8 +806,6 @@ public abstract class GridDhtTransactionalCacheAdapter<K, V> extends GridDhtCach
                                     req.isInvalidate(),
                                     false,
                                     req.txSize(),
-                                    req.groupLockKey(),
-                                    req.partitionLock(),
                                     null,
                                     req.subjectId(),
                                     req.taskNameHash());
@@ -839,7 +841,8 @@ public abstract class GridDhtTransactionalCacheAdapter<K, V> extends GridDhtCach
                                 req.messageId(),
                                 req.txRead(),
                                 req.needReturnValue(),
-                                req.accessTtl());
+                                req.accessTtl(),
+                                req.skipStore());
 
                             final GridDhtTxLocal t = tx;
 
@@ -1472,12 +1475,11 @@ public abstract class GridDhtTransactionalCacheAdapter<K, V> extends GridDhtCach
 
     /**
      * @param key Key
-     * @param ver Version.
      */
-    private void obsoleteNearEntry(KeyCacheObject key, GridCacheVersion ver) {
+    private void obsoleteNearEntry(KeyCacheObject key) {
         GridCacheEntryEx nearEntry = near().peekEx(key);
 
         if (nearEntry != null)
-            nearEntry.markObsolete(ver);
+            nearEntry.markObsolete(ctx.versions().next());
     }
 }

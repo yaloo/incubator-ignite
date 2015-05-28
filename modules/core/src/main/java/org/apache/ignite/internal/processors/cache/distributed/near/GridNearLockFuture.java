@@ -120,6 +120,9 @@ public final class GridNearLockFuture<K, V> extends GridCompoundIdentityFuture<B
     /** TTL for read operation. */
     private long accessTtl;
 
+    /** Skip store flag. */
+    private final boolean skipStore;
+
     /**
      * @param cctx Registry.
      * @param keys Keys to lock.
@@ -129,6 +132,7 @@ public final class GridNearLockFuture<K, V> extends GridCompoundIdentityFuture<B
      * @param timeout Lock acquisition timeout.
      * @param accessTtl TTL for read operation.
      * @param filter Filter.
+     * @param skipStore skipStore
      */
     public GridNearLockFuture(
         GridCacheContext<K, V> cctx,
@@ -138,7 +142,8 @@ public final class GridNearLockFuture<K, V> extends GridCompoundIdentityFuture<B
         boolean retval,
         long timeout,
         long accessTtl,
-        CacheEntryPredicate[] filter) {
+        CacheEntryPredicate[] filter,
+        boolean skipStore) {
         super(cctx.kernalContext(), CU.boolReducer());
 
         assert keys != null;
@@ -151,6 +156,7 @@ public final class GridNearLockFuture<K, V> extends GridCompoundIdentityFuture<B
         this.timeout = timeout;
         this.accessTtl = accessTtl;
         this.filter = filter;
+        this.skipStore = skipStore;
 
         ignoreInterrupts(true);
 
@@ -289,8 +295,8 @@ public final class GridNearLockFuture<K, V> extends GridCompoundIdentityFuture<B
      * @throws GridCacheEntryRemovedException If entry was removed.
      */
     @Nullable private GridCacheMvccCandidate addEntry(
-        AffinityTopologyVersion topVer, 
-        GridNearCacheEntry entry, 
+        AffinityTopologyVersion topVer,
+        GridNearCacheEntry entry,
         UUID dhtNodeId
     ) throws GridCacheEntryRemovedException {
         // Check if lock acquisition is timed out.
@@ -660,6 +666,19 @@ public final class GridNearLockFuture<K, V> extends GridCompoundIdentityFuture<B
             topVer = tx.topologyVersionSnapshot();
 
         if (topVer != null) {
+            for (GridDhtTopologyFuture fut : cctx.shared().exchange().exchangeFutures()){
+                if (fut.topologyVersion().equals(topVer)){
+                    if (!fut.isCacheTopologyValid(cctx)) {
+                        onDone(new IgniteCheckedException("Failed to perform cache operation (cache topology is not valid): " +
+                            cctx.name()));
+
+                        return;
+                    }
+
+                    break;
+                }
+            }
+
             // Continue mapping on the same topology version as it was before.
             this.topVer.compareAndSet(null, topVer);
 
@@ -693,6 +712,13 @@ public final class GridNearLockFuture<K, V> extends GridCompoundIdentityFuture<B
             GridDhtTopologyFuture fut = cctx.topologyVersionFuture();
 
             if (fut.isDone()) {
+                if (!fut.isCacheTopologyValid(cctx)) {
+                    onDone(new IgniteCheckedException("Failed to perform cache operation (cache topology is not valid): " +
+                        cctx.name()));
+
+                    return;
+                }
+
                 AffinityTopologyVersion topVer = fut.topologyVersion();
 
                 if (tx != null)
@@ -864,11 +890,10 @@ public final class GridNearLockFuture<K, V> extends GridCompoundIdentityFuture<B
                                             mappedKeys.size(),
                                             inTx() ? tx.size() : mappedKeys.size(),
                                             inTx() && tx.syncCommit(),
-                                            inTx() ? tx.groupLockKey() : null,
-                                            inTx() && tx.partitionLock(),
                                             inTx() ? tx.subjectId() : null,
                                             inTx() ? tx.taskNameHash() : 0,
-                                            read ? accessTtl : -1L);
+                                            read ? accessTtl : -1L,
+                                            skipStore);
 
                                         mapping.request(req);
                                     }
@@ -1145,7 +1170,7 @@ public final class GridNearLockFuture<K, V> extends GridCompoundIdentityFuture<B
      * @throws IgniteCheckedException If mapping for key failed.
      */
     private GridNearLockMapping map(
-        KeyCacheObject key, 
+        KeyCacheObject key,
         @Nullable GridNearLockMapping mapping,
         AffinityTopologyVersion topVer
     ) throws IgniteCheckedException {
@@ -1153,13 +1178,13 @@ public final class GridNearLockFuture<K, V> extends GridCompoundIdentityFuture<B
 
         ClusterNode primary = cctx.affinity().primary(key, topVer);
 
+        if (primary == null)
+            throw new ClusterTopologyServerNotFoundException("Failed to lock keys " +
+                "(all partition nodes left the grid).");
+
         if (cctx.discovery().node(primary.id()) == null)
             // If primary node left the grid before lock acquisition, fail the whole future.
             throw newTopologyException(null, primary.id());
-
-        if (inTx() && tx.groupLock() && !primary.isLocal())
-            throw new IgniteCheckedException("Failed to start group lock transaction (local node is not primary for " +
-                " key) [key=" + key + ", primaryNodeId=" + primary.id() + ']');
 
         if (mapping == null || !primary.id().equals(mapping.node().id()))
             mapping = new GridNearLockMapping(primary, key);
@@ -1418,11 +1443,6 @@ public final class GridNearLockFuture<K, V> extends GridCompoundIdentityFuture<B
 
                             // Replace old entry with new one.
                             entries.set(i, (GridDistributedCacheEntry)cctx.cache().entryEx(entry.key()));
-                        }
-                        catch (IgniteCheckedException e) {
-                            onDone(e);
-
-                            return;
                         }
                     }
 

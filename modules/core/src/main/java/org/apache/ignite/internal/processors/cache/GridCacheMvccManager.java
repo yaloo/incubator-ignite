@@ -295,7 +295,7 @@ public class GridCacheMvccManager extends GridCacheSharedManagerAdapter {
      * Cancels all client futures.
      */
     public void cancelClientFutures() {
-        IgniteException e = new IgniteException("Operation has been cancelled (grid is stopping).");
+        IgniteCheckedException e = new IgniteCheckedException("Operation has been cancelled (grid is stopping).");
 
         for (Collection<GridCacheFuture<?>> futures : futs.values()) {
             for (GridCacheFuture<?> future : futures)
@@ -510,7 +510,7 @@ public class GridCacheMvccManager extends GridCacheSharedManagerAdapter {
      * @return Future.
      */
     @SuppressWarnings({"unchecked"})
-    @Nullable public <T> GridCacheFuture<T> future(GridCacheVersion ver, IgniteUuid futId) {
+    @Nullable public GridCacheFuture future(GridCacheVersion ver, IgniteUuid futId) {
         Collection<? extends GridCacheFuture> futs = this.futs.get(ver);
 
         if (futs != null)
@@ -519,7 +519,7 @@ public class GridCacheMvccManager extends GridCacheSharedManagerAdapter {
                     if (log.isDebugEnabled())
                         log.debug("Found future in futures map: " + fut);
 
-                    return (GridCacheFuture<T>)fut;
+                    return fut;
                 }
 
         if (log.isDebugEnabled())

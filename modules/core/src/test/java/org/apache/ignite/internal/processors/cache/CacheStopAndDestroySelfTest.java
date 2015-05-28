@@ -18,8 +18,19 @@
 package org.apache.ignite.internal.processors.cache;
 
 import org.apache.ignite.cache.*;
+import org.apache.ignite.cluster.*;
 import org.apache.ignite.configuration.*;
+import org.apache.ignite.internal.managers.communication.*;
+import org.apache.ignite.internal.processors.cache.distributed.dht.*;
+import org.apache.ignite.internal.util.typedef.internal.*;
+import org.apache.ignite.plugin.extensions.communication.*;
+import org.apache.ignite.spi.*;
+import org.apache.ignite.spi.communication.tcp.*;
+import org.apache.ignite.testframework.*;
 import org.apache.ignite.testframework.junits.common.*;
+
+import java.util.*;
+import java.util.concurrent.atomic.*;
 
 /**
  * Checks stop and destroy methods behavior.
@@ -68,7 +79,36 @@ public class CacheStopAndDestroySelfTest extends GridCommonAbstractTest {
 
         iCfg.setCacheConfiguration();
 
+        TcpCommunicationSpi commSpi = new CountingTxRequestsToClientNodeTcpCommunicationSpi();
+
+        commSpi.setLocalPort(GridTestUtils.getNextCommPort(getClass()));
+        commSpi.setTcpNoDelay(true);
+
+        iCfg.setCommunicationSpi(commSpi);
+
         return iCfg;
+    }
+
+    /**
+     * Helps to count messages.
+     */
+    public static class CountingTxRequestsToClientNodeTcpCommunicationSpi extends TcpCommunicationSpi {
+        /** Counter. */
+        public static AtomicInteger cnt = new AtomicInteger();
+
+        /** Node filter. */
+        public static UUID nodeFilter;
+
+        /** {@inheritDoc} */
+        @Override public void sendMessage(ClusterNode node, Message msg) throws IgniteSpiException {
+            super.sendMessage(node, msg);
+
+            if (nodeFilter != null &&
+                node.id().equals(nodeFilter) &&
+                msg instanceof GridIoMessage &&
+                ((GridIoMessage)msg).message() instanceof GridDhtTxPrepareRequest)
+                cnt.incrementAndGet();
+        }
     }
 
     /**
@@ -78,6 +118,9 @@ public class CacheStopAndDestroySelfTest extends GridCommonAbstractTest {
      */
     public void testCacheStopAndDestroy() throws Exception {
         startGridsMultiThreaded(gridCount());
+
+        //GridDhtTxPrepareRequest requests to Client node will be counted.
+        CountingTxRequestsToClientNodeTcpCommunicationSpi.nodeFilter = grid(2).context().localNodeId();
 
         CacheConfiguration cCfgD = defaultCacheConfiguration();
         cCfgD.setName(CACHE_NAME_DESTROY_DHT);
@@ -302,8 +345,14 @@ public class CacheStopAndDestroySelfTest extends GridCommonAbstractTest {
 
         grid(2).cache(CACHE_NAME_CLOSE_NEAR).close();
 
+        CountingTxRequestsToClientNodeTcpCommunicationSpi.cnt.set(0);
+
         //Should not produce messages to client node.
         grid(0).cache(CACHE_NAME_CLOSE_NEAR).put(KEY_VAL, KEY_VAL + 0);
+
+        U.sleep(1000);
+
+        assert CountingTxRequestsToClientNodeTcpCommunicationSpi.cnt.get() == 0;
 
         assert grid(0).cache(CACHE_NAME_CLOSE_NEAR).get(KEY_VAL).equals(KEY_VAL + 0);// Not affected.
         assert grid(1).cache(CACHE_NAME_CLOSE_NEAR).get(KEY_VAL).equals(KEY_VAL + 0);// Not affected.

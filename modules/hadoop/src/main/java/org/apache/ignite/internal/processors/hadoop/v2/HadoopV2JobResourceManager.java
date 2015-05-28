@@ -17,7 +17,6 @@
 
 package org.apache.ignite.internal.processors.hadoop.v2;
 
-import org.apache.hadoop.conf.*;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.fs.Path;
@@ -25,7 +24,6 @@ import org.apache.hadoop.mapred.*;
 import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.util.*;
 import org.apache.ignite.*;
-import org.apache.ignite.hadoop.fs.v1.*;
 import org.apache.ignite.internal.processors.hadoop.*;
 import org.apache.ignite.internal.processors.hadoop.fs.*;
 import org.apache.ignite.internal.util.typedef.*;
@@ -95,55 +93,6 @@ public class HadoopV2JobResourceManager {
     }
 
     /**
-     * Gets non-null and interned user name as per the Hadoop viewpoint.
-     * @param cfg the Hadoop job configuration, may be null.
-     * @return the user name, never null.
-     */
-    private static String getMrHadoopUser(Configuration cfg) throws IOException {
-        String user = cfg.get(MRJobConfig.USER_NAME);
-
-        if (user == null)
-            user = IgniteHadoopFileSystem.getFsHadoopUser(cfg);
-
-        return user;
-    }
-
-    /**
-     * Common method to get the V1 file system in MapRed engine.
-     * It creates the filesystem for the user specified in the
-     * configuration with {@link MRJobConfig#USER_NAME} property.
-     * @param uri the file system uri.
-     * @param cfg the configuration.
-     * @return the file system
-     * @throws IOException
-     */
-    public static FileSystem fileSystemForMrUser(@Nullable URI uri, Configuration cfg) throws IOException {
-        final String user = getMrHadoopUser(cfg);
-
-        assert user != null;
-
-        if (uri == null)
-            uri = FileSystem.getDefaultUri(cfg);
-
-        final FileSystem fs;
-
-        try {
-            fs = FileSystem.get(uri, cfg, user);
-        }
-        catch (InterruptedException ie) {
-            throw new IOException(ie);
-        }
-
-        assert fs != null;
-
-        if (fs instanceof IgniteHadoopFileSystem)
-            //noinspection StringEquality
-            assert user == ((IgniteHadoopFileSystem)fs).user();
-
-        return fs;
-    }
-
-    /**
      * Prepare job resources. Resolve the classpath list and download it if needed.
      *
      * @param download {@code true} If need to download resources.
@@ -163,19 +112,15 @@ public class HadoopV2JobResourceManager {
                 stagingDir = new Path(new URI(mrDir));
 
                 if (download) {
-                    // TODO: Out of bounds.
-                    try (FileSystem fs = fileSystemForMrUser(stagingDir.toUri(), cfg)) {
-                        if (!fs.exists(stagingDir))
-                            throw new IgniteCheckedException("Failed to find map-reduce " +
-                                "submission directory (does not exist): " +
-                                stagingDir);
+                    FileSystem fs = FileSystem.get(stagingDir.toUri(), cfg);
 
-                        if (!FileUtil.copy(fs, stagingDir, jobLocDir, false, cfg))
-                            throw new IgniteCheckedException("Failed to copy job submission " +
-                                "directory contents to local file system " +
-                                "[path=" + stagingDir + ", locDir=" + jobLocDir.getAbsolutePath()
-                                + ", jobId=" + jobId + ']');
-                    }
+                    if (!fs.exists(stagingDir))
+                        throw new IgniteCheckedException("Failed to find map-reduce submission directory (does not exist): " +
+                            stagingDir);
+
+                    if (!FileUtil.copy(fs, stagingDir, jobLocDir, false, cfg))
+                        throw new IgniteCheckedException("Failed to copy job submission directory contents to local file system " +
+                            "[path=" + stagingDir + ", locDir=" + jobLocDir.getAbsolutePath() + ", jobId=" + jobId + ']');
                 }
 
                 File jarJobFile = new File(jobLocDir, "job.jar");
@@ -259,34 +204,34 @@ public class HadoopV2JobResourceManager {
 
             FileSystem dstFs = FileSystem.getLocal(cfg);
 
-            try (FileSystem srcFs = fileSystemForMrUser(srcPath.toUri(), cfg)) {
-                if (extract) {
-                    File archivesPath = new File(jobLocDir.getAbsolutePath(), ".cached-archives");
+            FileSystem srcFs = srcPath.getFileSystem(cfg);
 
-                    if (!archivesPath.exists() && !archivesPath.mkdir())
-                        throw new IOException("Failed to create directory " +
-                            "[path=" + archivesPath + ", jobId=" + jobId + ']');
+            if (extract) {
+                File archivesPath = new File(jobLocDir.getAbsolutePath(), ".cached-archives");
 
-                    File archiveFile = new File(archivesPath, locName);
+                if (!archivesPath.exists() && !archivesPath.mkdir())
+                    throw new IOException("Failed to create directory " +
+                         "[path=" + archivesPath + ", jobId=" + jobId + ']');
 
-                    FileUtil.copy(srcFs, srcPath, dstFs, new Path(archiveFile.toString()), false, cfg);
+                File archiveFile = new File(archivesPath, locName);
 
-                    String archiveNameLC = archiveFile.getName().toLowerCase();
+                FileUtil.copy(srcFs, srcPath, dstFs, new Path(archiveFile.toString()), false, cfg);
 
-                    if (archiveNameLC.endsWith(".jar"))
-                        RunJar.unJar(archiveFile, dstPath);
-                    else if (archiveNameLC.endsWith(".zip"))
-                        FileUtil.unZip(archiveFile, dstPath);
-                    else if (archiveNameLC.endsWith(".tar.gz") ||
-                        archiveNameLC.endsWith(".tgz") ||
-                        archiveNameLC.endsWith(".tar"))
-                        FileUtil.unTar(archiveFile, dstPath);
-                    else
-                        throw new IOException("Cannot unpack archive [path=" + srcPath + ", jobId=" + jobId + ']');
-                }
+                String archiveNameLC = archiveFile.getName().toLowerCase();
+
+                if (archiveNameLC.endsWith(".jar"))
+                    RunJar.unJar(archiveFile, dstPath);
+                else if (archiveNameLC.endsWith(".zip"))
+                    FileUtil.unZip(archiveFile, dstPath);
+                else if (archiveNameLC.endsWith(".tar.gz") ||
+                    archiveNameLC.endsWith(".tgz") ||
+                    archiveNameLC.endsWith(".tar"))
+                    FileUtil.unTar(archiveFile, dstPath);
                 else
-                    FileUtil.copy(srcFs, srcPath, dstFs, new Path(dstPath.toString()), false, cfg);
+                    throw new IOException("Cannot unpack archive [path=" + srcPath + ", jobId=" + jobId + ']');
             }
+            else
+                FileUtil.copy(srcFs, srcPath, dstFs, new Path(dstPath.toString()), false, cfg);
         }
 
         if (!res.isEmpty() && rsrcNameProp != null)
@@ -341,11 +286,8 @@ public class HadoopV2JobResourceManager {
      */
     public void cleanupStagingDirectory() {
         try {
-            if (stagingDir != null) {
-                try (FileSystem fs = fileSystemForMrUser(stagingDir.toUri(), ctx.getJobConf())) {
-                    fs.delete(stagingDir, true);
-                }
-            }
+            if (stagingDir != null)
+                stagingDir.getFileSystem(ctx.getJobConf()).delete(stagingDir, true);
         }
         catch (Exception e) {
             log.error("Failed to remove job staging directory [path=" + stagingDir + ", jobId=" + jobId + ']' , e);

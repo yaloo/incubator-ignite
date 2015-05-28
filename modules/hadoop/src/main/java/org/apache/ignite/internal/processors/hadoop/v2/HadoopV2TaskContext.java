@@ -32,6 +32,7 @@ import org.apache.ignite.*;
 import org.apache.ignite.internal.processors.hadoop.*;
 import org.apache.ignite.internal.processors.hadoop.counter.*;
 import org.apache.ignite.internal.processors.hadoop.counter.HadoopCounters;
+import org.apache.ignite.internal.processors.hadoop.fs.*;
 import org.apache.ignite.internal.processors.hadoop.v1.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 import org.jetbrains.annotations.*;
@@ -238,6 +239,10 @@ public class HadoopV2TaskContext extends HadoopTaskContext {
         Thread.currentThread().setContextClassLoader(jobConf().getClassLoader());
 
         try {
+            FileSystem fs = FileSystem.get(jobConf());
+
+            //HadoopFileSystemsUtils.setUser(fs, jobConf().getUser());
+
             LocalFileSystem locFs = FileSystem.getLocal(jobConf());
 
             locFs.setWorkingDirectory(new Path(locDir.getAbsolutePath()));
@@ -416,7 +421,7 @@ public class HadoopV2TaskContext extends HadoopTaskContext {
     private Object readExternalSplit(HadoopExternalSplit split) throws IgniteCheckedException {
         Path jobDir = new Path(jobConf().get(MRJobConfig.MAPREDUCE_JOB_DIR));
 
-        try (FileSystem fs = HadoopV2JobResourceManager.fileSystemForMrUser(jobDir.toUri(), jobConf());
+        try (FileSystem fs = FileSystem.get(jobDir.toUri(), jobConf());
             FSDataInputStream in = fs.open(JobSubmissionFiles.getJobSplitFile(jobDir))) {
 
             in.seek(split.offset());

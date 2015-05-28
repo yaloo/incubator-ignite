@@ -17,13 +17,11 @@
 
 package org.apache.ignite.internal.processors.hadoop.examples;
 
-import org.apache.hadoop.conf.*;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.*;
 import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.mapreduce.lib.input.*;
 import org.apache.hadoop.mapreduce.lib.output.*;
-import org.apache.ignite.internal.processors.hadoop.*;
 
 import java.io.*;
 
@@ -46,24 +44,6 @@ public class HadoopWordCount2 {
         Job job = getJob(args[0], args[1]);
 
         job.submit();
-
-        printCounters(job);
-
-        job.waitForCompletion(true);
-
-        printCounters(job);
-    }
-
-    private static void printCounters(Job job) throws IOException {
-        Counters counters = job.getCounters();
-
-        for (CounterGroup group : counters) {
-            System.out.println("Group: " + group.getDisplayName() + "," + group.getName());
-            System.out.println("  number of counters: " + group.size());
-            for (Counter counter : group) {
-                System.out.println("  - " + counter.getDisplayName() + ": " + counter.getName() + ": "+counter.getValue());
-            }
-        }
     }
 
     /**
@@ -75,9 +55,7 @@ public class HadoopWordCount2 {
      * @throws IOException If fails.
      */
     public static Job getJob(String input, String output) throws IOException {
-        Configuration cfg = HadoopStartup.configuration();
-
-        Job job = Job.getInstance(cfg);
+        Job job = Job.getInstance();
 
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);

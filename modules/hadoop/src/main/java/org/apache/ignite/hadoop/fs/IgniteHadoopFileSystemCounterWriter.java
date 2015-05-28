@@ -74,21 +74,18 @@ public class IgniteHadoopFileSystemCounterWriter implements HadoopCounterWriter 
         HadoopPerformanceCounter perfCntr = HadoopPerformanceCounter.getCounter(cntrs, null);
 
         try {
-            hadoopCfg.set(MRJobConfig.USER_NAME, user);
+            FileSystem fs = jobStatPath.getFileSystem(hadoopCfg);
 
-            try (FileSystem fs = HadoopV2JobResourceManager.fileSystemForMrUser(jobStatPath.toUri(), hadoopCfg)) {
-                fs.mkdirs(jobStatPath);
+            fs.mkdirs(jobStatPath);
 
-                try (PrintStream out = new PrintStream(fs.create(
-                        new Path(jobStatPath, PERFORMANCE_COUNTER_FILE_NAME)))) {
-                    for (T2<String, Long> evt : perfCntr.evts()) {
-                        out.print(evt.get1());
-                        out.print(':');
-                        out.println(evt.get2().toString());
-                    }
-
-                    out.flush();
+            try (PrintStream out = new PrintStream(fs.create(new Path(jobStatPath, PERFORMANCE_COUNTER_FILE_NAME)))) {
+                for (T2<String, Long> evt : perfCntr.evts()) {
+                    out.print(evt.get1());
+                    out.print(':');
+                    out.println(evt.get2().toString());
                 }
+
+                out.flush();
             }
         }
         catch (IOException e) {

@@ -39,9 +39,6 @@ public class SecondaryFileSystemProvider {
     /** The secondary filesystem URI, never null. */
     private final URI uri;
 
-//    /** Optional user name to log into secondary filesystem with. */
-//    private @Nullable final String userName;
-
     /**
      * Creates new provider with given config parameters. The configuration URL is optional. The filesystem URI must be
      * specified either explicitly or in the configuration provided.
@@ -50,7 +47,6 @@ public class SecondaryFileSystemProvider {
      * property in the provided configuration.
      * @param secConfPath the secondary Fs path (file path on the local file system, optional).
      * See {@link IgniteUtils#resolveIgniteUrl(String)} on how the path resolved.
-     //* @param userName User name.
      * @throws IOException
      */
     public SecondaryFileSystemProvider(final @Nullable String secUri,
@@ -94,18 +90,14 @@ public class SecondaryFileSystemProvider {
 
         final FileSystem fileSys;
 
-//        if (userName == null)
-//            fileSys = FileSystem.get(uri, cfg);
-//        else {
-            try {
-                fileSys = FileSystem.get(uri, cfg, userName);
-            }
-            catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+        try {
+           fileSys = FileSystem.get(uri, cfg, userName);
+        }
+        catch (InterruptedException e) {
+           Thread.currentThread().interrupt();
 
-                throw new IOException("Failed to create file system due to interrupt.", e);
-            }
-//        }
+           throw new IOException("Failed to create file system due to interrupt.", e);
+        }
 
         return fileSys;
     }
@@ -117,25 +109,21 @@ public class SecondaryFileSystemProvider {
     public AbstractFileSystem createAbstractFileSystem(String userName) throws IOException {
         userName = IgfsUtils.fixUserName(userName);
 
-//        if (userName == null)
-//            return AbstractFileSystem.get(uri, cfg);
-//        else {
-            String ticketCachePath = cfg.get(CommonConfigurationKeys.KERBEROS_TICKET_CACHE_PATH);
+        String ticketCachePath = cfg.get(CommonConfigurationKeys.KERBEROS_TICKET_CACHE_PATH);
 
-            UserGroupInformation ugi = UserGroupInformation.getBestUGI(ticketCachePath, userName);
+        UserGroupInformation ugi = UserGroupInformation.getBestUGI(ticketCachePath, userName);
 
-            try {
-                return ugi.doAs(new PrivilegedExceptionAction<AbstractFileSystem>() {
-                    @Override public AbstractFileSystem run() throws IOException {
-                        return AbstractFileSystem.get(uri, cfg);
-                    }
-                });
-            } catch (InterruptedException ie) {
-                Thread.currentThread().interrupt();
+        try {
+            return ugi.doAs(new PrivilegedExceptionAction<AbstractFileSystem>() {
+                @Override public AbstractFileSystem run() throws IOException {
+                    return AbstractFileSystem.get(uri, cfg);
+                }
+            });
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
 
-                throw new IOException("Failed to create file system due to interrupt.", ie);
-            }
-//        }
+            throw new IOException("Failed to create file system due to interrupt.", ie);
+        }
     }
 
     /**

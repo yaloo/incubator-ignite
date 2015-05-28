@@ -17,21 +17,13 @@
 
 package org.apache.ignite.internal.processors.hadoop.taskexecutor;
 
-import org.apache.hadoop.conf.*;
-import org.apache.hadoop.fs.*;
-import org.apache.hadoop.security.*;
 import org.apache.ignite.*;
 import org.apache.ignite.internal.processors.hadoop.*;
 import org.apache.ignite.internal.processors.hadoop.counter.*;
 import org.apache.ignite.internal.processors.hadoop.shuffle.collections.*;
-import org.apache.ignite.internal.processors.hadoop.v2.*;
-import org.apache.ignite.internal.processors.igfs.*;
 import org.apache.ignite.internal.util.offheap.unsafe.*;
-import org.apache.ignite.internal.util.typedef.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 
-import java.io.*;
-import java.security.*;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -107,60 +99,6 @@ public abstract class HadoopRunnableTask implements Callable<Void> {
 
     /** {@inheritDoc} */
     @Override public Void call() throws IgniteCheckedException {
-        String user = job.info().user();
-
-        user = IgfsUtils.fixUserName(user);
-
-        String ugiUser;
-        try {
-            UserGroupInformation currUser = UserGroupInformation.getCurrentUser();
-
-            ugiUser = currUser.getShortUserName();
-        }
-        catch (IOException ioe) {
-            throw new IgniteCheckedException(ioe);
-        }
-
-        if (F.eq(user, ugiUser))
-            // if current UGI context user is the same, do direct call:
-            return callImpl();
-        else {
-            // do the call in the context of 'user':
-            try {
-                final String ticketCachePath = getJobProperty(CommonConfigurationKeys.KERBEROS_TICKET_CACHE_PATH);
-
-                UserGroupInformation ugi = UserGroupInformation.getBestUGI(ticketCachePath, user);
-
-                return ugi.doAs(new PrivilegedExceptionAction<Void>() {
-                    @Override public Void run() throws IgniteCheckedException {
-                        return callImpl();
-                    }
-                });
-            } catch (IOException | InterruptedException e) {
-                throw new IgniteCheckedException(e);
-            }
-        }
-    }
-
-    /**
-     * Gets the job property.
-     */
-    private String getJobProperty(String key) {
-        if (job instanceof HadoopV2Job) {
-            Configuration conf = ((HadoopV2Job)job).jobConf();
-
-            return conf.get(key);
-        }
-        else
-            return job.info().property(key);
-    }
-
-    /**
-     * Runnable task call implementation
-     * @return null.
-     * @throws IgniteCheckedException
-     */
-    Void callImpl() throws IgniteCheckedException {
         execStartTs = U.currentTimeMillis();
 
         Throwable err = null;

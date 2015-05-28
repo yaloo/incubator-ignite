@@ -1,4 +1,4 @@
-var configuratorModule =  angular.module('ignite-web-configurator', ['ngTable', 'mgcrea.ngStrap']);
+var configuratorModule =  angular.module('ignite-web-configurator', ['smart-table', 'mgcrea.ngStrap']);
 
 configuratorModule.controller('activeLink', ['$scope', function($scope) {
     $scope.isActive = function(path) {

@@ -1,13 +1,18 @@
 // Controller for clusters page.
-configuratorModule.controller('clustersController', ['$scope', '$modal', '$http', '$filter', 'ngTableParams',
-    function($scope, $modal, $http, $filter, ngTableParams) {
+configuratorModule.controller('clustersController', ['$scope', '$modal', '$http',
+    function($scope, $modal, $http) {
         $scope.editColumn = {};
 
         $scope.editCluster = {};
 
         $scope.discoveries = [
             {value: 'TcpDiscoveryVmIpFinder', label: 'Static IPs'},
-            {value: 'TcpDiscoveryMulticastIpFinder', label: 'Multicast'}
+            {value: 'TcpDiscoveryMulticastIpFinder', label: 'Multicast'},
+            {value: 'TcpDiscoveryS3IpFinder', label: 'AWS S3'},
+            {value: 'TcpDiscoveryCloudIpFinder', label: 'Apache jclouds'},
+            {value: 'TcpDiscoveryGoogleStorageIpFinder', label: 'Google Cloud Storage'},
+            {value: 'TcpDiscoveryJdbcIpFinder', label: 'JDBC'},
+            {value: 'TcpDiscoverySharedFsIpFinder', label: 'Shared Filesystem'}
         ];
 
         $scope.discoveryAsString = function(value) {
@@ -25,49 +30,49 @@ configuratorModule.controller('clustersController', ['$scope', '$modal', '$http'
                 $scope.spaces = data.spaces;
                 $scope.clusters = data.clusters;
 
-                $scope.clustersTable = new ngTableParams({
-                    page: 1,                    // Show first page.
-                    count: Number.MAX_VALUE,    // Count per page.
-                    sorting: {name: 'asc'}      // Initial sorting.
-                }, {
-                    total: $scope.clusters.length, // Length of data.
-                    counts: [],
-                    getData: function($defer, params) {
-                        // Use build-in angular filter.
-                        var orderedData = params.sorting() ?
-                            $filter('orderBy')($scope.clusters, params.orderBy()) :
-                            $scope.clusters;
-
-                        var page = params.page();
-                        var cnt = params.count();
-
-                        $defer.resolve(orderedData.slice(page - 1 * cnt, page * cnt));
-                    }
-                });
+                //$scope.clustersTable = new ngTableParams({
+                //    page: 1,                    // Show first page.
+                //    count: Number.MAX_VALUE,    // Count per page.
+                //    sorting: {name: 'asc'}      // Initial sorting.
+                //}, {
+                //    total: $scope.clusters.length, // Length of data.
+                //    counts: [],
+                //    getData: function($defer, params) {
+                //        // Use build-in angular filter.
+                //        var orderedData = params.sorting() ?
+                //            $filter('orderBy')($scope.clusters, params.orderBy()) :
+                //            $scope.clusters;
+                //
+                //        var page = params.page();
+                //        var cnt = params.count();
+                //
+                //        $defer.resolve(orderedData.slice(page - 1 * cnt, page * cnt));
+                //    }
+                //});
             });
 
         // Create popup for tcpDiscoveryVmIpFinder advanced settings.
         var staticIpsModal = $modal({scope: $scope, template: '/staticIps', show: false});
 
-        $scope.editStaticIps = function(cluster) {
-            $scope.staticIpsTable = new ngTableParams({
-                page: 1,                    // Show first page.
-                count: Number.MAX_VALUE     // Count per page.
-            }, {
-                total: cluster.addresses.length, // Length of data.
-                counts: [],
-                getData: function($defer, params) {
-                    var addresses = cluster.addresses;
-
-                    var page = params.page();
-                    var cnt = params.count();
-
-                    $defer.resolve(addresses.slice(page - 1 * cnt, page * cnt));
-                }
-            });
-
-            staticIpsModal.$promise.then(staticIpsModal.show);
-        };
+        //$scope.editStaticIps = function(cluster) {
+        //    $scope.staticIpsTable = new ngTableParams({
+        //        page: 1,                    // Show first page.
+        //        count: Number.MAX_VALUE     // Count per page.
+        //    }, {
+        //        total: cluster.addresses.length, // Length of data.
+        //        counts: [],
+        //        getData: function($defer, params) {
+        //            var addresses = cluster.addresses;
+        //
+        //            var page = params.page();
+        //            var cnt = params.count();
+        //
+        //            $defer.resolve(addresses.slice(page - 1 * cnt, page * cnt));
+        //        }
+        //    });
+        //
+        //    staticIpsModal.$promise.then(staticIpsModal.show);
+        //};
 
         // Add new cluster.
         $scope.addStaticIp = function(cluster) {
@@ -147,8 +152,8 @@ configuratorModule.controller('clustersController', ['$scope', '$modal', '$http'
             }
         };
 
-        $scope.deleteCluster = function(cluster) {
-            $http.post('/rest/clusters/remove', {_id: cluster._id})
+        $scope.removeItem = function(_id) {
+            $http.post('/rest/clusters/remove', {_id: _id})
                 .success(function(data) {
                     $scope.spaces = data.spaces;
                     $scope.clusters = data.clusters;

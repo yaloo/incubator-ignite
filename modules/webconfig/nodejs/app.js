@@ -57,8 +57,6 @@ passport.deserializeUser(db.Account.deserializeUser());
 passport.use(db.Account.createStrategy());
 
 var mustAuthenticated = function (req, res, next) {
-    console.log('isAuthenticated = ' + req.isAuthenticated());
-
     req.isAuthenticated() ? next() : res.redirect('/');
 };
 

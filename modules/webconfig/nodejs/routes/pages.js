@@ -1,6 +1,9 @@
-var jade = require('jade');
-var express = require('express');
-var router = express.Router();
+var router = require('express').Router();
+
+// GET dropdown-menu template.
+router.get('/select', function(req, res) {
+    res.render('templates/select', { });
+});
 
 /* GET login page. */
 router.get('/login', function(req, res) {
@@ -24,7 +27,10 @@ router.get('/register', function(req, res) {
 
 /* GET home page. */
 router.get('/', function(req, res) {
-    res.render('index', { user: req.user, messages: req.flash('info') });
+    if (req.isAuthenticated())
+        res.redirect('/clusters');
+    else
+        res.render('index', { user: req.user });
 });
 
 /* GET clusters page. */
@@ -32,34 +38,38 @@ router.get('/clusters', function(req, res) {
     res.render('clusters', { user: req.user });
 });
 
-/* GET cluster edit popup. */
-router.get('/cluster/edit', function(req, res) {
-    res.render('clusterEdit', {});
+router.get('/discovery', function(req, res) {
+    res.render('discovery');
+});
+
+/* GET advanced options for TcpDiscoveryVmIpFinder page. */
+router.get('/tcpDiscoveryVmIpFinder', function(req, res) {
+    res.render('tcpDiscoveryVmIpFinder');
+});
+
+/* GET advanced options for TcpDiscoveryMulticastIpFinder page. */
+router.get('/tcpDiscoveryMulticastIpFinder', function(req, res) {
+    res.render('tcpDiscoveryMulticastIpFinder');
 });
 
 /* GET caches page. */
 router.get('/caches', function(req, res) {
-    res.render('caches', { });
+    res.render('caches', { user: req.user });
 });
 
 /* GET persistence page. */
 router.get('/persistence', function(req, res) {
-    res.render('persistence', { });
+    res.render('persistence', { user: req.user });
 });
 
 /* GET sql page. */
 router.get('/sql', function(req, res) {
-    res.render('sql', { });
+    res.render('sql', { user: req.user });
 });
 
 /* GET clients page. */
 router.get('/clients', function(req, res) {
-    res.render('clients', { });
-});
-
-// GET dropdown-menu template.
-router.get('/select', function(req, res) {
-    res.render('templates/select', { });
+    res.render('clients', { user: req.user });
 });
 
 module.exports = router;

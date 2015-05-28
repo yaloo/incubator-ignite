@@ -798,6 +798,11 @@ h1.ignite-logo {
   content: '\25BC';
 }
 
+.st-selected{
+  background: #216eff;
+  color: white;
+}
+
 .docs-content table {
   width: 100%;
   border-top: 1px solid #ccc;
@@ -806,6 +811,7 @@ h1.ignite-logo {
 }
 
 .docs-content th {
+  text-align: center;
   border-right: 1px solid #ccc;
   border-bottom: 1px solid #ccc;
   background-color: #f7f7f7;
@@ -813,11 +819,26 @@ h1.ignite-logo {
 }
 
 .docs-content td {
+  text-align: center;
   border-right: 1px solid #ccc;
   border-bottom: 1px solid #ccc;
-  vertical-align: top;
+  vertical-align: middle;
   padding: 5px;
 }
+
+.docs-content td > .input-group {
+  input {
+    width: 50%;
+  }
+
+  button {
+    width: 50%;
+    border-left: 0;
+  }
+
+  display: block;
+}
+
 
 .block-display-image img {
   max-width: 100%;
@@ -828,5 +849,5 @@ h1.ignite-logo {
 
 .greedy {
   min-height: 200px;
-  height: ~"calc(100vh - 200px)";
+  height: ~"calc(100vh - 230px)";
 }

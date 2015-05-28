@@ -5,6 +5,11 @@ configuratorModule.controller('clustersController', ['$scope', '$modal', '$http'
 
         $scope.editCluster = {};
 
+        $scope.templates = [
+            {value: {discovery: 'TcpDiscoveryVmIpFinder', addresses: ['127.0.0.1:47500..47510']}, label: 'Local'},
+            {value: {discovery: 'TcpDiscoveryMulticastIpFinder'}, label: 'Basic'}
+        ];
+
         $scope.discoveries = [
             {value: 'TcpDiscoveryVmIpFinder', label: 'Static IPs'},
             {value: 'TcpDiscoveryMulticastIpFinder', label: 'Multicast'},
@@ -94,12 +99,6 @@ configuratorModule.controller('clustersController', ['$scope', '$modal', '$http'
             multicastModal.$promise.then(multicastModal.show);
         };
 
-        // Add new cluster.
-        $scope.addCluster = function() {
-            $scope.clusters.push({space: $scope.spaces[0]._id, discovery: 'TcpDiscoveryVmIpFinder'});
-
-            $scope.clustersTable.reload();
-        };
 
         $scope.beginEditCluster = function(column, cluster) {
             $scope.revertCluster();
@@ -123,35 +122,19 @@ configuratorModule.controller('clustersController', ['$scope', '$modal', '$http'
             }
         };
 
-        $scope.submit = function() {
-            if ($scope.editColumn && $scope.currentCluster) {
-                var cluster = $scope.currentCluster;
+        // Add new cluster.
+        $scope.createItem = function() {
+            var item = angular.copy($scope.create.template);
 
-                var data = {
-                    _id: cluster._id,
-                    space: cluster.space,
-                    name: cluster.name,
-                    discovery: cluster.discovery,
-                    addresses: cluster.addresses
-                };
+            item.name = $scope.create.name;
+            item.space = $scope.spaces[0]._id;
 
-                $scope.currentCluster = undefined;
+            $scope.create = {};
 
-                $scope.editColumn = undefined;
-
-                $http.post('/rest/clusters/save', data)
-                    .success(function(data) {
-                        $scope.spaces = data.spaces;
-                        $scope.clusters = data.clusters;
-
-                        $scope.clustersTable.reload();
-                    })
-                    .error(function(errorMessage) {
-                        console.log('Error: ' + errorMessage);
-                    });
-            }
+            saveCluster(item);
         };
 
+        // Remove new cluster.
         $scope.removeItem = function(_id) {
             $http.post('/rest/clusters/remove', {_id: _id})
                 .success(function(data) {
@@ -164,5 +147,17 @@ configuratorModule.controller('clustersController', ['$scope', '$modal', '$http'
                     console.log('Error: ' + errorMessage);
                 });
         };
+
+        // Save cluster in db.
+        function saveCluster(cluster) {
+            $http.post('/rest/clusters/save', cluster)
+                .success(function(data) {
+                    $scope.spaces = data.spaces;
+                    $scope.clusters = data.clusters;
+                })
+                .error(function(errorMessage) {
+                    console.log('Error: ' + errorMessage);
+                });
+        }
     }]
 );

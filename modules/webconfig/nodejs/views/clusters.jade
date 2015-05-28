@@ -1,8 +1,20 @@
-// Page with cluster configuration.
-extends layout-sidebar
+//-
+    Licensed to the Apache Software Foundation (ASF) under one or more
+    contributor license agreements.  See the NOTICE file distributed with
+    this work for additional information regarding copyright ownership.
+    The ASF licenses this file to You under the Apache License, Version 2.0
+    (the "License"); you may not use this file except in compliance with
+    the License.  You may obtain a copy of the License at
 
-append css
-    //link(rel='stylesheet', href='/stylesheets/ng-table.css')
+         http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+extends layout-sidebar
 
 append scripts
     script(src='/javascripts/controllers/clusters.js')
@@ -16,46 +28,29 @@ block content
         table(st-table='rowCollection' st-safe-src='clusters')
             thead
                 tr
-                    th #
+                    th(style='width: 50px') #
                     th(st-sort='name') Name
-                    th Action
+                    th.col-sm-1 Action
             tbody
-                tr(st-select-row='row' st-select-mode='single' ng-repeat='row in rowCollection')
+                tr(st-select-row='row' ng-click='cluster=row' st-select-mode='single' ng-repeat='row in rowCollection')
                     td {{$index + 1}}
                     td {{row.name}}
-                    td.col-sm-1
-                        center
-                            span(type='button' ng-click='removeItem(row._id)')
-                                i(class=['fa', 'fa-remove'])
-        //div.block-edit-parameters
-        //    div.btn-group
-        //        button(ng-click='addCluster()' class=['btn', 'btn-default', 'fa', 'fa-plus'] ) &nbspAdd
-        //table(ng-table="clustersTable" class=['table', 'table-bordered', 'table-hover', 'ng-table-responsive'])
-        //    tr(ng-repeat="cluster in $data")
-        //        td(data-title="'#'" class=['text-center', 'vcenter'] style='width: 50px') {{$index + 1}}
-        //        td(data-title="'Name'" sortable="'name'" class=['text-center', 'col-sm-7'])
-        //            div(ng-if='!(editColumn == "name" && currentCluster == cluster)')
-        //                span(ng-if='cluster.name') {{cluster.name}}
-        //                span.pull-right(type='button' ng-click='beginEditCluster("name", cluster);')
-        //                    i(class=['fa', 'fa-pencil'])
-        //            div.input-group(ng-if='editColumn == "name" && currentCluster == cluster')
-        //                input.form-control(type='text' ng-model='cluster.name')
-        //                span.input-group-addon
-        //                    i(class=['fa', 'fa-repeat'] ng-click='revert();')
-        //                    i(class=['fa', 'fa-save'] ng-click='submit();' style='margin-left: 10px;')
-        //        td.text-center(data-title="'Discovery'" sortable="'discovery'")
-        //            div(ng-if='!(editColumn == "discovery" && currentCluster == cluster)')
-        //                span(ng-if='cluster.discovery') {{discoveryAsString(cluster.discovery)}}
-        //                span.pull-right(type='button')
-        //                    i(class=['fa', 'fa-caret-square-o-down'] ng-click='editStaticIps(cluster);')
-        //                    i(class=['fa', 'fa-pencil'] ng-click='beginEditCluster("discovery", cluster);' style='margin-left: 10px;')
-        //            div.input-group(ng-if='editColumn == "discovery" && currentCluster == cluster')
-        //                button(class=['btn', 'btn-default', 'form-control', 'pull-right'] style='width: 85%' data-placement='bottom-center' ng-model='cluster.discovery' data-template='/select' data-placeholder='Choose discovery' bs-options='discovery.value as discovery.label for discovery in discoveries' bs-select)
-        //                    span.caret
-        //                span.input-group-addon
-        //                    i(class=['fa', 'fa-repeat'] ng-click='revertCluster();')
-        //                    i(class=['fa', 'fa-save'] ng-click='submit();' style='margin-left: 10px;')
-        //        td.col-sm-1(data-title="'Delete'")
-        //            center
-        //                span(type='button' ng-click='deleteCluster(cluster)')
-        //                    i(class=['fa', 'fa-remove'])
+                    td
+                        span(type='button' ng-click='removeItem(row._id)')
+                            i(class=['fa', 'fa-remove'])
+            tfoot
+                tr
+                    td
+                    td
+                        div(class=['input-group'])
+                            input.form-control(type='text' name="name" ng-model='create.name' placeholder='Enter cluster name')
+                            button(class=['btn-default', 'form-control'] ng-model='create.template' data-placement='bottom-center' data-template='/select' data-placeholder='Choose cluster template' bs-options='item.value as item.label for item in templates' bs-select)
+                                span.caret
+                    td
+                        button(ng-click='createItem()' class=['btn', 'btn-success', 'fa', 'fa-plus'] ng-disabled='!(create.name && create.template)') &nbspCreate
+        hr
+        form.form-horizontal
+            .form-group
+                label.control-label.col-sm-2 Cluster name
+                .col-sm-10
+                    input.form-control(type="text" ng-model='cluster.name')

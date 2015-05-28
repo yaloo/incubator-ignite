@@ -17,10 +17,7 @@
 
 package org.apache.ignite.igfs;
 
-// TODO: Remove.
-import org.apache.ignite.*;
 import org.apache.ignite.internal.util.typedef.*;
-import org.apache.ignite.internal.util.typedef.internal.*;
 import org.apache.ignite.lang.*;
 import org.jetbrains.annotations.*;
 
@@ -41,14 +38,11 @@ public abstract class IgfsUserContext {
      * @param clo the closure to execute
      * @param <T> The type of closure result.
      * @return the result of closure execution.
-     * @throws NullPointerException if user name is null or empty String or if the closure is null.
+     * @throws IllegalArgumentException if user name is null or empty String or if the closure is null.
      */
     public static <T> T doAs(String user, final IgniteOutClosure<T> clo) {
         if (F.isEmpty(user))
-            // use NPE to ensure that #doAs() caller will not treat this exception
-            // as the one thrown from the closure:
-            // TODO: use IllegalArgument or IgniteException
-            throw new NullPointerException("Failed to use null or empty user name.");
+            throw new IllegalArgumentException("Failed to use null or empty user name.");
 
         final String ctxUser = userStackThreadLocal.get();
 
@@ -74,7 +68,7 @@ public abstract class IgfsUserContext {
      *  public Foo myOperation() throws MyCheckedException1, MyCheckedException2 {
      *      try {
      *          return IgfsUserContext.doAs(user, new Callable<Foo>() {
-     *              @Override public Foo call() throws MyCheckedException1, MyCheckedException2 {
+     *              &#64;Override public Foo call() throws MyCheckedException1, MyCheckedException2 {
      *                  return makeSomeFoo(); // do the job
      *              }
      *          });
@@ -91,14 +85,11 @@ public abstract class IgfsUserContext {
      * @param clbl the Callable to execute
      * @param <T> The type of callable result.
      * @return the result of closure execution.
-     * @throws NullPointerException if user name is null or empty String or if the closure is null.
+     * @throws IllegalArgumentException if user name is null or empty String or if the closure is null.
      */
     public static <T> T doAs(String user, final Callable<T> clbl) throws Exception {
         if (F.isEmpty(user))
-            // use NPE to ensure that #doAs() caller will not treat this exception
-            // as the one thrown from the closure:
-            // TODO: use IllegalArgument or IgniteException
-            throw new NullPointerException("Failed to use null or empty user name.");
+            throw new IllegalArgumentException("Failed to use null or empty user name.");
 
         final String ctxUser = userStackThreadLocal.get();
 
@@ -120,7 +111,7 @@ public abstract class IgfsUserContext {
      * If this method is invoked outside of any {@link #doAs(String, IgniteOutClosure)} on the call stack, it will return null.
      * Otherwise it will return the user name set in the most lower {@link #doAs(String, IgniteOutClosure)} call
      * on the call stack.
-     * @return the current user, may be null.
+     * @return The current user, may be null.
      */
     @Nullable public static String currentUser() {
         return userStackThreadLocal.get();

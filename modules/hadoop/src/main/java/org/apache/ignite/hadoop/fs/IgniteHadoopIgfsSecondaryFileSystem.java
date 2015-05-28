@@ -108,8 +108,7 @@ public class IgniteHadoopIgfsSecondaryFileSystem implements IgfsSecondaryFileSys
      * @throws IgniteCheckedException In case of error.
      */
     public IgniteHadoopIgfsSecondaryFileSystem(@Nullable String uri, @Nullable String cfgPath,
-        @Nullable String userName)
-            throws IgniteCheckedException {
+        @Nullable String userName) throws IgniteCheckedException {
         // Treat empty uri and userName arguments as nulls to improve configuration usability:
         if (F.isEmpty(uri))
             uri = null;
@@ -144,7 +143,6 @@ public class IgniteHadoopIgfsSecondaryFileSystem implements IgfsSecondaryFileSys
             props.put(SECONDARY_FS_CONFIG_PATH, cfgPath);
 
         props.put(SECONDARY_FS_URI, uri);
-
         props.put(SECONDARY_FS_USER_NAME, dfltUserName);
     }
 
@@ -475,6 +473,7 @@ public class IgniteHadoopIgfsSecondaryFileSystem implements IgfsSecondaryFileSys
 
         List<IOException> ioExs = new LinkedList<>();
 
+        // TODO: Close is not thread-safe.
         Set<String> keySet = map.keySet();
 
         for (String key: keySet) {

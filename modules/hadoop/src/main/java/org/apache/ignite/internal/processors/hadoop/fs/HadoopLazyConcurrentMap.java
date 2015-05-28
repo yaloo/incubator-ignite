@@ -19,12 +19,15 @@ package org.apache.ignite.internal.processors.hadoop.fs;
 
 import org.apache.ignite.*;
 import org.apache.ignite.internal.*;
+import org.apache.ignite.internal.util.future.*;
+// TODO: Remove unused
 import org.apache.ignite.internal.util.typedef.internal.*;
 import org.jetbrains.annotations.*;
 import org.jsr166.*;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.*;
 
 /**
  * Maps values by keys.
@@ -56,6 +59,7 @@ public class HadoopLazyConcurrentMap<K, V> {
      * @throws IgniteException on error
      */
     public V getOrCreate(K k) {
+        // TODO: Do "get" first.
         final ValueWrapper wNew = new ValueWrapper(k);
 
         ValueWrapper w = map.putIfAbsent(k, wNew);
@@ -74,7 +78,7 @@ public class HadoopLazyConcurrentMap<K, V> {
 
             return v;
         }
-        catch (IgniteInterruptedCheckedException ie) {
+        catch (IgniteCheckedException ie) {
             throw new IgniteException(ie);
         }
     }
@@ -93,7 +97,7 @@ public class HadoopLazyConcurrentMap<K, V> {
         try {
             return w.getValue();
         }
-        catch (IgniteInterruptedCheckedException ie) {
+        catch (IgniteCheckedException ie) {
             throw new IgniteException(ie);
         }
     }
@@ -115,19 +119,15 @@ public class HadoopLazyConcurrentMap<K, V> {
         map.clear();
     }
 
-
     /**
      * Helper class that drives the lazy value creation.
      */
     private class ValueWrapper {
-        /** Value creation latch */
-        private final CountDownLatch vlueCrtLatch = new CountDownLatch(1);
+        /** Future. */
+        private final GridFutureAdapter<V> fut = new GridFutureAdapter<>();
 
         /** the key */
         private final K key;
-
-        /** the value */
-        private V v;
 
         /**
          * Creates new wrapper.
@@ -140,14 +140,17 @@ public class HadoopLazyConcurrentMap<K, V> {
          * Initializes the value using the factory.
          */
         private void init() {
-            final V v0 = factory.createValue(key);
+            try {
+                final V v0 = factory.createValue(key);
 
-            if (v0 == null)
-                throw new IgniteException("Failed to create non-null value. [key=" + key + ']');
+                if (v0 == null)
+                    throw new IgniteException("Failed to create non-null value. [key=" + key + ']');
 
-            v = v0;
-
-            vlueCrtLatch.countDown();
+                fut.onDone(v0);
+            }
+            catch (Throwable e) {
+                fut.onDone(e);
+            }
         }
 
         /**
@@ -155,10 +158,8 @@ public class HadoopLazyConcurrentMap<K, V> {
          * @return the value
          * @throws IgniteInterruptedCheckedException if interrupted during wait.
          */
-        @Nullable V getValue() throws IgniteInterruptedCheckedException {
-            U.await(vlueCrtLatch);
-
-            return v;
+        @Nullable V getValue() throws IgniteCheckedException {
+            return fut.get();
         }
     }
 
@@ -170,6 +171,7 @@ public class HadoopLazyConcurrentMap<K, V> {
     public interface ValueFactory <K, V> {
         /**
          * Creates the new value. Must never return null.
+         *
          * @param key the key to create value for
          * @return the value.
          * @throws IgniteException on failure.

@@ -592,7 +592,7 @@ public class IpcSharedMemoryServerEndpoint implements IpcServerEndpoint {
                 if (log.isDebugEnabled())
                     log.debug("Token directory is being processed concurrently: " + workTokDir.getAbsolutePath());
             }
-            catch (InterruptedIOException | FileLockInterruptionException ignored) {
+            catch (InterruptedIOException ignored) {
                 Thread.currentThread().interrupt();
             }
             catch (IOException e) {

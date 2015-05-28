@@ -17,6 +17,7 @@
 
 package org.apache.ignite.igfs;
 
+// TODO: Remove.
 import org.apache.ignite.*;
 import org.apache.ignite.internal.util.typedef.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
@@ -46,6 +47,7 @@ public abstract class IgfsUserContext {
         if (F.isEmpty(user))
             // use NPE to ensure that #doAs() caller will not treat this exception
             // as the one thrown from the closure:
+            // TODO: use IllegalArgument or IgniteException
             throw new NullPointerException("Failed to use null or empty user name.");
 
         final String ctxUser = userStackThreadLocal.get();
@@ -95,6 +97,7 @@ public abstract class IgfsUserContext {
         if (F.isEmpty(user))
             // use NPE to ensure that #doAs() caller will not treat this exception
             // as the one thrown from the closure:
+            // TODO: use IllegalArgument or IgniteException
             throw new NullPointerException("Failed to use null or empty user name.");
 
         final String ctxUser = userStackThreadLocal.get();

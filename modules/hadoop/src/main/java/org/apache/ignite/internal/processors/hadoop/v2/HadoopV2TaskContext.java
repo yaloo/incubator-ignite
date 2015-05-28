@@ -241,6 +241,7 @@ public class HadoopV2TaskContext extends HadoopTaskContext {
         try {
             FileSystem fs = FileSystem.get(jobConf());
 
+            // TODO: Remove
             //HadoopFileSystemsUtils.setUser(fs, jobConf().getUser());
 
             LocalFileSystem locFs = FileSystem.getLocal(jobConf());

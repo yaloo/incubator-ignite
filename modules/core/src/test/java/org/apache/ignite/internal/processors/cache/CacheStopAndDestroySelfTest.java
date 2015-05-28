@@ -365,6 +365,7 @@ public class CacheStopAndDestroySelfTest extends GridCommonAbstractTest {
         assert grid(2).cache(CACHE_NAME_CLOSE_LOC).get(KEY_VAL).equals(KEY_VAL + "recreated2");
     }
 
+    /** {@inheritDoc} */
     @Override protected void afterTest() throws Exception {
         super.afterTest();
 

@@ -31,9 +31,13 @@ exports.Space =  mongoose.model('Space', new Schema({
 // Define cluster model.
 exports.Cluster =  mongoose.model('Cluster', new Schema({
     space: { type: ObjectId, ref: 'Space' },
-    name : String,
-    discovery : { type: String, enum: ['TcpDiscoveryVmIpFinder', 'TcpDiscoveryMulticastIpFinder'] },
-    addresses : [String]
+    name: String,
+    discovery: { type: String, enum: ['TcpDiscoveryVmIpFinder', 'TcpDiscoveryMulticastIpFinder'] },
+    addresses: [String],
+    pubPoolSize: Number,
+    sysPoolSize: Number,
+    mgmtPoolSize: Number,
+    p2pPoolSize: Number
 }));
 
 // Define cache model.

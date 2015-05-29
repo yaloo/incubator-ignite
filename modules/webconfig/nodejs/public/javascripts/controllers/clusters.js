@@ -17,12 +17,21 @@ configuratorModule.controller('clustersController', ['$scope', '$modal', '$http'
         ];
 
         $scope.discoveryAsString = function(value) {
-            for (var i in $scope.discoveries) {
-                if ($scope.discoveries[i].value == value)
-                    return $scope.discoveries[i].label;
+            for (var i = 0; i < $scope.discoveries.length; i++) {
+                var discovery = $scope.discoveries[i];
+
+                if (discovery.value == value)
+                    return discovery.label;
             }
 
             return 'Wrong discovery';
+        };
+
+        // Create popup for discovery advanced settings.
+        var discoveryModal = $modal({scope: $scope, template: '/discovery', show: false});
+
+        $scope.editDiscovery = function(cluster) {
+            discoveryModal.$promise.then(discoveryModal.show);
         };
 
         // When landing on the page, get clusters and show them.

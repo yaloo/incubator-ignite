@@ -10,14 +10,9 @@ router.get('/login', function(req, res) {
     res.render('login');
 });
 
-/* GET advanced options for TcpDiscoveryVmIpFinder page. */
-router.get('/staticIps', function(req, res) {
-    res.render('staticIps');
-});
-
-/* GET advanced options for TcpDiscoveryMulticastIpFinder page. */
-router.get('/multicast', function(req, res) {
-    res.render('multicast');
+/* GET page for discovery advanced settings. */
+router.get('/discovery', function(req, res) {
+    res.render('discovery');
 });
 
 /* GET register page. */

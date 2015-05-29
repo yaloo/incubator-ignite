@@ -43,7 +43,7 @@ block content
                     td
                     td
                         .input-group
-                            input.form-control(type='text' name="name" ng-model='create.name' placeholder='Enter cluster name')
+                            input.form-control(type='text' name='name' ng-model='create.name' placeholder='Enter cluster name')
                             button(class=['form-control'] ng-model='create.template' data-placement='bottom-center' data-template='/select' data-placeholder='Choose cluster template' bs-options='item.value as item.label for item in templates' bs-select)
                     td
                         button(ng-click='createItem()' class=['btn', 'btn-success', 'fa', 'fa-plus'] ng-disabled='!(create.name && create.template)') &nbspCreate
@@ -51,37 +51,37 @@ block content
             .form-group
                 label.control-label.col-sm-4 Name:
                 .col-sm-8
-                    input.form-control(type="text" ng-model='backupItem.name')
+                    input.form-control(type='text' ng-model='backupItem.name')
             .form-group
                 label.control-label.col-sm-4 Discovery:
                 .col-sm-8
                     .input-group
-                        button(class=['form-control'] ng-model='backupItem.discovery' data-placement='bottom-center' data-template='/select' data-placeholder='Choose discovery' bs-options='item.value as item.label for item in discoveries' bs-select)
+                        button.form-control(ng-model='backupItem.discovery' data-placement='bottom-center' data-template='/select' data-placeholder='Choose discovery' bs-options='item.value as item.label for item in discoveries' bs-select)
                         span.input-group-btn
-                            button(class=['btn', 'btn-default'])
-                                i(class=['fa', 'fa-caret-square-o-down'])
+                            button(class=['btn', 'btn-default'] ng-click='editDiscovery(cluster)')
+                                i(class=['fa', 'fa-bars'])
             .panel.advanced(bs-collapse data-start-collapsed='true')
                 .panel-collapse(bs-collapse-target)
                     .form-group
                         label.control-label.col-sm-4 Public thread pool size:
                         .col-sm-8
-                            input.form-control(type="text" ng-model='backupItem.pubPoolSize')
+                            input.form-control(type='text' ng-model='backupItem.pubPoolSize')
                     .form-group
                         label.control-label.col-sm-4 System thread pool size:
                         .col-sm-8
-                            input.form-control(type="text" ng-model='backupItem.sysPoolSize')
+                            input.form-control(type='text' ng-model='backupItem.sysPoolSize')
                     .form-group
                         label.control-label.col-sm-4 Management thread pool size:
                         .col-sm-8
-                            input.form-control(type="text" ng-model='backupItem.mgmtPoolSize' placeholder='4')
+                            input.form-control(type='text' ng-model='backupItem.mgmtPoolSize' placeholder='4')
                     .form-group
                         label.control-label.col-sm-4 Peer class loading thread pool size:
                         .col-sm-8
-                            input.form-control(type="text" ng-model='backupItem.p2pPoolSize' placeholder='2')
+                            input.form-control(type='text' ng-model='backupItem.p2pPoolSize' placeholder='2')
                 .panel-heading
                     .panel-title
                         span(bs-collapse-toggle)
-                            a(ng-click="expanded = true" ng-hide="expanded") Show advanced settings
-                            a(ng-click="expanded = false" ng-show="expanded") Hide advanced settings
+                            a(ng-click='expanded = true' ng-hide='expanded') Show advanced settings
+                            a(ng-click='expanded = false' ng-show='expanded') Hide advanced settings
             center
                 button.btn.btn-primary(ng-click='saveCluster(backupItem)' ng-disabled='editForm.$invalid') Apply

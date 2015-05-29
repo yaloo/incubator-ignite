@@ -190,6 +190,7 @@ public class IgniteHadoopFileSystem extends FileSystem {
 
         if (user == null) {
             UserGroupInformation currUgi = UserGroupInformation.getCurrentUser();
+
             if (currUgi != null)
                 user = currUgi.getShortUserName();
         }

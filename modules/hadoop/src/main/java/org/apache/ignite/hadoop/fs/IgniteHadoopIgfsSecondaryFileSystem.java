@@ -42,7 +42,7 @@ import static org.apache.ignite.internal.processors.igfs.IgfsEx.*;
  * In fact, this class deals with different FileSystems depending on the user context,
  * see {@link IgfsUserContext#currentUser()}.
  */
-public class IgniteHadoopIgfsSecondaryFileSystem implements IgfsSecondaryFileSystem, AutoCloseable {
+public class IgniteHadoopIgfsSecondaryFileSystem implements IgfsSecondaryFileSystem {
     /** Properties of file system, see {@link #properties()}
      *
      * See {@link IgfsEx#SECONDARY_FS_CONFIG_PATH}
@@ -108,8 +108,7 @@ public class IgniteHadoopIgfsSecondaryFileSystem implements IgfsSecondaryFileSys
      * @throws IgniteCheckedException In case of error.
      */
     public IgniteHadoopIgfsSecondaryFileSystem(@Nullable String uri, @Nullable String cfgPath,
-        @Nullable String userName)
-            throws IgniteCheckedException {
+        @Nullable String userName) throws IgniteCheckedException {
         // Treat empty uri and userName arguments as nulls to improve configuration usability:
         if (F.isEmpty(uri))
             uri = null;
@@ -144,7 +143,6 @@ public class IgniteHadoopIgfsSecondaryFileSystem implements IgfsSecondaryFileSys
             props.put(SECONDARY_FS_CONFIG_PATH, cfgPath);
 
         props.put(SECONDARY_FS_URI, uri);
-
         props.put(SECONDARY_FS_USER_NAME, dfltUserName);
     }
 
@@ -467,33 +465,26 @@ public class IgniteHadoopIgfsSecondaryFileSystem implements IgfsSecondaryFileSys
     }
 
     /** {@inheritDoc} */
-    @Override public void close() throws IgniteCheckedException {
-        final HadoopLazyConcurrentMap<String,FileSystem> map = fileSysLazyMap;
+    @Override public void close() throws IgniteException {
+        Exception e = null;
 
-        if (map == null)
-            return; // already cleared.
-
-        List<IOException> ioExs = new LinkedList<>();
-
-        Set<String> keySet = map.keySet();
-
-        for (String key: keySet) {
-            FileSystem fs = map.get(key);
-
-            if (fs != null) {
-                try {
-                    fs.close();
-                }
-                catch (IOException ioe) {
-                    ioExs.add(ioe);
-                }
-            }
+        try {
+            dfltFs.close();
+        }
+        catch (Exception e0) {
+            e = e0;
         }
 
-        map.clear();
+        try {
+            fileSysLazyMap.close();
+        }
+        catch (IgniteCheckedException ice) {
+            if (e == null)
+                e = ice;
+        }
 
-        if (!ioExs.isEmpty())
-            throw new IgniteCheckedException(ioExs.get(0));
+        if (e != null)
+            throw new IgniteException(e);
     }
 
     /**

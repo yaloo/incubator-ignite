@@ -92,7 +92,11 @@ public class IgfsUtils {
     }
 
     /**
+<<<<<<< HEAD
      * Provides non-null interned user name.
+=======
+     * Provides non-null user name.
+>>>>>>> 8455c7a6ed6f7449c7ad31b1ef7b129705262e1b
      * If the user name is null or empty string, defaults to {@link FileSystemConfiguration#DFLT_USER_NAME},
      * which is the current process owner user.
      * @param user a user name to be fixed.

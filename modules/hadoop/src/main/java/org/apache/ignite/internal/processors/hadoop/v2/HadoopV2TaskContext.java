@@ -238,6 +238,8 @@ public class HadoopV2TaskContext extends HadoopTaskContext {
         Thread.currentThread().setContextClassLoader(jobConf().getClassLoader());
 
         try {
+            FileSystem.get(jobConf());
+
             LocalFileSystem locFs = FileSystem.getLocal(jobConf());
 
             locFs.setWorkingDirectory(new Path(locDir.getAbsolutePath()));

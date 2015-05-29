@@ -18,27 +18,33 @@
 package org.apache.ignite.internal.processors.hadoop.fs;
 
 import org.apache.ignite.*;
-import org.apache.ignite.internal.*;
-import org.apache.ignite.internal.util.typedef.internal.*;
-import org.jetbrains.annotations.*;
 import org.jsr166.*;
 
 import java.util.*;
 import java.util.concurrent.*;
+import org.apache.ignite.internal.util.future.*;
+
+import java.io.*;
+import java.util.concurrent.locks.*;
 
 /**
  * Maps values by keys.
  * Values are created lazily using {@link ValueFactory}.
- * Currently only {@link #clear()} method can remove a value.
  *
  * Despite of the name, does not depend on any Hadoop classes.
  */
-public class HadoopLazyConcurrentMap<K, V> {
+public class HadoopLazyConcurrentMap<K, V extends Closeable> {
     /** The map storing the actual values. */
     private final ConcurrentMap<K, ValueWrapper> map = new ConcurrentHashMap8<>();
 
     /** The factory passed in by the client. Will be used for lazy value creation. */
     private final ValueFactory<K, V> factory;
+
+    /** Lock used to close the objects. */
+    private final ReadWriteLock closeLock = new ReentrantReadWriteLock();
+
+    /** Flag indicating that this map is closed and cleared. */
+    private boolean closed;
 
     /**
      * Constructor.
@@ -56,15 +62,29 @@ public class HadoopLazyConcurrentMap<K, V> {
      * @throws IgniteException on error
      */
     public V getOrCreate(K k) {
-        final ValueWrapper wNew = new ValueWrapper(k);
-
-        ValueWrapper w = map.putIfAbsent(k, wNew);
+        ValueWrapper w = map.get(k);
 
         if (w == null) {
-            // new wrapper 'w' has been put, so init the value:
-            wNew.init();
+            closeLock.readLock().lock();
 
-            w = wNew;
+            try {
+                if (closed)
+                    throw new IllegalStateException("Failed to create value for key [" + k
+                        + "]: the map is already closed.");
+
+                final ValueWrapper wNew = new ValueWrapper(k);
+
+                w = map.putIfAbsent(k, wNew);
+
+                if (w == null) {
+                    wNew.init();
+
+                    w = wNew;
+                }
+            }
+            finally {
+                closeLock.readLock().unlock();
+            }
         }
 
         try {
@@ -74,60 +94,64 @@ public class HadoopLazyConcurrentMap<K, V> {
 
             return v;
         }
-        catch (IgniteInterruptedCheckedException ie) {
+        catch (IgniteCheckedException ie) {
             throw new IgniteException(ie);
         }
     }
 
     /**
-     * Gets the value without any attempt to create a new one.
-     * @param k the key
-     * @return the value, or null if there is no value for this key.
+     * Clears the map and closes all the values.
      */
-    public @Nullable V get(K k) {
-        ValueWrapper w = map.get(k);
-
-        if (w == null)
-            return null;
+    public void close() throws IgniteCheckedException {
+        closeLock.writeLock().lock();
 
         try {
-            return w.getValue();
+            closed = true;
+
+            Exception err = null;
+
+            Set<K> keySet = map.keySet();
+
+            for (K key : keySet) {
+                V v = null;
+
+                try {
+                    v = map.get(key).getValue();
+                }
+                catch (IgniteCheckedException ignore) {
+                    // No-op.
+                }
+
+                if (v != null) {
+                    try {
+                        v.close();
+                    }
+                    catch (Exception err0) {
+                        if (err == null)
+                            err = err0;
+                    }
+                }
+            }
+
+            map.clear();
+
+            if (err != null)
+                throw new IgniteCheckedException(err);
         }
-        catch (IgniteInterruptedCheckedException ie) {
-            throw new IgniteException(ie);
+        finally {
+            closeLock.writeLock().unlock();
         }
     }
-
-    /**
-     * Gets the keySet of this map,
-     * the contract is as per {@link ConcurrentMap#keySet()}
-     * @return the set of keys, never null.
-     */
-    public Set<K> keySet() {
-        return map.keySet();
-    }
-
-    /**
-     * Clears the map.
-     * Follows the contract of {@link ConcurrentMap#clear()}
-     */
-    public void clear() {
-        map.clear();
-    }
-
 
     /**
      * Helper class that drives the lazy value creation.
      */
     private class ValueWrapper {
-        /** Value creation latch */
-        private final CountDownLatch vlueCrtLatch = new CountDownLatch(1);
+        /** Future. */
+        private final GridFutureAdapter<V> fut = new GridFutureAdapter<>();
 
         /** the key */
         private final K key;
-
-        /** the value */
-        private V v;
 
         /**
          * Creates new wrapper.
@@ -140,25 +164,26 @@ public class HadoopLazyConcurrentMap<K, V> {
          * Initializes the value using the factory.
          */
         private void init() {
-            final V v0 = factory.createValue(key);
+            try {
+                final V v0 = factory.createValue(key);
 
-            if (v0 == null)
-                throw new IgniteException("Failed to create non-null value. [key=" + key + ']');
+                if (v0 == null)
+                    throw new IgniteException("Failed to create non-null value. [key=" + key + ']');
 
-            v = v0;
-
-            vlueCrtLatch.countDown();
+                fut.onDone(v0);
+            }
+            catch (Throwable e) {
+                fut.onDone(e);
+            }
         }
 
         /**
-         * Blocks until the value is initialized.
-         * @return the value
-         * @throws IgniteInterruptedCheckedException if interrupted during wait.
+         * Gets the available value or blocks until the value is initialized.
+         * @return the value, never null.
+         * @throws IgniteCheckedException on error.
          */
-        @Nullable V getValue() throws IgniteInterruptedCheckedException {
-            U.await(vlueCrtLatch);
-
-            return v;
+        V getValue() throws IgniteCheckedException {
+            return fut.get();
         }
     }
 
@@ -169,7 +194,8 @@ public class HadoopLazyConcurrentMap<K, V> {
      */
     public interface ValueFactory <K, V> {
         /**
-         * Creates the new value. Must never return null.
+         * Creates the new value. Should never return null.
+         *
          * @param key the key to create value for
          * @return the value.
          * @throws IgniteException on failure.

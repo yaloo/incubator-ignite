@@ -78,6 +78,8 @@ block content
                             input.form-control(type="text" ng-model='backupItem.p2pPoolSize' placeholder='2')
                 .panel-heading
                     .panel-title
-                        a(bs-collapse-toggle) Show advanced settings
+                        span(bs-collapse-toggle)
+                            a(ng-click="expanded = true" ng-hide="expanded") Show advanced settings
+                            a(ng-click="expanded = false" ng-show="expanded") Hide advanced settings
             center
                 button.btn.btn-primary(ng-click='saveCluster(backupItem)' ng-disabled='editForm.$invalid') Apply

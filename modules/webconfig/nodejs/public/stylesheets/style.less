@@ -60,13 +60,13 @@
 }
 
 .border-left {
-  -webkit-box-shadow: 1px 0 0px 0px #eee inset;
-  box-shadow: 1px 0 0px 0px #eee inset;
+  -webkit-box-shadow: 1px 0 0 0 #eee inset;
+  box-shadow: 1px 0 0 0 #eee inset;
 }
 
 .border-right {
-  -webkit-box-shadow: 1px 0 0px 0px #eee;
-  box-shadow: 1px 0 0px 0px #eee;
+  -webkit-box-shadow: 1px 0 0 0 #eee;
+  box-shadow: 1px 0 0 0 #eee;
 }
 
 .theme-line {
@@ -345,7 +345,7 @@
 }
 
 .theme-line .sidebar-nav h4:first-child {
-  margin-top: 0em;
+  margin-top: 0;
 }
 
 .theme-line .sidebar-nav .ask {
@@ -791,11 +791,13 @@ h1.ignite-logo {
 }
 
 .st-sort-ascent:after {
-  content: '\25B2';
+  font-family: FontAwesome, serif;
+  content: '\f077';
 }
 
 .st-sort-descent:after {
-  content: '\25BC';
+  font-family: FontAwesome, serif;
+  content: '\f078';
 }
 
 .st-selected {
@@ -853,4 +855,11 @@ h1.ignite-logo {
 
 .advanced {
   border-width: 0 0 1px 0;
+}
+
+@media (min-width: 768px) {
+  .navbar-nav > li > a {
+    padding-top: 20px;
+    padding-bottom: 10px;
+  }
 }

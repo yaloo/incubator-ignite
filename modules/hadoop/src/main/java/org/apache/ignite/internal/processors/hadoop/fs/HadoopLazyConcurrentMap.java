@@ -19,7 +19,6 @@ package org.apache.ignite.internal.processors.hadoop.fs;
 
 import org.apache.ignite.*;
 import org.apache.ignite.internal.util.future.*;
-import org.jetbrains.annotations.*;
 import org.jsr166.*;
 
 import java.io.*;
@@ -65,26 +64,25 @@ public class HadoopLazyConcurrentMap<K, V extends Closeable> {
         ValueWrapper w = map.get(k);
 
         if (w == null) {
-            final ValueWrapper wNew = new ValueWrapper(k);
+            closeLock.readLock().lock();
 
-            w = map.putIfAbsent(k, wNew);
+            try {
+                if (closed)
+                    throw new IllegalStateException("Failed to create value for key [" + k
+                        + "]: the map is already closed.");
 
-            if (w == null) {
-                // new wrapper 'w' has been put, so init the value:
-                closeLock.readLock().lock();
+                final ValueWrapper wNew = new ValueWrapper(k);
 
-                try {
-                    if (closed)
-                        throw new IllegalStateException("Failed to create value for key [" + k
-                            + "]: the map is already closed.");
+                w = map.putIfAbsent(k, wNew);
 
+                if (w == null) {
                     wNew.init();
-                }
-                finally {
-                    closeLock.readLock().unlock();
-                }
 
-                w = wNew;
+                    w = wNew;
+                }
+            }
+            finally {
+                closeLock.readLock().unlock();
             }
         }
 
@@ -101,57 +99,45 @@ public class HadoopLazyConcurrentMap<K, V extends Closeable> {
     }
 
     /**
-     * Gets the value without any attempt to create a new one.
-     * @param k the key
-     * @return the value, or null if there is no value for this key.
-     */
-    public @Nullable V get(K k) {
-        ValueWrapper w = map.get(k);
-
-        if (w == null)
-            return null;
-
-        try {
-            return w.getValue();
-        }
-        catch (IgniteCheckedException ie) {
-            throw new IgniteException(ie);
-        }
-    }
-
-    /**
      * Clears the map and closes all the values.
      */
     public void close() throws IgniteCheckedException {
         closeLock.writeLock().lock();
 
         try {
-            List<IOException> ioExs = new LinkedList<>();
+            closed = true;
+
+            Exception err = null;
 
             Set<K> keySet = map.keySet();
 
-            for (K key: keySet) {
-                ValueWrapper w = map.get(key);
+            for (K key : keySet) {
+                V v = null;
 
-                if (w != null) {
+                try {
+                    v = map.get(key).getValue();
+                }
+                catch (IgniteCheckedException ignore) {
+                    // No-op.
+                }
+
+                if (v != null) {
                     try {
-                        V v = w.getValue();
-
                         v.close();
                     }
-                    catch (IOException ioe) {
-                        ioExs.add(ioe);
+                    catch (Exception err0) {
+                        if (err == null)
+                            err = err0;
                     }
                 }
             }
 
             map.clear();
 
-            if (!ioExs.isEmpty())
-                throw new IgniteCheckedException(ioExs.get(0));
-
-            closed = true;
-        } finally {
+            if (err != null)
+                throw new IgniteCheckedException(err);
+        }
+        finally {
             closeLock.writeLock().unlock();
         }
     }

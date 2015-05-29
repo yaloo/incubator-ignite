@@ -198,4 +198,6 @@ public interface IgfsSecondaryFileSystem {
      * @return Map of properties.
      */
     public Map<String,String> properties();
+
+    // TODO: Add close();
 }

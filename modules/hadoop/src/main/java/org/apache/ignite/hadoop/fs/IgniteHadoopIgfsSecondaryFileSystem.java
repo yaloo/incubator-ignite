@@ -42,6 +42,7 @@ import static org.apache.ignite.internal.processors.igfs.IgfsEx.*;
  * In fact, this class deals with different FileSystems depending on the user context,
  * see {@link IgfsUserContext#currentUser()}.
  */
+// TODO: Remove auto-closeable.
 public class IgniteHadoopIgfsSecondaryFileSystem implements IgfsSecondaryFileSystem, AutoCloseable {
     /** Properties of file system, see {@link #properties()}
      *
@@ -466,6 +467,8 @@ public class IgniteHadoopIgfsSecondaryFileSystem implements IgfsSecondaryFileSys
 
     /** {@inheritDoc} */
     @Override public void close() throws IgniteCheckedException {
+        // TODO: Close default FS.
+
         fileSysLazyMap.close();
     }
 

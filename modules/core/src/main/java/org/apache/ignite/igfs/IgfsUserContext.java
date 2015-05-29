@@ -108,9 +108,9 @@ public abstract class IgfsUserContext {
 
     /**
      * Gets the current context user.
-     * If this method is invoked outside of any {@link #doAs(String, IgniteOutClosure)} on the call stack, it will return null.
-     * Otherwise it will return the user name set in the most lower {@link #doAs(String, IgniteOutClosure)} call
-     * on the call stack.
+     * If this method is invoked outside of any {@link #doAs(String, IgniteOutClosure)} on the call stack, it will
+     * return null. Otherwise it will return the user name set in the most lower
+     * {@link #doAs(String, IgniteOutClosure)} call on the call stack.
      * @return The current user, may be null.
      */
     @Nullable public static String currentUser() {

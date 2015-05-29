@@ -64,6 +64,9 @@ public class GridDiscoveryManagerAliveCacheSelfTest extends GridCommonAbstractTe
     private volatile CountDownLatch latch;
 
     /** */
+    private boolean clientMode;
+
+    /** */
     private final IgnitePredicate<Event> lsnr = new IgnitePredicate<Event>() {
         @Override public boolean apply(Event evt) {
             assertNotNull("Topology lost nodes before stopTempNodes() was called.", latch);
@@ -86,9 +89,25 @@ public class GridDiscoveryManagerAliveCacheSelfTest extends GridCommonAbstractTe
         cCfg.setRebalanceMode(SYNC);
         cCfg.setWriteSynchronizationMode(FULL_SYNC);
 
-        TcpDiscoverySpi disc = new TcpDiscoverySpi();
+        TcpDiscoverySpiAdapter disc;
 
+        if (clientMode && ((gridName.charAt(gridName.length() - 1) - '0') & 1) != 0) {
+            disc = new TcpClientDiscoverySpi();
+
+            cfg.setClientMode(true);
+        }
+        else {
+            TcpDiscoverySpi srvDisc = new TcpDiscoverySpi();
+
+            srvDisc.setMaxMissedClientHeartbeats(50);
+
+            disc = srvDisc;
+        }
+
+        disc.setHeartbeatFrequency(500);
         disc.setIpFinder(IP_FINDER);
+        disc.setAckTimeout(1000);
+        disc.setSocketTimeout(1000);
 
         cfg.setCacheConfiguration(cCfg);
         cfg.setDiscoverySpi(disc);
@@ -118,7 +137,7 @@ public class GridDiscoveryManagerAliveCacheSelfTest extends GridCommonAbstractTe
     /**
      * @throws Exception If failed.
      */
-    public void testAlives() throws Exception {
+    private void doTestAlive() throws Exception {
         for (int i = 0; i < ITERATIONS; i++) {
             info("Performing iteration: " + i);
 
@@ -141,6 +160,24 @@ public class GridDiscoveryManagerAliveCacheSelfTest extends GridCommonAbstractTe
     }
 
     /**
+     * @throws Exception If failed.
+     */
+    public void testAlives() throws Exception {
+        clientMode = false;
+
+        doTestAlive();
+    }
+
+    /**
+     * @throws Exception If failed.
+     */
+    public void testAlivesClient() throws Exception {
+        clientMode = true;
+
+        doTestAlive();
+    }
+
+    /**
      * Waits while topology on all nodes became equals to the expected size.
      *
      * @param nodesCnt Expected nodes count.
@@ -149,6 +186,9 @@ public class GridDiscoveryManagerAliveCacheSelfTest extends GridCommonAbstractTe
     @SuppressWarnings("BusyWait")
     private void awaitDiscovery(long nodesCnt) throws InterruptedException {
         for (Ignite g : alive) {
+            if (g.configuration().getDiscoverySpi() instanceof TcpClientDiscoverySpi)
+                ((TcpClientDiscoverySpi)g.configuration().getDiscoverySpi()).waitForMessagePrecessed();
+
             while (g.cluster().nodes().size() != nodesCnt)
                 Thread.sleep(10);
         }
@@ -187,7 +227,7 @@ public class GridDiscoveryManagerAliveCacheSelfTest extends GridCommonAbstractTe
                     });
 
                 assertTrue(
-                    currTop.contains(GridCacheUtils.oldest(k.internalCache().context(), new AffinityTopologyVersion(currVer))));
+                    currTop.contains(GridCacheUtils.oldestAliveCacheServerNode(k.context().cache().context(), new AffinityTopologyVersion(currVer))));
             }
         }
     }
@@ -213,23 +253,28 @@ public class GridDiscoveryManagerAliveCacheSelfTest extends GridCommonAbstractTe
      * Stops temporary nodes.
      */
     private void stopTempNodes() {
-        int rmv = 0;
+        Collection<Ignite> toRmv = new ArrayList<>(alive.subList(0, TMP_NODES_CNT));
 
-        Collection<Ignite> toRmv = new ArrayList<>(TMP_NODES_CNT);
-
-        for (Iterator<Ignite> iter = alive.iterator(); iter.hasNext() && rmv < TMP_NODES_CNT;) {
-            toRmv.add(iter.next());
-
-            iter.remove();
-
-            rmv++;
-        }
+        alive.removeAll(toRmv);
 
         // Remove listeners to avoid receiving events from stopping nodes.
         for (Ignite g : toRmv)
             g.events().stopLocalListen(lsnr, EventType.EVT_NODE_LEFT, EventType.EVT_NODE_FAILED);
 
-        for (Ignite g : toRmv)
+        for (Iterator<Ignite> itr = toRmv.iterator(); itr.hasNext(); ) {
+            Ignite g = itr.next();
+
+            if (g.cluster().localNode().isClient()) {
+                G.stop(g.name(), false);
+
+                itr.remove();
+            }
+        }
+
+        for (Ignite g : toRmv) {
+            assert !g.cluster().localNode().isClient();
+
             G.stop(g.name(), false);
+        }
     }
 }

@@ -199,5 +199,10 @@ public interface IgfsSecondaryFileSystem {
      */
     public Map<String,String> properties();
 
-    // TODO: Add close();
+
+    /**
+     * Closes the secondary file system.
+     * @throws IgniteException in case of an error.
+     */
+    public void close() throws IgniteException;
 }

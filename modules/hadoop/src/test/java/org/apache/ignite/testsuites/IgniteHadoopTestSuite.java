@@ -48,7 +48,7 @@ public class IgniteHadoopTestSuite extends TestSuite {
         downloadHadoop();
         downloadHive();
 
-        ClassLoader ldr = TestSuite.class.getClassLoader(); // new HadoopClassLoader(null, "test");
+        ClassLoader ldr = new HadoopClassLoader(null, "test"); // TestSuite.class.getClassLoader();
 
         TestSuite suite = new TestSuite("Ignite Hadoop MR Test Suite");
 

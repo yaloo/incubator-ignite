@@ -304,6 +304,59 @@ public class HadoopUtils {
     }
 
     /**
+     *
+     * @return
+     */
+    static Configuration checkPreconditionAndCreateConfiguration() {
+        ClassLoader confCl = Configuration.class.getClassLoader();
+
+        ClassLoader ctxCl = Thread.currentThread().getContextClassLoader();
+
+        if (ctxCl != null && confCl != ctxCl)
+            throw new IllegalStateException("Wrong classloader: " + confCl + " != " + ctxCl);
+
+        return new Configuration();
+    }
+
+    /**
+     * For diagnostic & test purposes.
+     * @param c the Configuration to check.
+     */
+    static void checkConfiguration(Configuration c) {
+        String name = Configuration.class.getName();
+
+        c.set("xxx", name);
+
+        Class clazz = c.getClass("xxx", null);
+
+        c.unset("xxx");
+
+        if (clazz != c.getClass())
+            throw new IllegalStateException("Wrong configuration.");
+    }
+
+    /**
+     *
+     * @return
+     */
+    public static Configuration safeCreateConfiguration() {
+        final ClassLoader cl0 = Thread.currentThread().getContextClassLoader();
+
+        Thread.currentThread().setContextClassLoader(Configuration.class.getClassLoader());
+
+        try {
+            Configuration c = checkPreconditionAndCreateConfiguration();
+
+            checkConfiguration(c);
+
+            return c;
+        }
+        finally {
+            Thread.currentThread().setContextClassLoader(cl0);
+        }
+    }
+
+    /**
      * Constructor.
      */
     private HadoopUtils() {

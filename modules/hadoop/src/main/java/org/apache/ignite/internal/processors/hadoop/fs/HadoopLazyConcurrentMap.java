@@ -18,13 +18,12 @@
 package org.apache.ignite.internal.processors.hadoop.fs;
 
 import org.apache.ignite.*;
+import org.apache.ignite.internal.util.future.*;
 import org.jsr166.*;
 
+import java.io.*;
 import java.util.*;
 import java.util.concurrent.*;
-import org.apache.ignite.internal.util.future.*;
-
-import java.io.*;
 import java.util.concurrent.locks.*;
 
 /**

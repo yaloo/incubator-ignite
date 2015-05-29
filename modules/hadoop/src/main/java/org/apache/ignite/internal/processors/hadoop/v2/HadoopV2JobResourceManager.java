@@ -163,7 +163,6 @@ public class HadoopV2JobResourceManager {
                 stagingDir = new Path(new URI(mrDir));
 
                 if (download) {
-                    // TODO: Out of bounds.
                     try (FileSystem fs = fileSystemForMrUser(stagingDir.toUri(), cfg)) {
                         if (!fs.exists(stagingDir))
                             throw new IgniteCheckedException("Failed to find map-reduce " +
@@ -199,7 +198,8 @@ public class HadoopV2JobResourceManager {
                 }
             }
             else if (!jobLocDir.mkdirs())
-                throw new IgniteCheckedException("Failed to create local job directory: " + jobLocDir.getAbsolutePath());
+                throw new IgniteCheckedException("Failed to create local job directory: "
+                    + jobLocDir.getAbsolutePath());
 
             setLocalFSWorkingDirectory(jobLocDir);
         }

@@ -179,14 +179,14 @@ public class IgniteHadoopFileSystem extends FileSystem {
     public static String getFsHadoopUser(Configuration cfg) throws IOException {
         String user = null;
 
-        // -------------------------------------------
-        // TODO: Temporary workaround, see https://issues.apache.org/jira/browse/IGNITE-761
-        // We have an issue there: sometimes FileSystem created from MR jobs gets incorrect
-        // UserGroupInformation.getCurrentUser() despite of the fact that it is invoked in correct
-        // ugi.doAs() closure.
-        if (cfg != null)
-            user = cfg.get(MRJobConfig.USER_NAME);
-        // -------------------------------------------
+//        // -------------------------------------------
+//        // TODO: Temporary workaround, see https://issues.apache.org/jira/browse/IGNITE-761
+//        // We have an issue there: sometimes FileSystem created from MR jobs gets incorrect
+//        // UserGroupInformation.getCurrentUser() despite of the fact that it is invoked in correct
+//        // ugi.doAs() closure.
+//        if (cfg != null)
+//            user = cfg.get(MRJobConfig.USER_NAME);
+//        // -------------------------------------------
 
         if (user == null) {
             UserGroupInformation currUgi = UserGroupInformation.getCurrentUser();

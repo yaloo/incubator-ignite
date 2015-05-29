@@ -28,6 +28,7 @@ import org.apache.ignite.testframework.junits.common.*;
 import org.jetbrains.annotations.*;
 
 import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * Abstract class for maps test.
@@ -97,6 +98,21 @@ public abstract class HadoopAbstractMapTest extends GridCommonAbstractTest {
 
         @Override public void cleanupTaskEnvironment() throws IgniteCheckedException {
             assert false;
+        }
+
+        /**
+         * @param user
+         * @param callable
+         * @return
+         * @throws IgniteCheckedException
+         */
+        @Override public <T> T runAs(String user, Callable<T> callable) throws IgniteCheckedException {
+            try {
+                return callable.call();
+            }
+            catch (Exception e) {
+                throw new IgniteCheckedException(e);
+            }
         }
     }
 

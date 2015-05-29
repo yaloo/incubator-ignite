@@ -1000,7 +1000,5 @@ public class HadoopDefaultMapReducePlannerSelfTest extends HadoopAbstractSelfTes
         @Override public GridKernalContext context() {
             return null;
         }
-
-
     }
 }

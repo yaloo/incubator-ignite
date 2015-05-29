@@ -21,6 +21,7 @@ import org.apache.ignite.*;
 import org.apache.ignite.internal.processors.hadoop.counter.*;
 
 import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * Task context.
@@ -187,4 +188,14 @@ public abstract class HadoopTaskContext {
      * @throws IgniteCheckedException If failed.
      */
     public abstract void cleanupTaskEnvironment() throws IgniteCheckedException;
+
+    /**
+     *
+     * @param user
+     * @param callable
+     * @param <T>
+     * @return
+     * @throws IgniteCheckedException
+     */
+    public abstract <T> T runAs(String user, Callable<T> callable) throws IgniteCheckedException;
 }

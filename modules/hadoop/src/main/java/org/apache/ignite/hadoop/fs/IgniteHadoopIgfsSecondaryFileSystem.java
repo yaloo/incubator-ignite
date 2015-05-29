@@ -466,33 +466,7 @@ public class IgniteHadoopIgfsSecondaryFileSystem implements IgfsSecondaryFileSys
 
     /** {@inheritDoc} */
     @Override public void close() throws IgniteCheckedException {
-        final HadoopLazyConcurrentMap<String,FileSystem> map = fileSysLazyMap;
-
-        if (map == null)
-            return; // already cleared.
-
-        List<IOException> ioExs = new LinkedList<>();
-
-        // TODO: Close is not thread-safe.
-        Set<String> keySet = map.keySet();
-
-        for (String key: keySet) {
-            FileSystem fs = map.get(key);
-
-            if (fs != null) {
-                try {
-                    fs.close();
-                }
-                catch (IOException ioe) {
-                    ioExs.add(ioe);
-                }
-            }
-        }
-
-        map.clear();
-
-        if (!ioExs.isEmpty())
-            throw new IgniteCheckedException(ioExs.get(0));
+        fileSysLazyMap.close();
     }
 
     /**

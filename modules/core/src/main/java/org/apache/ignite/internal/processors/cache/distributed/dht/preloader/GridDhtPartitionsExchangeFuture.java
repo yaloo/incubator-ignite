@@ -483,17 +483,18 @@ public class GridDhtPartitionsExchangeFuture extends GridFutureAdapter<AffinityT
                 else {
                     assert discoEvt.type() == EVT_DISCOVERY_CUSTOM_EVT : discoEvt;
 
-                    boolean clientOnlyStart = true;
+                    boolean clientOnlyCacheEvt = true;
 
                     for (DynamicCacheChangeRequest req : reqs) {
-                        if (!req.clientStartOnly()) {
-                            clientOnlyStart = false;
+                        if (req.clientStartOnly() || req.close())
+                            continue;
 
-                            break;
-                        }
+                        clientOnlyCacheEvt = false;
+
+                        break;
                     }
 
-                    clientNodeEvt = clientOnlyStart;
+                    clientNodeEvt = clientOnlyCacheEvt;
                 }
 
                 if (clientNodeEvt) {

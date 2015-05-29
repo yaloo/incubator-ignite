@@ -105,36 +105,6 @@ public abstract class HadoopRunnableTask implements Callable<Void> {
         user = IgfsUtils.fixUserName(user);
 
         return callImpl(user);
-
-//        String ugiUser;
-//        try {
-//            UserGroupInformation currUser = UserGroupInformation.getCurrentUser();
-//
-//            ugiUser = currUser.getShortUserName();
-//        }
-//        catch (IOException ioe) {
-//            throw new IgniteCheckedException(ioe);
-//        }
-//
-//        if (F.eq(user, ugiUser))
-//            // if current UGI context user is the same, do direct call:
-//            return callImpl();
-//        else {
-//            // do the call in the context of 'user':
-//            try {
-//                final String ticketCachePath = getJobProperty(CommonConfigurationKeys.KERBEROS_TICKET_CACHE_PATH);
-//
-//                UserGroupInformation ugi = UserGroupInformation.getBestUGI(ticketCachePath, user);
-//
-//                return ugi.doAs(new PrivilegedExceptionAction<Void>() {
-//                    @Override public Void run() throws IgniteCheckedException {
-//                        return callImpl();
-//                    }
-//                });
-//            } catch (IOException | InterruptedException e) {
-//                throw new IgniteCheckedException(e);
-//            }
-//        }
     }
 
 //    /**

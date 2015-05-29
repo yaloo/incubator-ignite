@@ -44,8 +44,7 @@ block content
                     td
                         .input-group
                             input.form-control(type='text' name="name" ng-model='create.name' placeholder='Enter cluster name')
-                            button(class=['btn-default', 'form-control'] ng-model='create.template' data-placement='bottom-center' data-template='/select' data-placeholder='Choose cluster template' bs-options='item.value as item.label for item in templates' bs-select)
-                                span.caret
+                            button(class=['form-control'] ng-model='create.template' data-placement='bottom-center' data-template='/select' data-placeholder='Choose cluster template' bs-options='item.value as item.label for item in templates' bs-select)
                     td
                         button(ng-click='createItem()' class=['btn', 'btn-success', 'fa', 'fa-plus'] ng-disabled='!(create.name && create.template)') &nbspCreate
         form.form-horizontal(name='editForm' ng-if='backupItem')
@@ -56,8 +55,11 @@ block content
             .form-group
                 label.control-label.col-sm-4 Discovery:
                 .col-sm-8
-                    button(class=['btn-default', 'form-control'] ng-model='backupItem.discovery' data-placement='bottom-center' data-template='/select' data-placeholder='Choose discovery' bs-options='item.value as item.label for item in discoveries' bs-select)
-                        span.caret
+                    .input-group
+                        button(class=['form-control'] ng-model='backupItem.discovery' data-placement='bottom-center' data-template='/select' data-placeholder='Choose discovery' bs-options='item.value as item.label for item in discoveries' bs-select)
+                        span.input-group-btn
+                            button(class=['btn', 'btn-default'])
+                                i(class=['fa', 'fa-caret-square-o-down'])
             .panel.advanced(bs-collapse data-start-collapsed='true')
                 .panel-collapse(bs-collapse-target)
                     .form-group

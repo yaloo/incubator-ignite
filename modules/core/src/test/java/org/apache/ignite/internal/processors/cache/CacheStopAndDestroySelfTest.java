@@ -26,6 +26,9 @@ import org.apache.ignite.internal.util.typedef.internal.*;
 import org.apache.ignite.plugin.extensions.communication.*;
 import org.apache.ignite.spi.*;
 import org.apache.ignite.spi.communication.tcp.*;
+import org.apache.ignite.spi.discovery.tcp.*;
+import org.apache.ignite.spi.discovery.tcp.ipfinder.*;
+import org.apache.ignite.spi.discovery.tcp.ipfinder.vm.*;
 import org.apache.ignite.testframework.*;
 import org.apache.ignite.testframework.junits.common.*;
 
@@ -36,6 +39,9 @@ import java.util.concurrent.atomic.*;
  * Checks stop and destroy methods behavior.
  */
 public class CacheStopAndDestroySelfTest extends GridCommonAbstractTest {
+    /** */
+    private static TcpDiscoveryIpFinder ipFinder = new TcpDiscoveryVmIpFinder(true);
+
     /** key-value used at test. */
     protected static String KEY_VAL = "1";
 
@@ -76,6 +82,9 @@ public class CacheStopAndDestroySelfTest extends GridCommonAbstractTest {
 
         if (getTestGridName(2).equals(gridName))
             iCfg.setClientMode(true);
+
+        ((TcpDiscoverySpi)iCfg.getDiscoverySpi()).setIpFinder(ipFinder);
+        ((TcpDiscoverySpi)iCfg.getDiscoverySpi()).setForceServerMode(true);
 
         iCfg.setCacheConfiguration();
 

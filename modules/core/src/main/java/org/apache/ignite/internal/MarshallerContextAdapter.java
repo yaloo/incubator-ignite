@@ -95,12 +95,17 @@ public abstract class MarshallerContextAdapter implements MarshallerContext {
     @Override public boolean registerClass(int id, Class cls) throws IgniteCheckedException {
         boolean registered = true;
 
-        if (!map.containsKey(id)) {
+        String clsName = map.get(id);
+
+        if (clsName == null) {
             registered = registerClassName(id, cls.getName());
 
             if (registered)
                 map.putIfAbsent(id, cls.getName());
         }
+        else if (!clsName.equals(cls.getName()))
+            throw new IgniteCheckedException("Duplicate ID [id=" + id + ", oldCls=" + clsName +
+                ", newCls=" + cls.getName());
 
         return registered;
     }

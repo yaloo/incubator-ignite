@@ -104,28 +104,6 @@ public abstract class HadoopRunnableTask implements Callable<Void> {
 
         user = IgfsUtils.fixUserName(user);
 
-        return callImpl(user);
-    }
-
-//    /**
-//     * Gets the job property.
-//     */
-//    private String getJobProperty(String key) {
-//        if (job instanceof HadoopV2Job) {
-//            Configuration conf = ((HadoopV2Job)job).jobConf();
-//
-//            return conf.get(key);
-//        }
-//        else
-//            return job.info().property(key);
-//    }
-
-    /**
-     * Runnable task call implementation
-     * @return null.
-     * @throws IgniteCheckedException
-     */
-    Void callImpl(final String user) throws IgniteCheckedException {
         assert user != null;
 
         ctx = job.getTaskContext(info);

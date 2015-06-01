@@ -26,6 +26,7 @@ import org.apache.ignite.internal.processors.hadoop.*;
 import org.apache.ignite.internal.processors.hadoop.counter.*;
 import org.apache.ignite.internal.processors.hadoop.counter.HadoopCounters;
 import org.apache.ignite.internal.processors.hadoop.v2.*;
+import org.apache.ignite.internal.processors.igfs.*;
 import org.apache.ignite.internal.util.typedef.*;
 
 import java.io.*;
@@ -37,9 +38,6 @@ import java.util.*;
 public class IgniteHadoopFileSystemCounterWriter implements HadoopCounterWriter {
     /** */
     public static final String PERFORMANCE_COUNTER_FILE_NAME = "performance";
-
-    /** */
-    private static final String DEFAULT_USER_NAME = "anonymous";
 
     /** */
     public static final String COUNTER_WRITER_DIR_PROPERTY = "ignite.counters.fswriter.directory";
@@ -61,8 +59,7 @@ public class IgniteHadoopFileSystemCounterWriter implements HadoopCounterWriter 
 
         String user = jobInfo.user();
 
-        if (F.isEmpty(user))
-            user = DEFAULT_USER_NAME;
+        user = IgfsUtils.fixUserName(user);
 
         String dir = jobInfo.property(COUNTER_WRITER_DIR_PROPERTY);
 

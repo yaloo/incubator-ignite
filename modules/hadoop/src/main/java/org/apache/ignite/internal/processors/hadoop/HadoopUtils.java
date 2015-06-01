@@ -303,6 +303,7 @@ public class HadoopUtils {
         return new File(jobLocDir, info.type() + "_" + info.taskNumber() + "_" + info.attempt());
     }
 
+    // TODO: after disagniostic & testing leave only one method "safeCreateConfiguration()"
     /**
      *
      * @return

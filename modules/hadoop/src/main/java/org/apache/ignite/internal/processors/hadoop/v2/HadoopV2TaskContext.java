@@ -452,7 +452,8 @@ public class HadoopV2TaskContext extends HadoopTaskContext {
         }
     }
 
-    @Override public <T> T runAs(final String user, final Callable<T> callable) throws IgniteCheckedException {
+    /** {@inheritDoc} */
+    @Override public <T> T runAs(final String user, final Callable<T> c) throws IgniteCheckedException {
         String ugiUser;
         try {
             UserGroupInformation currUser = UserGroupInformation.getCurrentUser();
@@ -466,16 +467,13 @@ public class HadoopV2TaskContext extends HadoopTaskContext {
         try {
             if (F.eq(user, ugiUser))
                 // if current UGI context user is the same, do direct call:
-                return callable.call();
+                return c.call();
             else {
-            // do the call in the context of 'user':
-//                final String ticketCachePath = getJobProperty(CommonConfigurationKeys.KERBEROS_TICKET_CACHE_PATH);
-//
                 UserGroupInformation ugi = UserGroupInformation.getBestUGI(null, user);
 
                 return ugi.doAs(new PrivilegedExceptionAction<T>() {
                     @Override public T run() throws Exception {
-                        return callable.call();
+                        return c.call();
                     }
                 });
             }
@@ -484,18 +482,4 @@ public class HadoopV2TaskContext extends HadoopTaskContext {
             throw new IgniteCheckedException(e);
         }
     }
-
-//    /**
-//     * Gets the job property.
-//     */
-//    private String getJobProperty(String key) {
-//        if (job instanceof HadoopV2Job) {
-//            Configuration conf = ((HadoopV2Job)job).jobConf();
-//
-//            return conf.get(key);
-//        }
-//        else
-//            return job.info().property(key);
-//    }
-
 }

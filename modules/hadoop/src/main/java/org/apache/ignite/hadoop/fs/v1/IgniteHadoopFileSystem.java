@@ -22,7 +22,6 @@ import org.apache.hadoop.fs.*;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.permission.*;
 import org.apache.hadoop.hdfs.*;
-import org.apache.hadoop.mapreduce.*;
 import org.apache.hadoop.security.*;
 import org.apache.hadoop.util.*;
 import org.apache.ignite.*;
@@ -173,27 +172,16 @@ public class IgniteHadoopFileSystem extends FileSystem {
     }
 
     /**
-     * Gets non-null and interned user name as per the Hadoop file system viewpoint.
+     * Gets non-null user name as per the Hadoop file system viewpoint.
      * @return the user name, never null.
      */
-    public static String getFsHadoopUser(Configuration cfg) throws IOException {
+    public static String getFsHadoopUser() throws IOException {
         String user = null;
 
-//        // -------------------------------------------
-//        // TODO: Temporary workaround, see https://issues.apache.org/jira/browse/IGNITE-761
-//        // We have an issue there: sometimes FileSystem created from MR jobs gets incorrect
-//        // UserGroupInformation.getCurrentUser() despite of the fact that it is invoked in correct
-//        // ugi.doAs() closure.
-//        if (cfg != null)
-//            user = cfg.get(MRJobConfig.USER_NAME);
-//        // -------------------------------------------
+        UserGroupInformation currUgi = UserGroupInformation.getCurrentUser();
 
-        if (user == null) {
-            UserGroupInformation currUgi = UserGroupInformation.getCurrentUser();
-
-            if (currUgi != null)
-                user = currUgi.getShortUserName();
-        }
+        if (currUgi != null)
+            user = currUgi.getShortUserName();
 
         user = IgfsUtils.fixUserName(user);
 
@@ -242,7 +230,7 @@ public class IgniteHadoopFileSystem extends FileSystem {
 
             uriAuthority = uri.getAuthority();
 
-            user = getFsHadoopUser(cfg);
+            user = getFsHadoopUser();
 
             // Override sequential reads before prefetch if needed.
             seqReadsBeforePrefetch = parameter(cfg, PARAM_IGFS_SEQ_READS_BEFORE_PREFETCH, uriAuthority, 0);

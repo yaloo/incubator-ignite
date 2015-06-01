@@ -95,7 +95,7 @@ public class HadoopV2JobResourceManager {
     }
 
     /**
-     * Gets non-null and interned user name as per the Hadoop viewpoint.
+     * Gets non-null user name as per the Hadoop viewpoint.
      * @param cfg the Hadoop job configuration, may be null.
      * @return the user name, never null.
      */
@@ -103,7 +103,9 @@ public class HadoopV2JobResourceManager {
         String user = cfg.get(MRJobConfig.USER_NAME);
 
         if (user == null)
-            user = IgniteHadoopFileSystem.getFsHadoopUser(cfg);
+            user = IgniteHadoopFileSystem.getFsHadoopUser();
+
+        X.println("##### Mr user = [" + user + "]"); // TODO: remove
 
         return user;
     }

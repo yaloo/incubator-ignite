@@ -41,6 +41,7 @@
         <maven.build.timestamp.format>MMMM d yyyy</maven.build.timestamp.format>
         <doxygen.exec>doxygen</doxygen.exec>
         <git.exec>git</git.exec>
+        <scala.version>scala-2.10</scala.version>
     </properties>
 
     <groupId>org.apache.ignite</groupId>

@@ -79,13 +79,13 @@
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
-            <version>2.11.2</version>
+            <version>${scala.version}</version>
         </dependency>
 
         <dependency>
             <groupId>jline</groupId>
-            <artifactId>jline</artifactId>
-            <version>2.12.1</version>
+            <artifactId>${scala.jline.groupid}</artifactId>
+            <version>${scala.jline.version}</version>
         </dependency>
         <!-- Third party dependencies -->
 
@@ -99,7 +99,7 @@
 
         <dependency>
             <groupId>org.scalatest</groupId>
-            <artifactId>scalatest_2.11</artifactId>
+            <artifactId>scalatest_2.10</artifactId>
             <version>2.2.4</version>
             <scope>test</scope>
             <exclusions>

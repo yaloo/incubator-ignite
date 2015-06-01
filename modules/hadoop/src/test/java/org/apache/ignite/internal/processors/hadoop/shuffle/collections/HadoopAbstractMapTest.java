@@ -96,19 +96,15 @@ public abstract class HadoopAbstractMapTest extends GridCommonAbstractTest {
             assert false;
         }
 
+        /** {@inheritDoc} */
         @Override public void cleanupTaskEnvironment() throws IgniteCheckedException {
             assert false;
         }
 
-        /**
-         * @param user
-         * @param callable
-         * @return
-         * @throws IgniteCheckedException
-         */
-        @Override public <T> T runAs(String user, Callable<T> callable) throws IgniteCheckedException {
+        /** {@inheritDoc} */
+        @Override public <T> T runAsJobOwner(Callable<T> c) throws IgniteCheckedException {
             try {
-                return callable.call();
+                return c.call();
             }
             catch (Exception e) {
                 throw new IgniteCheckedException(e);

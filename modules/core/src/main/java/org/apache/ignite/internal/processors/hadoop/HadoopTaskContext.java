@@ -28,7 +28,7 @@ import java.util.concurrent.*;
  */
 public abstract class HadoopTaskContext {
     /** */
-    private final HadoopJob job;
+    protected final HadoopJob job;
 
     /** */
     private HadoopTaskInput input;
@@ -190,14 +190,13 @@ public abstract class HadoopTaskContext {
     public abstract void cleanupTaskEnvironment() throws IgniteCheckedException;
 
     /**
-     * Executes a callable on behalf of the specified user.
+     * Executes a callable on behalf of the job owner.
      * In case of embedded task execution the implementation of this method
      * will use classes loaded by the ClassLoader this HadoopTaskContext loaded with.
-     * @param user The user name.
      * @param c The callable.
      * @param <T> The return type of the Callable.
      * @return The result of the callable.
      * @throws IgniteCheckedException On any error in callable.
      */
-    public abstract <T> T runAs(String user, Callable<T> c) throws IgniteCheckedException;
+    public abstract <T> T runAsJobOwner(Callable<T> c) throws IgniteCheckedException;
 }

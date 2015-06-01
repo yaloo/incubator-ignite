@@ -34,6 +34,7 @@ import org.apache.ignite.internal.processors.hadoop.*;
 import org.apache.ignite.internal.processors.hadoop.counter.*;
 import org.apache.ignite.internal.processors.hadoop.counter.HadoopCounters;
 import org.apache.ignite.internal.processors.hadoop.v1.*;
+import org.apache.ignite.internal.processors.igfs.*;
 import org.apache.ignite.internal.util.typedef.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 import org.jetbrains.annotations.*;
@@ -453,7 +454,13 @@ public class HadoopV2TaskContext extends HadoopTaskContext {
     }
 
     /** {@inheritDoc} */
-    @Override public <T> T runAs(final String user, final Callable<T> c) throws IgniteCheckedException {
+    @Override public <T> T runAsJobOwner(final Callable<T> c) throws IgniteCheckedException {
+        String user = job.info().user();
+
+        user = IgfsUtils.fixUserName(user);
+
+        assert user != null;
+
         String ugiUser;
         try {
             UserGroupInformation currUser = UserGroupInformation.getCurrentUser();

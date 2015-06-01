@@ -21,7 +21,6 @@ import org.apache.ignite.*;
 import org.apache.ignite.internal.processors.hadoop.*;
 import org.apache.ignite.internal.processors.hadoop.counter.*;
 import org.apache.ignite.internal.processors.hadoop.shuffle.collections.*;
-import org.apache.ignite.internal.processors.igfs.*;
 import org.apache.ignite.internal.util.offheap.unsafe.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 
@@ -100,16 +99,9 @@ public abstract class HadoopRunnableTask implements Callable<Void> {
 
     /** {@inheritDoc} */
     @Override public Void call() throws IgniteCheckedException {
-        String user = job.info().user();
-
-        user = IgfsUtils.fixUserName(user);
-
-        assert user != null;
-
-        // TODO: Inclapsulate user name into HadoopTaskContext.
         ctx = job.getTaskContext(info);
 
-        return ctx.runAs(user, new Callable<Void>() {
+        return ctx.runAsJobOwner(new Callable<Void>() {
             @Override public Void call() throws Exception {
                 call0();
 

@@ -41,7 +41,6 @@
         <maven.build.timestamp.format>MMMM d yyyy</maven.build.timestamp.format>
         <doxygen.exec>doxygen</doxygen.exec>
         <git.exec>git</git.exec>
-        <scala.version>scala-2.10</scala.version>
     </properties>
 
     <groupId>org.apache.ignite</groupId>
@@ -563,6 +562,23 @@
     </build>
 
     <profiles>
+        <profile>
+            <id>scala-2.11</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <scala.version>2.11</scala.version>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>scala-2.10</id>
+            <properties>
+                <scala.version>2.10</scala.version>
+            </properties>
+        </profile>
+
         <profile>
             <id>check-licenses</id>
             <build>

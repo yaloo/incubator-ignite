@@ -70,21 +70,13 @@ public abstract class GridDiscoveryManagerSelfTest extends GridCommonAbstractTes
             cfg.setCacheConfiguration(ccfg1, ccfg2);
         }
 
-        TcpDiscoverySpiAdapter discoverySpi = createDiscovery(cfg);
+        TcpDiscoverySpi discoverySpi = new TcpDiscoverySpi();
 
         discoverySpi.setIpFinder(IP_FINDER);
 
         cfg.setDiscoverySpi(discoverySpi);
 
         return cfg;
-    }
-
-    /**
-     * @return Discovery SPI.
-     * @param cfg DiscoverySpi
-     */
-    protected TcpDiscoverySpiAdapter createDiscovery(IgniteConfiguration cfg) {
-        return new TcpDiscoverySpi();
     }
 
     /**
@@ -200,20 +192,20 @@ public abstract class GridDiscoveryManagerSelfTest extends GridCommonAbstractTes
      *
      */
     public static class RegularDiscovery extends GridDiscoveryManagerSelfTest {
-        // No-op.
+        /** {@inheritDoc} */
+        @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
+            IgniteConfiguration cfg = super.getConfiguration(gridName);
+
+            ((TcpDiscoverySpi)cfg.getDiscoverySpi()).setForceServerMode(true);
+
+            return cfg;
+        }
     }
 
     /**
      *
      */
     public static class ClientDiscovery extends GridDiscoveryManagerSelfTest {
-        /** {@inheritDoc}
-         * @param cfg*/
-        @Override protected TcpDiscoverySpiAdapter createDiscovery(IgniteConfiguration cfg) {
-            if (Boolean.TRUE.equals(cfg.isClientMode()))
-                return new TcpClientDiscoverySpi();
-
-            return super.createDiscovery(cfg);
-        }
+        // No-op.
     }
 }

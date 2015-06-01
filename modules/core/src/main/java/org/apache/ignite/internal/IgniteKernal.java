@@ -71,7 +71,6 @@ import org.apache.ignite.marshaller.optimized.*;
 import org.apache.ignite.mxbean.*;
 import org.apache.ignite.plugin.*;
 import org.apache.ignite.spi.*;
-import org.apache.ignite.spi.discovery.tcp.*;
 import org.jetbrains.annotations.*;
 
 import javax.management.*;
@@ -222,7 +221,7 @@ public class IgniteKernal implements IgniteEx, IgniteMXBean, Externalizable {
 
     /** {@inheritDoc} */
     @Override public IgniteCompute compute() {
-        return ctx.cluster().get().compute();
+        return ((ClusterGroupAdapter)ctx.cluster().get().forServers()).compute();
     }
 
     /** {@inheritDoc} */
@@ -237,7 +236,7 @@ public class IgniteKernal implements IgniteEx, IgniteMXBean, Externalizable {
 
     /** {@inheritDoc} */
     @Override public IgniteServices services() {
-        return ctx.cluster().get().services();
+        return ((ClusterGroupAdapter)ctx.cluster().get().forServers()).services();
     }
 
     /** {@inheritDoc} */
@@ -1072,9 +1071,6 @@ public class IgniteKernal implements IgniteEx, IgniteMXBean, Externalizable {
 
         if (cfg.getIncludeEventTypes() != null && cfg.getIncludeEventTypes().length != 0)
             perf.add("Disable grid events (remove 'includeEventTypes' from configuration)");
-
-        if (Boolean.TRUE.equals(cfg.isClientMode()) && cfg.getDiscoverySpi() instanceof TcpDiscoverySpi)
-            perf.add("Use TcpClientDiscoverySpi instead of TcpDiscoverySpi to run client node");
 
         if (OptimizedMarshaller.available() && !(cfg.getMarshaller() instanceof OptimizedMarshaller))
             perf.add("Enable optimized marshaller (set 'marshaller' to " +

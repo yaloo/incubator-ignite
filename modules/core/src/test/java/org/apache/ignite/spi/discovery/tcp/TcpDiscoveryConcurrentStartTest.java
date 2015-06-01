@@ -44,11 +44,7 @@ public class TcpDiscoveryConcurrentStartTest extends GridCommonAbstractTest {
     @Override protected IgniteConfiguration getConfiguration(String gridName) throws Exception {
         IgniteConfiguration cfg =  super.getConfiguration(gridName);
 
-        TcpDiscoverySpiAdapter discoSpi = client ? new TcpClientDiscoverySpi() : new TcpDiscoverySpi();
-
-        discoSpi.setIpFinder(ipFinder);
-
-        cfg.setDiscoverySpi(discoSpi);
+        cfg.setDiscoverySpi(new TcpDiscoverySpi().setIpFinder(ipFinder));
 
         cfg.setCacheConfiguration();
 

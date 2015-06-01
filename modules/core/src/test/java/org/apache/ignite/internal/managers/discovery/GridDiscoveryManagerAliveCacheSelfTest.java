@@ -52,7 +52,7 @@ public class GridDiscoveryManagerAliveCacheSelfTest extends GridCommonAbstractTe
     private static final int TMP_NODES_CNT = 3;
 
     /** */
-    private static final int ITERATIONS = 20;
+    private static final int ITERATIONS = 10;
 
     /** */
     private int gridCntr;
@@ -89,20 +89,12 @@ public class GridDiscoveryManagerAliveCacheSelfTest extends GridCommonAbstractTe
         cCfg.setRebalanceMode(SYNC);
         cCfg.setWriteSynchronizationMode(FULL_SYNC);
 
-        TcpDiscoverySpiAdapter disc;
+        TcpDiscoverySpi disc = new TcpDiscoverySpi();
 
-        if (clientMode && ((gridName.charAt(gridName.length() - 1) - '0') & 1) != 0) {
-            disc = new TcpClientDiscoverySpi();
-
+        if (clientMode && ((gridName.charAt(gridName.length() - 1) - '0') & 1) != 0)
             cfg.setClientMode(true);
-        }
-        else {
-            TcpDiscoverySpi srvDisc = new TcpDiscoverySpi();
-
-            srvDisc.setMaxMissedClientHeartbeats(50);
-
-            disc = srvDisc;
-        }
+        else
+            disc.setMaxMissedClientHeartbeats(50);
 
         disc.setHeartbeatFrequency(500);
         disc.setIpFinder(IP_FINDER);
@@ -186,8 +178,7 @@ public class GridDiscoveryManagerAliveCacheSelfTest extends GridCommonAbstractTe
     @SuppressWarnings("BusyWait")
     private void awaitDiscovery(long nodesCnt) throws InterruptedException {
         for (Ignite g : alive) {
-            if (g.configuration().getDiscoverySpi() instanceof TcpClientDiscoverySpi)
-                ((TcpClientDiscoverySpi)g.configuration().getDiscoverySpi()).waitForMessagePrecessed();
+            ((TcpDiscoverySpi)g.configuration().getDiscoverySpi()).waitForClientMessagePrecessed();
 
             while (g.cluster().nodes().size() != nodesCnt)
                 Thread.sleep(10);

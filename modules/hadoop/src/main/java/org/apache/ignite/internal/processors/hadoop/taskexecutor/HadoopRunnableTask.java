@@ -106,11 +106,12 @@ public abstract class HadoopRunnableTask implements Callable<Void> {
 
         assert user != null;
 
+        // TODO: Inclapsulate user name into HadoopTaskContext.
         ctx = job.getTaskContext(info);
 
         return ctx.runAs(user, new Callable<Void>() {
             @Override public Void call() throws Exception {
-                runTaskImpl();
+                call0();
 
                 return null;
             }
@@ -121,7 +122,7 @@ public abstract class HadoopRunnableTask implements Callable<Void> {
      * Implements actual task running.
      * @throws IgniteCheckedException
      */
-    void runTaskImpl() throws IgniteCheckedException {
+    void call0() throws IgniteCheckedException {
         execStartTs = U.currentTimeMillis();
 
         Throwable err = null;

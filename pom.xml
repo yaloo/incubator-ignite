@@ -410,7 +410,7 @@
             <id>scala</id>
 
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <property><name>!scala-2.10</name></property>
                 <jdk>[1.7,)</jdk>
             </activation>
 
@@ -420,6 +420,17 @@
                 <module>modules/visor-plugins</module>
             </modules>
         </profile>
+
+        <profile>
+            <id>scala-2.10</id>
+
+            <modules>
+                <module>modules/scalar-2.10</module>
+                <module>modules/visor-console</module>
+                <module>modules/visor-plugins</module>
+            </modules>
+        </profile>
+
 
         <profile>
             <id>lgpl</id>

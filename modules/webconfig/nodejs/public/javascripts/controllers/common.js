@@ -17,26 +17,17 @@
 
 var configuratorModule =  angular.module('ignite-web-configurator', ['smart-table', 'mgcrea.ngStrap']);
 
-configuratorModule.directive('st-custom-action', function() {
-        var directiveConfig = {
-            restrict: "AE",
-            require: '^stTable',
-            link: function(scope, element, attrs, ctrl) {
-                var table = ctrl.tableState();
-                element.on('click', function(ev) {
-                    scope.callback.call().then(function(result) {
-                        if (result) {
-                            ctrl.pipe();
-                        }
-                    });
-                });
-            },
-            scope: {
-                callback: "&"
-            }
-        };
-        return directiveConfig;
-    });
+// Decode name using map(value, label).
+configuratorModule.filter('displayValue', function () {
+    return function (v, m) {
+        for (var i = 0; i < m.length; i++) {
+            if (m[i].value == v)
+                return m[i].label;
+        }
+
+        return 'Unknown value';
+    }
+});
 
 configuratorModule.controller('activeLink', ['$scope', function($scope) {
     $scope.isActive = function(path) {

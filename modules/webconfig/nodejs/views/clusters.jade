@@ -31,7 +31,7 @@ block content
                 tbody
                     tr.col-xs-12(ng-repeat='row in rowCollection')
                         td.col-xs-12(ng-class="{active: row == selectedCluster}")
-                            a(ng-click='selectItem(row)') Name: {{row.name}}, Discovery: {{discoveryAsString(row.discovery.kind)}}
+                            a(ng-click='selectItem(row)') Name: {{row.name}}, Discovery: {{row.discovery.kind | displayValue:discoveries}}
                             span.pull-right(type='button' ng-click='removeItem(row)')
                                 i(class=['fa', 'fa-remove'])
         .settings-row

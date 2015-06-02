@@ -33,14 +33,6 @@ configuratorModule.controller('clustersController', ['$scope', '$modal', '$http'
 
         $scope.clusters = [];
 
-        $scope.discoveryAsString = function(value) {
-            var discovery = $scope.discoveries.find(function(discovery) {
-                return discovery.value == value;
-            });
-
-            return discovery ? discovery.label : 'Wrong discovery';
-        };
-
         // Create popup for discovery advanced settings.
         var discoveryModal = $modal({scope: $scope, template: '/discovery', show: false});
 

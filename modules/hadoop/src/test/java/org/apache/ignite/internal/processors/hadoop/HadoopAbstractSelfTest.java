@@ -61,15 +61,10 @@ public abstract class HadoopAbstractSelfTest extends GridCommonAbstractTest {
     /** Initial REST port. */
     private int restPort = REST_PORT;
 
-    /** Secondary file system REST endpoint configuration map. */
+    /** Secondary file system REST endpoint configuration. */
     protected static final IgfsIpcEndpointConfiguration SECONDARY_REST_CFG;
 
     static {
-//        PRIMARY_REST_CFG = new IgfsIpcEndpointConfiguration();
-//
-//        PRIMARY_REST_CFG.setType(IgfsIpcEndpointType.TCP);
-//        PRIMARY_REST_CFG.setPort(10500);
-
         SECONDARY_REST_CFG = new IgfsIpcEndpointConfiguration();
 
         SECONDARY_REST_CFG.setType(IgfsIpcEndpointType.TCP);

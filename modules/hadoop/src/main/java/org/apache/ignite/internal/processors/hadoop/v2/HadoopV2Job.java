@@ -331,7 +331,7 @@ public class HadoopV2Job implements HadoopJob {
 
     /**
      * Getter for job configuration.
-     * @return the job configuration
+     * @return The job configuration.
      */
     public JobConf jobConf() {
         return jobConf;

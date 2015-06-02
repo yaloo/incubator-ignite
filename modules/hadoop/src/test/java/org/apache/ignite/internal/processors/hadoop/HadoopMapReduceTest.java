@@ -69,14 +69,16 @@ public class HadoopMapReduceTest extends HadoopAbstractWordCountTest {
     /** Secondary file system configuration path. */
     protected static final String SECONDARY_CFG = "modules/core/src/test/config/hadoop/core-site-loopback-secondary.xml";
 
+    /** The user to run Hadoop job on behalf of. */
     protected static final String USER = "vasya";
 
+    /** Secondary IGFS name. */
     protected static final String SECONDARY_IGFS_NAME = "igfs-secondary";
 
-    /** */
+    /** The secondary Ignite node. */
     protected Ignite igniteSecondary;
 
-    /** */
+    /** The secondary Fs. */
     protected IgfsSecondaryFileSystem secondaryFs;
 
     /** {@inheritDoc} */
@@ -85,19 +87,19 @@ public class HadoopMapReduceTest extends HadoopAbstractWordCountTest {
     }
 
     /**
-     *
-     * @param p
-     * @return
+     * Gets owner of a IgfsEx path.
+     * @param p The path.
+     * @return The owner.
      */
     private static String getOwner(IgfsEx i, IgfsPath p) {
         return i.info(p).property(IgfsEx.PROP_USER_NAME);
     }
 
     /**
-     *
-     * @param secFs
-     * @param p
-     * @return
+     * Gets owner of a secondary Fs path.
+     * @param secFs The sec Fs.
+     * @param p The path.
+     * @return The owner.
      */
     private static String getOwnerSecondary(final IgfsSecondaryFileSystem secFs, final IgfsPath p) {
         return IgfsUserContext.doAs(USER, new IgniteOutClosure<String>() {
@@ -108,8 +110,8 @@ public class HadoopMapReduceTest extends HadoopAbstractWordCountTest {
     }
 
     /**
-     *
-     * @param p
+     * Checks owner of the path.
+     * @param p The path.
      */
     private void checkOwner(IgfsPath p) {
         String ownerPrim = getOwner(igfs, p);
@@ -140,9 +142,6 @@ public class HadoopMapReduceTest extends HadoopAbstractWordCountTest {
             boolean useNewReducer = (i & 4) == 0;
 
             JobConf jobConf = new JobConf();
-
-            //jobConf.setBoolean("fs.igfs.impl.disable.cache", true); // avoid hangup in shutdown hook
-            // when fs.close() causes the fs to be created again. // This does not work, why?????
 
             jobConf.set(JOB_COUNTER_WRITER_PROPERTY, IgniteHadoopFileSystemCounterWriter.class.getName());
             jobConf.setUser(USER);
@@ -373,9 +372,4 @@ public class HadoopMapReduceTest extends HadoopAbstractWordCountTest {
 
         return fsCfg;
     }
-
-//    /** {@inheritDoc} */
-//    @Override protected long getTestTimeout() {
-//        return 30 * 60 * 1000; // TODO: for testing
-//    }
 }

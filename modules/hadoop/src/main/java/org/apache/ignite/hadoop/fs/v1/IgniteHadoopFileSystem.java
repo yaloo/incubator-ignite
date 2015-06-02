@@ -358,12 +358,7 @@ public class IgniteHadoopFileSystem extends FileSystem {
                 FileSystem cached = get(getUri(), getConf());
 
                 if (cached == this)
-                    return;
-                else {
-                    X.println("### Cache enabled, but this file system is not found in the cache: " +
-                        " this = " + this + ", user =" + this.user +
-                        " cached = " + cached + ", user =" + ((IgniteHadoopFileSystem)cached).user);
-                }
+                    return; // do not close cached instances.
             }
 
             close0();

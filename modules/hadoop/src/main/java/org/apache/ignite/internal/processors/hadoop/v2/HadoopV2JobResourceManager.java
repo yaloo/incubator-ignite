@@ -105,8 +105,6 @@ public class HadoopV2JobResourceManager {
         if (user == null)
             user = IgniteHadoopFileSystem.getFsHadoopUser();
 
-        X.println("##### Mr user = [" + user + "]"); // TODO: remove
-
         return user;
     }
 

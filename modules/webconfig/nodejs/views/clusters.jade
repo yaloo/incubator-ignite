@@ -32,7 +32,7 @@ block content
                     tr.col-xs-12(ng-repeat='row in rowCollection')
                         td.col-xs-12(ng-class="{active: row == selectedCluster}")
                             a(ng-click='selectItem(row)') Name: {{row.name}}, Discovery: {{discoveryAsString(row.discovery.kind)}}
-                            span.pull-right(type='button' st-custom-action callback='removeItem(row._id)')
+                            span.pull-right(type='button' ng-click='removeItem(row)')
                                 i(class=['fa', 'fa-remove'])
         .settings-row
             button(ng-click='createItem()' class=['btn', 'btn-default'] ng-disabled='!create.template') &nbspAdd cluster...

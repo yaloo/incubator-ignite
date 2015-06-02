@@ -79,18 +79,13 @@ configuratorModule.controller('clustersController', ['$scope', '$modal', '$http'
                 });
         };
 
-        // Remove new cluster.
-        $scope.removeItem = function(_id) {
-            $http.post('/rest/clusters/remove', {_id: _id})
+        $scope.removeItem = function(row) {
+            $http.post('/rest/clusters/remove', {_id: row._id})
                 .success(function(data) {
-                    for (var i = 0; i < $scope.clusters.length; i++) {
-                        if ($scope.clusters[i]._id == _id) {
-                            $scope.clusters.slice(i, 1);
+                    var index = $scope.clusters.indexOf(row);
 
-                            break;
-                        }
-                    }
-
+                    if (index !== -1)
+                        $scope.clusters.splice(index, 1);
                 })
                 .error(function(errorMessage) {
                     console.log('Error: ' + errorMessage);

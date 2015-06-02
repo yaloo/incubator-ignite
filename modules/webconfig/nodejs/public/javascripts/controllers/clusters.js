@@ -79,10 +79,10 @@ configuratorModule.controller('clustersController', ['$scope', '$modal', '$http'
                 });
         };
 
-        $scope.removeItem = function(row) {
-            $http.post('/rest/clusters/remove', {_id: row._id})
-                .success(function(data) {
-                    var index = $scope.clusters.indexOf(row);
+        $scope.removeItem = function(item) {
+            $http.post('/rest/clusters/remove', {_id: item._id})
+                .success(function() {
+                    var index = $scope.clusters.indexOf(item);
 
                     if (index !== -1)
                         $scope.clusters.splice(index, 1);
@@ -93,20 +93,15 @@ configuratorModule.controller('clustersController', ['$scope', '$modal', '$http'
         };
 
         // Save cluster in db.
-        $scope.saveCluster = function (cluster) {
-            //console.log(cluster);
-
-            $http.post('/rest/clusters/save', cluster)
+        $scope.saveItem = function(item) {
+            $http.post('/rest/clusters/save', item)
                 .success(function() {
-                    for (var i = 0; i < $scope.clusters.length; i++) {
-                        if ($scope.clusters[i]._id == cluster._id) {
-                            console.log($scope.clusters[i]);
+                    var cluster = $scope.clusters.find(function(cluster) {
+                        return clusters._id == item._id;
+                    });
 
-                            $scope.clusters[i] = angular.copy(cluster);
-
-                            break;
-                        }
-                    }
+                    if (cluster)
+                        angular.extend(cluster, angular.copy(item));
                 })
                 .error(function(errorMessage) {
                     console.log('Error: ' + errorMessage);

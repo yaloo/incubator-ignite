@@ -411,7 +411,6 @@
 
             <activation>
                 <property><name>!scala-2.10</name></property>
-                <jdk>[1.7,)</jdk>
             </activation>
 
             <modules>
@@ -424,9 +423,13 @@
         <profile>
             <id>scala-2.10</id>
 
+            <activation>
+                <property><name>scala-2.10</name></property>
+            </activation>
+
             <modules>
                 <module>modules/scalar-2.10</module>
-                <module>modules/visor-console</module>
+                <module>modules/visor-console-2.10</module>
                 <module>modules/visor-plugins</module>
             </modules>
         </profile>

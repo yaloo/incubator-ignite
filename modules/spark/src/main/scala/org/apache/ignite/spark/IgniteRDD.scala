@@ -51,17 +51,20 @@ class IgniteRDD[K, V] (
      * @return Partition iterator.
      */
     override def compute(part: Partition, context: TaskContext): Iterator[(K, V)] = {
-        val cache = ensureCache()
+// TODO IGNITE-389 Fix compilation.
+//        val cache = ensureCache()
+//
+//        val qry: ScanQuery[K, V] = new ScanQuery[K, V](part.index)
+//
+//        val partNodes = ic.ignite().affinity(cache.getName).mapPartitionToPrimaryAndBackups(part.index)
+//
+//        val it: java.util.Iterator[Cache.Entry[K, V]] = cache.query(qry).iterator()
+//
+//        new IgniteQueryIterator[Cache.Entry[K, V], (K, V)](it, entry ⇒ {
+//            (entry.getKey, entry.getValue)
+//        })
 
-        val qry: ScanQuery[K, V] = new ScanQuery[K, V](part.index)
-
-        val partNodes = ic.ignite().affinity(cache.getName).mapPartitionToPrimaryAndBackups(part.index)
-
-        val it: java.util.Iterator[Cache.Entry[K, V]] = cache.query(qry).iterator()
-
-        new IgniteQueryIterator[Cache.Entry[K, V], (K, V)](it, entry ⇒ {
-            (entry.getKey, entry.getValue)
-        })
+        null // TODO IGNITE-389 Fix compilation.
     }
 
     /**

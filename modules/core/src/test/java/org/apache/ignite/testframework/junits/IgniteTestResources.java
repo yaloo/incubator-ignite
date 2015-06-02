@@ -22,7 +22,6 @@ import org.apache.ignite.internal.processors.resource.*;
 import org.apache.ignite.internal.util.typedef.internal.*;
 import org.apache.ignite.marshaller.*;
 import org.apache.ignite.marshaller.optimized.*;
-import org.apache.ignite.plugin.*;
 import org.apache.ignite.resources.*;
 import org.apache.ignite.testframework.config.*;
 import org.apache.ignite.testframework.junits.logger.*;
@@ -39,9 +38,6 @@ import java.util.concurrent.*;
  * Test resources for injection.
  */
 public class IgniteTestResources {
-    /** */
-    public static PluginConfiguration[] PLUGINS;
-
     /** */
     private static final IgniteLogger rootLog = new GridTestLog4jLogger(false);
 

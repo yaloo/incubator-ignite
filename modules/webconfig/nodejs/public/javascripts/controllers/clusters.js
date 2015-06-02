@@ -15,32 +15,30 @@
  * limitations under the License.
  */
 
-configuratorModule.controller('clustersController', ['$scope', '$modal', '$http',
-    function($scope, $modal, $http) {
+configuratorModule.controller('clustersController', ['$scope', '$modal', '$http', function($scope, $modal, $http) {
         $scope.templates = [
-            {value: {discovery: 'TcpDiscoveryVmIpFinder', addresses: ['127.0.0.1:47500..47510']}, label: 'Local'},
-            {value: {discovery: 'TcpDiscoveryMulticastIpFinder'}, label: 'Basic'}
+            {value: {discovery: {kind: 'Vm', addresses: ['127.0.0.1:47500..47510']}}, label: 'Local'},
+            {value: {discovery: {kind: 'Multicast'}}, label: 'Basic'}
         ];
 
         $scope.discoveries = [
-            {value: 'TcpDiscoveryVmIpFinder', label: 'Static IPs'},
-            {value: 'TcpDiscoveryMulticastIpFinder', label: 'Multicast'},
-            {value: 'TcpDiscoveryS3IpFinder', label: 'AWS S3'},
-            {value: 'TcpDiscoveryCloudIpFinder', label: 'Apache jclouds'},
-            {value: 'TcpDiscoveryGoogleStorageIpFinder', label: 'Google Cloud Storage'},
-            {value: 'TcpDiscoveryJdbcIpFinder', label: 'JDBC'},
-            {value: 'TcpDiscoverySharedFsIpFinder', label: 'Shared Filesystem'}
+            {value: 'Vm', label: 'Static IPs'},
+            {value: 'Multicast', label: 'Multicast'},
+            {value: 'S3', label: 'AWS S3'},
+            {value: 'Cloud', label: 'Apache jclouds'},
+            {value: 'GoogleStorage', label: 'Google Cloud Storage'},
+            {value: 'Jdbc', label: 'JDBC'},
+            {value: 'SharedFs', label: 'Shared Filesystem'}
         ];
 
+        $scope.clusters = [];
+
         $scope.discoveryAsString = function(value) {
-            for (var i = 0; i < $scope.discoveries.length; i++) {
-                var discovery = $scope.discoveries[i];
+            var discovery = $scope.discoveries.find(function(discovery) {
+                return discovery.value == value;
+            });
 
-                if (discovery.value == value)
-                    return discovery.label;
-            }
-
-            return 'Wrong discovery';
+            return discovery ? discovery.label : 'Wrong discovery';
         };
 
         // Create popup for discovery advanced settings.
@@ -58,27 +56,41 @@ configuratorModule.controller('clustersController', ['$scope', '$modal', '$http'
             });
 
         $scope.selectItem = function(item) {
-            $scope.backupItem = item.isSelected ? angular.copy(item) : undefined;
+            $scope.selectedCluster = item;
+
+            $scope.backupItem = angular.copy(item);
         };
 
         // Add new cluster.
         $scope.createItem = function() {
             var item = angular.copy($scope.create.template);
 
-            item.name = $scope.create.name;
+            item.name = 'Cluster ' + ($scope.clusters.length + 1);
             item.space = $scope.spaces[0]._id;
 
-            $scope.create = {};
+            $http.post('/rest/clusters/save', item)
+                .success(function(_id) {
+                    item._id = _id;
 
-            $scope.saveCluster(item);
+                    $scope.clusters.push(item);
+                })
+                .error(function(errorMessage) {
+                    console.log('Error: ' + errorMessage);
+                });
         };
 
         // Remove new cluster.
         $scope.removeItem = function(_id) {
             $http.post('/rest/clusters/remove', {_id: _id})
                 .success(function(data) {
-                    $scope.spaces = data.spaces;
-                    $scope.clusters = data.clusters;
+                    for (var i = 0; i < $scope.clusters.length; i++) {
+                        if ($scope.clusters[i]._id == _id) {
+                            $scope.clusters.slice(i, 1);
+
+                            break;
+                        }
+                    }
+
                 })
                 .error(function(errorMessage) {
                     console.log('Error: ' + errorMessage);
@@ -87,17 +99,23 @@ configuratorModule.controller('clustersController', ['$scope', '$modal', '$http'
 
         // Save cluster in db.
         $scope.saveCluster = function (cluster) {
+            //console.log(cluster);
+
             $http.post('/rest/clusters/save', cluster)
-                .success(function(data) {
-                    $scope.spaces = data.spaces;
+                .success(function() {
+                    for (var i = 0; i < $scope.clusters.length; i++) {
+                        if ($scope.clusters[i]._id == cluster._id) {
+                            console.log($scope.clusters[i]);
 
-                    $scope.clusters = data.clusters;
+                            $scope.clusters[i] = angular.copy(cluster);
 
-                    $scope.backupItem = undefined;
+                            break;
+                        }
+                    }
                 })
                 .error(function(errorMessage) {
                     console.log('Error: ' + errorMessage);
                 });
-        }
+        };
     }]
 );

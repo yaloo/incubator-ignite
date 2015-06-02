@@ -577,20 +577,16 @@
   color: #666;
 }
 
+.theme-line header {
+  border-bottom-color: #ec1c24;
+}
+
 .theme-line .navbar-nav {
   color: #888;
 }
 
 .theme-line .navbar-nav a {
   color: #bbb;
-}
-
-.theme-line.lumosity-light .searchbox .tt-cursor p {
-  color: rgba(0, 0, 0, 0.7);
-}
-
-.theme-line header {
-  border-bottom-color: #ec1c24;
 }
 
 .theme-line header a.btn {
@@ -601,12 +597,12 @@
   background-color: #950d12;
 }
 
-.theme-line header .navbar-nav a:hover, .theme-line header .navbar-nav .open > a {
-  color: #ec1c24;
-}
-
 .theme-line header .navbar-nav .tt-cursor {
   background-color: #ec1c24;
+}
+
+.theme-line header .navbar-nav a:hover, .theme-line header .navbar-nav .open > a {
+  color: #ec1c24;
 }
 
 .theme-line .navbar-nav .active a {
@@ -691,7 +687,7 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
-  font-family: Roboto Slab, serif;;
+  font-family: Roboto Slab, serif;
 }
 
 .submit-vote.submit-vote-parent.voted a.submit-vote-button, .submit-vote.submit-vote-parent a.submit-vote-button:hover {
@@ -732,9 +728,9 @@ a:hover, .link:hover .title {
 }
 
 .vcenter {
-  //display: inline-block;
+  display: inline-block;
   vertical-align: middle;
-  //float: none;
+  float: none;
 }
 
 .border-right-remove {
@@ -817,46 +813,46 @@ h1.ignite-logo {
   content: '\f078';
 }
 
-.st-selected {
-  background: #216eff;
-  color: white;
-}
+//.st-selected {
+//  background: #216eff;
+//  color: white;
+//}
 
-.docs-content table {
-  width: 100%;
-  border-top: 1px solid #ccc;
-  border-left: 1px solid #ccc;
-  margin-bottom: 30px;
-}
+//.docs-content table {
+//  width: 100%;
+//  border-top: 1px solid #ccc;
+//  border-left: 1px solid #ccc;
+//  margin-bottom: 30px;
+//}
+//
+//.docs-content th {
+//  text-align: center;
+//  border-right: 1px solid #ccc;
+//  border-bottom: 1px solid #ccc;
+//  background-color: #f7f7f7;
+//  padding: 5px;
+//}
+//
+//.docs-content td {
+//  text-align: center;
+//  border-right: 1px solid #ccc;
+//  border-bottom: 1px solid #ccc;
+//  vertical-align: middle;
+//  padding: 5px;
+//}
 
-.docs-content th {
-  text-align: center;
-  border-right: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
-  background-color: #f7f7f7;
-  padding: 5px;
-}
-
-.docs-content td {
-  text-align: center;
-  border-right: 1px solid #ccc;
-  border-bottom: 1px solid #ccc;
-  vertical-align: middle;
-  padding: 5px;
-}
-
-.docs-content td > .input-group {
-  input {
-    width: 50%;
-  }
-
-  button {
-    width: 50%;
-    border-left: 0;
-  }
-
-  display: block;
-}
+//.docs-content td > .input-group {
+//  input {
+//    width: 50%;
+//  }
+//
+//  button {
+//    width: 50%;
+//    border-left: 0;
+//  }
+//
+//  display: block;
+//}
 
 .block-display-image img {
   max-width: 100%;
@@ -870,13 +866,77 @@ h1.ignite-logo {
   height: ~"calc(100vh - 230px)";
 }
 
-.advanced {
-  border-width: 0 0 1px 0;
-}
-
 @media (min-width: 768px) {
   .navbar-nav > li > a {
     padding-top: 20px;
     padding-bottom: 10px;
   }
+}
+
+
+.settings-row {
+  display: block;
+  margin: 0.65em 0;
+  padding-left: 18px;
+
+  [class*="col-"] {
+    display: inline-block;
+    vertical-align: middle;
+    float: none;
+
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
+
+button {
+  margin-right: 4px;
+}
+
+h1,
+h2,
+h3 {
+  -webkit-user-select: none;
+  font-weight: normal;
+  /* Makes the vertical size of the text the same for all fonts. */
+  line-height: 1;
+}
+
+h3 {
+  color: black;
+  font-size: 1.2em;
+  margin-bottom: 0.8em;
+}
+
+table tr:hover{ cursor:pointer; }
+
+.input-group {
+  display: inline-block;
+}
+
+.input-group .form-control {
+  width: auto;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.form-control {
+  display: inline-block;
+}
+
+.panel-heading .panel-title {
+  margin-left: -18px;
+}
+
+.theme-line .links table a {
+  color: #666;
+}
+
+.theme-line .links table a:hover {
+  color: #ec1c24;
+}
+
+.theme-line .links table .active a {
+  font-weight: bold;
+  color: #ec1c24;
 }

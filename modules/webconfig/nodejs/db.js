@@ -45,17 +45,55 @@ exports.Space =  mongoose.model('Space', new Schema({
     }]
 }));
 
-// Define cluster model.
-exports.Cluster =  mongoose.model('Cluster', new Schema({
+var DiscoveryObj = {
+    className: String, enum: ['TcpDiscoveryVmIpFinder', 'TcpDiscoveryMulticastIpFinder', 'TcpDiscoveryS3IpFinder',
+        'TcpDiscoveryCloudIpFinder', 'TcpDiscoveryGoogleStorageIpFinder', 'TcpDiscoveryJdbcIpFinder',
+        'TcpDiscoverySharedFsIpFinder'],
+    addresses: [String]
+};
+
+// Define discovery model.
+exports.Discovery =  mongoose.model('Discovery', new Schema(DiscoveryObj));
+
+var ClusterSchema = new Schema({
     space: { type: ObjectId, ref: 'Space' },
     name: String,
-    discovery: { type: String, enum: ['TcpDiscoveryVmIpFinder', 'TcpDiscoveryMulticastIpFinder'] },
-    addresses: [String],
+    discovery: {
+        kind: { type: String, enum: ['Vm', 'Multicast', 'S3', 'Cloud', 'GoogleStorage', 'Jdbc', 'SharedFs'] },
+        addresses: [String]
+    },
     pubPoolSize: Number,
     sysPoolSize: Number,
     mgmtPoolSize: Number,
     p2pPoolSize: Number
-}));
+});
+
+// Define cluster model.
+exports.Cluster =  mongoose.model('Cluster', ClusterSchema);
+
+//ClusterSchema.pre('save', function(next) {
+//    // swap account model for the id
+//    var id = this._doc.discovery._id;
+//    //save the account model, which fires it's own middleware
+//    this._doc.discovery.save();
+//    // reset the account to the id before it is saved
+//    this._doc.discovery = id;
+//
+//    next();
+//});
+
+ClusterSchema.pre('remove', function(next) {
+    var discovery = false;
+
+    if (this._doc && this._doc.discovery) discovery = {_id:this._doc.discovery._id};
+
+    Discovery.remove(discovery, function(err) {
+        if (err)
+            next(err);
+
+        next();
+    });
+});
 
 // Define cache model.
 exports.Cache =  mongoose.model('Cache', new Schema({
@@ -76,7 +114,7 @@ exports.upsert = function(model, data, cb){
         model.findOneAndUpdate({_id: id}, data, cb);
     }
     else
-        model.create(data, cb);
+        new model(data).save(cb);
 };
 
 exports.mongoose = mongoose;

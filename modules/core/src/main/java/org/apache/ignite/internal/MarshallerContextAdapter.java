@@ -82,9 +82,11 @@ public abstract class MarshallerContextAdapter implements MarshallerContext {
 
                 String oldClsName;
 
-                if ((oldClsName = map.put(typeId, clsName)) != null)
-                    throw new IgniteException("Duplicate type ID [id=" + typeId + ", clsName=" + clsName +
+                if ((oldClsName = map.put(typeId, clsName)) != null) {
+                    if (!oldClsName.equals(clsName))
+                        throw new IgniteException("Duplicate type ID [id=" + typeId + ", clsName=" + clsName +
                         ", oldClsName=" + oldClsName + ']');
+                }
 
                 registeredSystemTypes.add(clsName);
             }

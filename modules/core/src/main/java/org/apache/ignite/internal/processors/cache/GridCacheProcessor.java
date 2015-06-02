@@ -784,7 +784,7 @@ public class GridCacheProcessor extends GridProcessorAdapter {
             if (cfg.getRebalanceMode() == SYNC) {
                 if (cfg.getCacheMode() == REPLICATED ||
                     (cfg.getCacheMode() == PARTITIONED && cfg.getRebalanceDelay() >= 0))
-                cache.preloader().syncFuture().get();
+                    cache.preloader().syncFuture().get();
             }
 
             if (CU.isUtilityCache(cache.name()))

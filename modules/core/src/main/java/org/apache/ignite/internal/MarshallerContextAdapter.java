@@ -41,7 +41,7 @@ public abstract class MarshallerContextAdapter implements MarshallerContext {
     private final ConcurrentMap<Integer, String> map = new ConcurrentHashMap8<>();
 
     /** */
-    private final Set<String> registeredTypes = new HashSet<>();
+    private final Set<String> registeredSystemTypes = new HashSet<>();
 
     /**
      * Initializes context.
@@ -86,7 +86,7 @@ public abstract class MarshallerContextAdapter implements MarshallerContext {
                     throw new IgniteException("Duplicate type ID [id=" + typeId + ", clsName=" + clsName +
                         ", oldClsName=" + oldClsName + ']');
 
-                registeredTypes.add(clsName);
+                registeredSystemTypes.add(clsName);
             }
         }
     }
@@ -131,7 +131,7 @@ public abstract class MarshallerContextAdapter implements MarshallerContext {
 
     /** {@inheritDoc} */
     @Override public boolean isSystemType(String typeName) {
-        return registeredTypes.contains(typeName);
+        return registeredSystemTypes.contains(typeName);
     }
 
     /**

@@ -644,7 +644,8 @@ public class IgniteKernal implements IgniteEx, IgniteMXBean, Externalizable {
                 igfsExecSvc,
                 restExecSvc);
 
-            cfg.getMarshaller().setContext(ctx.marshallerContext());
+            if (cfg.getMarshaller().getContext() == null)
+                cfg.getMarshaller().setContext(ctx.marshallerContext());
 
             startProcessor(new ClusterProcessor(ctx));
 

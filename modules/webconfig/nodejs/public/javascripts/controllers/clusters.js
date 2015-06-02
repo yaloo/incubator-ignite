@@ -97,7 +97,7 @@ configuratorModule.controller('clustersController', ['$scope', '$modal', '$http'
             $http.post('/rest/clusters/save', item)
                 .success(function() {
                     var cluster = $scope.clusters.find(function(cluster) {
-                        return clusters._id == item._id;
+                        return cluster._id == item._id;
                     });
 
                     if (cluster)
